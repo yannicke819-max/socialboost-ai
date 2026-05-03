@@ -215,14 +215,17 @@ function Comparison({ t }: { t: ReturnType<typeof getDict>['comparison'] }) {
               </tr>
             </thead>
             <tbody>
-              {t.rows.map((label, i) => (
-                <tr key={label} className="border-t border-gray-100 dark:border-gray-800">
-                  <td className="px-3 py-3 font-medium sm:px-4">{label}</td>
-                  <td className="px-3 py-3 text-center sm:px-4">{renderCell(cells[i][0])}</td>
-                  <td className="px-3 py-3 text-center sm:px-4">{renderCell(cells[i][1])}</td>
-                  <td className="px-3 py-3 text-center sm:px-4">{renderCell(cells[i][2])}</td>
-                </tr>
-              ))}
+              {t.rows.map((label, i) => {
+                const row = cells[i] ?? [false, false, false];
+                return (
+                  <tr key={label} className="border-t border-gray-100 dark:border-gray-800">
+                    <td className="px-3 py-3 font-medium sm:px-4">{label}</td>
+                    <td className="px-3 py-3 text-center sm:px-4">{renderCell(row[0])}</td>
+                    <td className="px-3 py-3 text-center sm:px-4">{renderCell(row[1])}</td>
+                    <td className="px-3 py-3 text-center sm:px-4">{renderCell(row[2])}</td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         </div>
