@@ -3,11 +3,11 @@ import type { fr } from './fr';
 export const en: typeof fr = {
   meta: {
     siteName: 'SocialBoost AI',
-    tagline: 'One idea. A week of content. Your voice.',
+    tagline: 'One idea → five native publications. In thirty minutes.',
   },
   nav: {
     how: 'How it works',
-    features: 'Features',
+    features: 'Product',
     pricing: 'Pricing',
     faq: 'FAQ',
     login: 'Log in',
@@ -15,11 +15,11 @@ export const en: typeof fr = {
     languageLabel: 'Language',
   },
   footer: {
-    tagline: 'One idea. A week of content. Your voice.',
+    tagline: 'One idea → five native publications. In thirty minutes.',
     productCol: 'Product',
     companyCol: 'Company',
     legalCol: 'Legal',
-    features: 'Features',
+    features: 'Product',
     pricing: 'Pricing',
     how: 'How it works',
     faq: 'FAQ',
@@ -34,12 +34,12 @@ export const en: typeof fr = {
   },
   hero: {
     eyebrow: 'AI-powered editorial production studio',
-    titleStart: 'One idea. A week of content.',
-    titleEnd: 'Your voice.',
+    titleStart: 'One idea →',
+    titleEnd: 'five native publications.',
     subtitle:
-      "Paste a transcript, a URL, or a note. SocialBoost ships a LinkedIn, Instagram, X, and TikTok campaign that actually sounds like you. Not generic ChatGPT.",
-    primaryCta: 'Set up my Brand Voice',
-    secondaryCta: 'Watch a 90-second demo',
+      "The AI that turns a brief, a transcript, or a URL into a LinkedIn, Instagram, X, and TikTok campaign tailored to each network's native format. Without diluting your voice, without rewriting the same post five times.",
+    primaryCta: 'Remix my first idea',
+    secondaryCta: 'Watch the 60-second demo',
     fineprint: '14-day Pro trial · No credit card · Cancel in one click',
   },
   demo: {
@@ -55,55 +55,56 @@ export const en: typeof fr = {
     },
   },
   problem: {
-    title: "You publish AI content → it shows → your audience tunes out.",
+    title: 'You publish AI content → it shows → your audience tunes out.',
     body:
-      "You know ChatGPT. You ship fast. But your posts smell of AI from a mile away: flat structure, predictable vocabulary, a voice that isn't yours. The result: you publish more, you engage less, you eventually quit.",
-    punchline: "The problem isn't AI. It's generic AI.",
+      "You ship fast with ChatGPT, but your posts smell of AI from a mile away: flat structure, predictable vocabulary, a voice that isn't yours. And every platform demands its own format — so you rewrite five times, or you flatly copy-paste. You publish more, you engage less, you eventually quit.",
+    punchline:
+      "The right tool doesn't generate more. It transforms one input into five coherent outputs.",
   },
   how: {
-    title: 'From a raw idea to 4 publications, without diluting your voice.',
+    title: 'From a raw input to five native publications, in thirty minutes.',
     steps: [
       {
-        time: '5 min, once',
-        title: 'Set up your voice',
+        time: '5-30 seconds',
+        title: 'Paste your input',
         body:
-          "Paste 3 to 5 of your best posts. SocialBoost extracts your style, your tone, your linguistic tics. That's your Brand Voice — it stays.",
+          'A brief, a podcast transcript, an article, a product page, a long LinkedIn post, a voice memo. You paste. SocialBoost reads.',
       },
       {
         time: '30 seconds',
-        title: 'Remix an idea',
+        title: 'The engine remixes',
         body:
-          'Brief, transcript, URL, voice memo. SocialBoost decomposes, adapts to the native format of each network, keeps your voice. Not multi-platform copy-paste.',
+          "Five publications adapted to each network's native format: LinkedIn long-form, IG carousel, X thread, TikTok script, Facebook. Not copy-paste. Your voice preserved by Style DNA running in the background.",
       },
       {
         time: 'before publishing',
-        title: 'Publish what matters',
+        title: 'You pick, you publish',
         body:
-          "The Boost Score predicts the performance of each variant. You pick. You publish. You stop learning post-mortem — you decide upfront.",
+          'The Boost Score predicts the performance of each variant. You validate the ones that match your brand. You publish — or you schedule.',
       },
     ],
   },
   pillars: {
-    eyebrow: 'Three pillars, zero fluff',
-    title: "We don't do the work for you. We do your best work, faster.",
+    eyebrow: 'Three levers, in this order',
+    title: "Editorial throughput. Without cheating on the voice.",
     items: [
+      {
+        tag: 'The wedge',
+        title: 'Content Remix Engine',
+        body:
+          "One input → five publications adapted to each network's native format. No copy-paste. No manual rewriting. The product's core.",
+      },
       {
         tag: 'The moat',
         title: 'Style DNA',
         body:
-          "AI doesn't invent your voice — it reproduces it. Trained on your own posts, your Brand Voice gets sharper with every generation.",
-      },
-      {
-        tag: 'The throughput',
-        title: 'Multi-platform remix',
-        body:
-          'One input → 5 native outputs. Not lazy adaptation: LinkedIn long-form, IG carousel, X thread, TikTok script.',
+          "Your voice preserved with every generation. SocialBoost trains on your best posts; the more you use it, the sharper it gets. Unmatchable by a competitor without your data.",
       },
       {
         tag: 'The decision',
         title: 'Predictive Boost Score',
         body:
-          'Before publishing, you know which variant will perform. Learns from your own results over time.',
+          'Before publishing, you know which variant will perform. Score based on structure, hook, length, voice alignment. Learns from your own results over time.',
       },
     ],
   },
@@ -111,10 +112,10 @@ export const en: typeof fr = {
     title: "SocialBoost isn't another AI tool. It's a different category.",
     cols: { chatgpt: 'ChatGPT', buffer: 'Buffer / Hootsuite', socialboost: 'SocialBoost' },
     rows: [
-      'Multi-platform native formats',
+      '1 input → native publications per network',
       'Voice learning from your own posts',
       'Predictive score before publishing',
-      'Generation in 30 seconds',
+      'Generation in under 30 seconds',
       'Built for solos (not for IT teams)',
       'Publishing scheduler',
     ],
@@ -136,7 +137,7 @@ export const en: typeof fr = {
       {
         title: 'E-commerce founders',
         body:
-          'Turn product pages, founder podcasts, and behind-the-scenes into mixed lifestyle / acquisition campaigns.',
+          "Turn product pages, founder podcasts, and behind-the-scenes into mixed lifestyle / acquisition campaigns.",
       },
     ],
   },
@@ -144,17 +145,17 @@ export const en: typeof fr = {
     items: [
       {
         quote:
-          "I got 8 hours back per week. And my posts no longer smell of AI. My LinkedIn engagement doubled in 60 days.",
-        who: 'Léa M., strategy consultant · 18k followers',
-      },
-      {
-        quote:
-          "I used to publish once a week. Now four times. My ghostwriter cost €1,200/mo. SocialBoost costs me €79.",
+          "I used to publish once a week on LinkedIn. Now four times, plus IG and X automatically. My ghostwriter cost €1,200/mo. SocialBoost costs me €79.",
         who: 'Marc D., business coach · 9k followers',
       },
       {
         quote:
-          "The Boost Score is a game-changer. I no longer publish blind — I know which variant to pick.",
+          "I got 8 hours back per week. And my posts no longer smell of AI — the voice holds across all five platforms. LinkedIn engagement doubled in 60 days.",
+        who: 'Léa M., strategy consultant · 18k followers',
+      },
+      {
+        quote:
+          "The Boost Score is a game-changer. I no longer publish blind — I know which variant to pick before.",
         who: 'Sofia L., infopreneur · 32k followers',
       },
     ],
@@ -164,42 +165,47 @@ export const en: typeof fr = {
     subtitle: '14 days free on Pro. Cancel in one click.',
   },
   faq: {
-    title: 'The objections we hear most often.',
+    title: 'The questions we hear most.',
     items: [
       {
-        q: 'Is this still generic AI content?',
+        q: 'Concretely, what do I paste into the Studio?',
         a:
-          "No. SocialBoost doesn't write in its voice — it writes in yours. Brand Voice Setup analyses 3 to 5 of your best posts to extract your style. Every generation is filtered to ban LLM clichés (“In a world where…”, “Game-changer”, “Let's gooo”). You can always edit before publishing.",
+          "Any input with substance: a text brief, a podcast transcript (10-60 minutes), an article URL, a product sheet, a long LinkedIn post, a pillar email. SocialBoost extracts the main argument and declines it across networks.",
+      },
+      {
+        q: 'How many platforms per generation?',
+        a:
+          'Starter: 3 networks (LinkedIn, IG, X). Pro and Studio: all 5 (LinkedIn, IG, X, TikTok, Facebook), with 3 to 5 variants per network. You choose which to publish.',
+      },
+      {
+        q: "And the voice — won't it get diluted in the remix?",
+        a:
+          "No. Style DNA runs in the background on every generation: we extract your style from 3-5 of your best posts, we filter LLM clichés (\"In a world where…\", \"Game-changer\"), and you can always edit before publishing.",
       },
       {
         q: 'I already have ChatGPT — what do you do extra?',
         a:
-          "ChatGPT gives you a generic text. SocialBoost ships a campaign tailored to 5 platforms (LinkedIn long-form, IG carousel, X thread, TikTok script, Facebook), trained on your voice, with a predictive score before publishing. It's a different category of tool.",
+          "ChatGPT gives you generic text on one platform. SocialBoost ships a campaign tailored to 5 platforms, trained on your voice, with a predictive score before publishing. It's a different category of tool.",
       },
       {
         q: 'Too expensive for yet another tool?',
         a:
-          "Do the math: 15 hours of writing per week → 1 hour. At €80/h billed, payback is under a week. Pro at €79/mo is cheaper than a ghostwriter at €1,200 — and it doesn't go on holiday.",
+          "Do the math: 15 hours of rewriting per week → 1 hour. At €80/h billed, payback under a week. Pro at €79/mo is cheaper than a €1,200 ghostwriter — and it doesn't go on holiday.",
       },
       {
-        q: 'Is the Boost Score real, or marketing fluff?',
+        q: 'Is the Boost Score serious, or marketing fluff?',
         a:
-          "It's a predictive score based on length, hooks, structure, voice alignment, and hashtags. Initially rule-based; as you publish, it learns from YOUR own results — not from a global average.",
+          "It's a predictive score based on length, hooks, structure, voice alignment, and hashtags. Initially rule-based; as you publish, it learns from YOUR own results — not a global average.",
       },
       {
-        q: 'Which platforms are supported?',
+        q: 'Which platforms for auto-publishing?',
         a:
-          'Generation: Instagram, TikTok, LinkedIn, X, Facebook. Auto-publishing: LinkedIn first (S6), the others follow.',
+          'Generation on all 5 from Pro. Auto-publishing: LinkedIn first (Sprint 6), then Instagram, then X and TikTok. Until then, one-click copy-paste from the Studio.',
       },
       {
         q: 'Is my data safe?',
         a:
-          "EU hosting, GDPR compliance, OAuth tokens encrypted at rest. We don't sell anything to anyone, we don't use your content to train a global model — your Brand Voice stays isolated to your account.",
-      },
-      {
-        q: 'Shadowban risk?',
-        a:
-          'No suspicious automation: we use official APIs, no DM bot, hashtags and frequency tuned to each platform.',
+          "EU hosting, GDPR compliance, OAuth tokens encrypted at rest. We don't sell anything, we don't use your content to train a global model — your Brand Voice stays isolated to your account.",
       },
       {
         q: 'What if I cancel?',
@@ -209,15 +215,15 @@ export const en: typeof fr = {
     ],
   },
   finalCta: {
-    title: "Stop publishing generic AI. Publish yours, sharper.",
-    subtitle: '14 days free on Pro. No credit card. First campaign in 5 minutes.',
-    cta: 'Set up my Brand Voice',
+    title: 'Stop rewriting the same post five times. Remix once, publish everywhere.',
+    subtitle: '14 days free on Pro. No credit card. First campaign in under 5 minutes.',
+    cta: 'Remix my first idea',
   },
   pricingPage: {
     eyebrow: 'Pricing',
     title: 'Three plans. No free tier.',
     subtitle:
-      'All plans include Brand Voice Setup and multi-platform generation. 14-day Pro trial. Cancel in one click.',
+      'All plans include the Remix Engine, Style DNA, and multi-platform generation. 14-day Pro trial. Cancel in one click.',
     monthly: 'Monthly',
     yearly: 'Yearly',
     yearlyBadge: '2 months free',
@@ -233,11 +239,11 @@ export const en: typeof fr = {
       tagline: 'Test the wedge',
       cta: 'Get started',
       features: [
-        '1 Brand Voice',
         '20 inputs / month',
         '3 platforms (LinkedIn, IG, X)',
         '2 variants per platform',
-        'Standard Brand Voice Setup',
+        '1 Brand Voice',
+        'Standard Style DNA',
         'Manual publishing (copy-paste)',
         'Email support',
       ],
@@ -247,11 +253,11 @@ export const en: typeof fr = {
       tagline: 'My weekly production engine',
       cta: 'Start 14-day trial',
       features: [
-        '3 Brand Voices',
         '100 inputs / month',
         'All platforms (5)',
         '3 variants per platform',
-        'Advanced Brand Voice Setup (post analysis)',
+        '3 Brand Voices',
+        'Advanced Style DNA (post analysis)',
         'Predictive Boost Score',
         'LinkedIn auto-publish',
         'Priority support',
@@ -262,9 +268,9 @@ export const en: typeof fr = {
       tagline: 'I manage clients',
       cta: 'Choose Studio',
       features: [
-        '10 Brand Voices (team / clients)',
         'Unlimited inputs',
         '5 variants per platform',
+        '10 Brand Voices (team / clients)',
         'Existing post import',
         'Boost Score + recommendations',
         'Multi-network publishing',
@@ -287,7 +293,7 @@ export const en: typeof fr = {
       google: 'Continue with Google',
     },
     signup: {
-      title: 'Set up your Brand Voice.',
+      title: 'Remix your first idea.',
       subtitle: '14 days free. No credit card. First campaign in 5 minutes.',
       email: 'Email',
       password: 'Password',
@@ -414,22 +420,22 @@ export const en: typeof fr = {
     eyebrow: 'About',
     title: 'We build SocialBoost for solo media operators.',
     subtitle:
-      "Not for IT teams, not for 50-person agencies. For those who do everything themselves and want to reclaim their time without diluting their voice.",
+      "The AI that turns an idea into a profitable social campaign, without losing your voice. Not for IT teams or 50-person agencies — for those who do everything themselves.",
     sections: [
       {
         h: 'The origin',
         p:
-          "We spent 18 months observing the best solo creators. The verdict: generic AI content kills trust faster than it saves time. SocialBoost is the opposite — preserve the voice first, accelerate second.",
+          "Solo creators and SMBs spend 15 hours a week producing content. With ChatGPT, it's faster — but generic, and you still rewrite for each platform. SocialBoost flips it: one input, five native outputs, voice preserved as a guarantee.",
       },
       {
         h: 'The conviction',
         p:
-          "AI is a commodity. The moat isn't in the model — it's in the data: your voice, your performance, your choices. That's what we accumulate with every generation.",
+          "AI is a commodity. The moat isn't in the model — it's in the system: one input, five platforms, stable voice, predictive score, and progressively a business attribution layer (which content actually drives leads).",
       },
       {
         h: 'The trajectory',
         p:
-          'V1: Style DNA + multi-platform Remix. V2: predictive Boost Score. V3: social integrations and automated publishing. We prefer doing three things well over thirty things badly.',
+          "V1: Remix Engine + Style DNA + Boost Score. V2: real publishing on LinkedIn then the rest. V3: revenue intelligence — which content generates leads, meetings, sales. We prefer doing three things well over thirty things badly.",
       },
     ],
   },
@@ -451,10 +457,10 @@ export const en: typeof fr = {
     ],
   },
   studio: {
-    title: 'Studio',
-    heading: 'One idea. Five platforms. Your voice.',
+    title: 'Remix Studio',
+    heading: 'One input → your native platforms.',
     subtitle:
-      'Paste a brief, a transcript, or a URL. SocialBoost adapts to the native format of each network and keeps your tone.',
+      "Paste a brief, a transcript, a URL, or a long post. SocialBoost remixes into variants tailored to each network's native format, without diluting your voice.",
   },
   notFound: {
     title: '404',

@@ -1,5 +1,17 @@
 import Link from 'next/link';
-import { ArrowRight, Dna, Layers, Gauge, Mic, Globe, FileText, Sparkles, Check, X } from 'lucide-react';
+import {
+  ArrowRight,
+  Dna,
+  Wand2,
+  Gauge,
+  Mic,
+  Globe,
+  FileText,
+  Inbox,
+  Sparkles,
+  Check,
+  X,
+} from 'lucide-react';
 import { FAQ } from '@/components/marketing/FAQ';
 import { PricingTable } from '@/components/marketing/PricingTable';
 import { getDict } from '@/lib/i18n';
@@ -130,7 +142,7 @@ function Problem({ t }: { t: ReturnType<typeof getDict>['problem'] }) {
 }
 
 function HowItWorks({ t }: { t: ReturnType<typeof getDict>['how'] }) {
-  const icons = [<Dna key="dna" size={20} />, <Layers key="layers" size={20} />, <Gauge key="gauge" size={20} />];
+  const icons = [<Inbox key="inbox" size={20} />, <Wand2 key="wand" size={20} />, <Gauge key="gauge" size={20} />];
   return (
     <section id="how" className="mx-auto max-w-6xl px-4 py-20 sm:px-6 sm:py-24">
       <div className="mx-auto max-w-2xl text-center">
@@ -160,7 +172,7 @@ function HowItWorks({ t }: { t: ReturnType<typeof getDict>['how'] }) {
 }
 
 function Pillars({ t }: { t: ReturnType<typeof getDict>['pillars'] }) {
-  const icons = [<Dna key="dna" size={22} />, <Layers key="layers" size={22} />, <Gauge key="gauge" size={22} />];
+  const icons = [<Wand2 key="wand" size={22} />, <Dna key="dna" size={22} />, <Gauge key="gauge" size={22} />];
   return (
     <section id="features" className="bg-gray-50 py-20 dark:bg-gray-900 sm:py-24">
       <div className="mx-auto max-w-6xl px-4 sm:px-6">
