@@ -14,10 +14,10 @@ export function Topbar({ title }: { title: string }) {
           <Bell size={16} />
         </button>
         <Link
-          href="/generator"
+          href="/studio"
           className="inline-flex items-center gap-2 rounded-lg bg-brand-500 px-3 py-2 text-sm font-semibold text-white transition hover:bg-brand-600"
         >
-          <Plus size={16} /> Nouveau post
+          <Plus size={16} /> Nouvelle campagne
         </Link>
       </div>
     </header>
