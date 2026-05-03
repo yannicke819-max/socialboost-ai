@@ -5,81 +5,36 @@ import Link from 'next/link';
 import { Check } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
-type Plan = {
-  id: 'starter' | 'pro' | 'studio';
+export type PlanId = 'starter' | 'pro' | 'studio';
+
+export type Plan = {
+  id: PlanId;
   name: string;
   tagline: string;
   monthly: number;
   yearly: number;
   highlight?: boolean;
   cta: string;
-  features: string[];
+  features: ReadonlyArray<string>;
 };
 
-const PLANS: Plan[] = [
-  {
-    id: 'starter',
-    name: 'Starter',
-    tagline: 'Tester le wedge',
-    monthly: 29,
-    yearly: 24,
-    cta: 'Commencer',
-    features: [
-      '1 Brand Voice',
-      '20 inputs / mois',
-      '3 plateformes (LinkedIn, IG, X)',
-      '2 variantes par plateforme',
-      'Brand Voice Setup standard',
-      'Publication manuelle (copier-coller)',
-      'Support email',
-    ],
-  },
-  {
-    id: 'pro',
-    name: 'Pro',
-    tagline: 'Ma machine de prod hebdo',
-    monthly: 79,
-    yearly: 66,
-    highlight: true,
-    cta: 'Démarrer 14 j gratuits',
-    features: [
-      '3 Brand Voices',
-      '100 inputs / mois',
-      'Toutes plateformes (5)',
-      '3 variantes par plateforme',
-      'Brand Voice Setup avancé (analyse posts)',
-      'Boost Score prédictif',
-      'Publication LinkedIn auto',
-      'Support prioritaire',
-    ],
-  },
-  {
-    id: 'studio',
-    name: 'Studio',
-    tagline: 'Je gère mes clients',
-    monthly: 199,
-    yearly: 166,
-    cta: 'Choisir Studio',
-    features: [
-      '10 Brand Voices (équipe / clients)',
-      'Inputs illimités',
-      '5 variantes par plateforme',
-      'Import posts existants',
-      'Boost Score + recommandations',
-      'Publication multi-réseaux',
-      '3 sièges inclus (+39 €/siège)',
-      'Slack partagé avec l’équipe',
-    ],
-  },
-];
+export type PricingLabels = {
+  monthly: string;
+  yearly: string;
+  yearlyBadge: string;
+  perMonth: string;
+  yearlyTotal: string;
+  popular: string;
+  fineprint: string;
+};
 
-export function PricingTable() {
+export function PricingTable({ plans, labels }: { plans: ReadonlyArray<Plan>; labels: PricingLabels }) {
   const [yearly, setYearly] = useState(true);
 
   return (
     <div className="space-y-10">
-      <div className="flex items-center justify-center gap-3">
-        <span className={cn('text-sm', !yearly && 'font-semibold')}>Mensuel</span>
+      <div className="flex flex-wrap items-center justify-center gap-3">
+        <span className={cn('text-sm', !yearly && 'font-semibold')}>{labels.monthly}</span>
         <button
           type="button"
           onClick={() => setYearly((y) => !y)}
@@ -95,18 +50,19 @@ export function PricingTable() {
           />
         </button>
         <span className={cn('text-sm', yearly && 'font-semibold')}>
-          Annuel <span className="text-brand-500">soit 2 mois offerts</span>
+          {labels.yearly} <span className="text-brand-500">{labels.yearlyBadge}</span>
         </span>
       </div>
 
-      <div className="mx-auto grid max-w-5xl gap-6 md:grid-cols-3">
-        {PLANS.map((plan) => {
+      <div className="mx-auto grid max-w-5xl gap-5 sm:gap-6 md:grid-cols-3">
+        {plans.map((plan) => {
           const price = yearly ? plan.yearly : plan.monthly;
+          const yearlyTotal = labels.yearlyTotal.replace('{total}', String(plan.yearly * 12));
           return (
             <div
               key={plan.id}
               className={cn(
-                'flex flex-col rounded-2xl border bg-white p-7 dark:bg-gray-900',
+                'flex flex-col rounded-2xl border bg-white p-6 dark:bg-gray-900 sm:p-7',
                 plan.highlight
                   ? 'border-brand-500 shadow-xl ring-1 ring-brand-500/30'
                   : 'border-gray-200 dark:border-gray-800',
@@ -114,22 +70,16 @@ export function PricingTable() {
             >
               {plan.highlight && (
                 <span className="mb-3 inline-block w-fit rounded-full bg-brand-500/10 px-2.5 py-0.5 text-xs font-semibold text-brand-600">
-                  Le plus populaire
+                  {labels.popular}
                 </span>
               )}
               <h3 className="text-xl font-bold">{plan.name}</h3>
               <p className="text-sm text-gray-500">{plan.tagline}</p>
               <div className="mt-5">
-                <span className="text-4xl font-bold">
-                  {price} €
-                </span>
-                <span className="text-sm text-gray-500"> / mois</span>
+                <span className="text-4xl font-bold">{price} €</span>
+                <span className="text-sm text-gray-500"> {labels.perMonth}</span>
               </div>
-              {yearly && (
-                <p className="mt-1 text-xs text-gray-500">
-                  Soit {plan.yearly * 12} € / an facturés
-                </p>
-              )}
+              {yearly && <p className="mt-1 text-xs text-gray-500">{yearlyTotal}</p>}
               <Link
                 href={`/signup?plan=${plan.id}`}
                 className={cn(
@@ -154,9 +104,7 @@ export function PricingTable() {
         })}
       </div>
 
-      <p className="text-center text-sm text-gray-500">
-        Trial 14 jours sur le Pro · Annulation en 1 clic · Paiement sécurisé Stripe
-      </p>
+      <p className="text-center text-sm text-gray-500">{labels.fineprint}</p>
     </div>
   );
 }
