@@ -1,4 +1,3 @@
-import { forwardRef } from 'react';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
 
@@ -21,6 +20,13 @@ const sizes: Record<Size, string> = {
   lg: 'h-12 px-6 text-sm',
 };
 
+const baseClass =
+  'inline-flex items-center justify-center gap-2 rounded-md font-semibold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-bg disabled:cursor-not-allowed disabled:opacity-50';
+
+function classes(variant: Variant, size: Size, className?: string) {
+  return cn(baseClass, variants[variant], sizes[size], className);
+}
+
 type CommonProps = {
   variant?: Variant;
   size?: Size;
@@ -28,48 +34,29 @@ type CommonProps = {
   children: React.ReactNode;
 };
 
-type AsButton = CommonProps &
-  Omit<React.ButtonHTMLAttributes<HTMLButtonElement>, keyof CommonProps> & { href?: undefined };
+export function Button({
+  variant = 'default',
+  size = 'md',
+  className,
+  children,
+  href,
+  ...rest
+}: CommonProps & {
+  href?: string;
+} & Omit<React.ButtonHTMLAttributes<HTMLButtonElement>, 'children' | 'className'>) {
+  const cls = classes(variant, size, className);
 
-type AsLink = CommonProps &
-  Omit<React.ComponentProps<typeof Link>, keyof CommonProps | 'href'> & { href: string };
-
-type ButtonProps = AsButton | AsLink;
-
-export const Button = forwardRef<HTMLButtonElement | HTMLAnchorElement, ButtonProps>(
-  ({ variant = 'default', size = 'md', className, children, ...rest }, ref) => {
-    const cls = cn(
-      'inline-flex items-center justify-center gap-2 rounded-md font-semibold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-bg disabled:cursor-not-allowed disabled:opacity-50',
-      variants[variant],
-      sizes[size],
-      className,
-    );
-
-    if ('href' in rest && rest.href) {
-      const { href, ...linkRest } = rest as AsLink;
-      return (
-        <Link
-          {...linkRest}
-          href={href}
-          ref={ref as React.Ref<HTMLAnchorElement>}
-          className={cls}
-        >
-          {children}
-        </Link>
-      );
-    }
-
-    const buttonRest = rest as AsButton;
+  if (href) {
     return (
-      <button
-        {...buttonRest}
-        ref={ref as React.Ref<HTMLButtonElement>}
-        className={cls}
-      >
+      <Link href={href} className={cls}>
         {children}
-      </button>
+      </Link>
     );
-  },
-);
+  }
 
-Button.displayName = 'Button';
+  return (
+    <button {...rest} className={cls}>
+      {children}
+    </button>
+  );
+}
