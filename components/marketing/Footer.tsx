@@ -33,7 +33,6 @@ export function MarketingFooter() {
           <FooterCol title={t.companyCol}>
             <FooterLink href="/about">{t.about}</FooterLink>
             <FooterLink href="/contact">{t.contact}</FooterLink>
-            <FooterLink href="/blog">{t.blog}</FooterLink>
           </FooterCol>
 
           <FooterCol title={t.legalCol}>
