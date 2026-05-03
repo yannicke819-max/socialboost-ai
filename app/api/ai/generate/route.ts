@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
-import { anthropic, MODELS } from '@/lib/anthropic';
+import { getAnthropicClient, MODELS } from '@/lib/anthropic';
 import { createClient } from '@/lib/supabase/server';
 
 export const runtime = 'nodejs';
@@ -69,7 +69,7 @@ export async function POST(req: Request) {
     .filter(Boolean)
     .join('\n\n');
 
-  const response = await anthropic.messages.create({
+  const response = await getAnthropicClient().messages.create({
     model: MODELS.workhorse,
     max_tokens: 1500,
     system: [

@@ -1,13 +1,19 @@
 import 'server-only';
 import Anthropic from '@anthropic-ai/sdk';
 
-if (!process.env.ANTHROPIC_API_KEY) {
-  throw new Error('ANTHROPIC_API_KEY is not set');
-}
+let cached: Anthropic | null = null;
 
-export const anthropic = new Anthropic({
-  apiKey: process.env.ANTHROPIC_API_KEY,
-});
+export function getAnthropicClient(): Anthropic {
+  if (cached) return cached;
+
+  const apiKey = process.env.ANTHROPIC_API_KEY;
+  if (!apiKey) {
+    throw new Error('ANTHROPIC_API_KEY is not set');
+  }
+
+  cached = new Anthropic({ apiKey });
+  return cached;
+}
 
 export const MODELS = {
   workhorse: 'claude-sonnet-4-6',
