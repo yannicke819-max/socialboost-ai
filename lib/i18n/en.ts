@@ -3,7 +3,7 @@ import type { fr } from './fr';
 export const en: typeof fr = {
   meta: {
     siteName: 'SocialBoost AI',
-    tagline: 'One idea → five native publications. In thirty minutes.',
+    tagline: 'Turn your expertise into revenue, post after post.',
   },
   nav: {
     how: 'How it works',
@@ -11,11 +11,11 @@ export const en: typeof fr = {
     pricing: 'Pricing',
     faq: 'FAQ',
     login: 'Log in',
-    signup: 'Try free',
+    signup: 'Start free',
     languageLabel: 'Language',
   },
   footer: {
-    tagline: 'One idea → five native publications. In thirty minutes.',
+    tagline: 'Turn your expertise into revenue, post after post.',
     productCol: 'Product',
     companyCol: 'Company',
     legalCol: 'Legal',
@@ -33,78 +33,83 @@ export const en: typeof fr = {
     hosted: 'Hosted in Europe · GDPR',
   },
   hero: {
-    eyebrow: 'AI-powered editorial production studio',
-    titleStart: 'One idea →',
-    titleEnd: 'five native publications.',
+    eyebrow: 'Editorial Revenue System for solo creators & SMBs',
+    titleStart: 'Hand us your offer.',
+    titleEnd: "We build the campaign that sells it.",
     subtitle:
-      "The AI that turns a brief, a transcript, or a URL into a LinkedIn, Instagram, X, and TikTok campaign tailored to each network's native format. Without diluting your voice, without rewriting the same post five times.",
-    primaryCta: 'Remix my first idea',
+      "SocialBoost turns your expertise — an article, a transcript, an offer brief — into a multi-platform campaign, in your voice, tied to a measurable business goal. Not likes. Results.",
+    primaryCta: 'Build my campaign',
     secondaryCta: 'Watch the 60-second demo',
-    fineprint: '14-day Pro trial · No credit card · Cancel in one click',
+    fineprint: 'Free plan available · 14-day Pro trial · No credit card · Cancel in one click',
   },
   demo: {
-    inputLabel: 'Input · 1 brief',
+    inputLabel: 'Input · 1 offer + 1 idea',
     inputExample:
-      "“I tested 4 LinkedIn prospecting tools for 60 days. Here are the 3 mistakes I see in 90% of solo consultants — and how I tripled my reply rate…”",
-    outputLabel: 'Output · 4 native platforms',
+      "“LinkedIn coaching for consultants — €900 / 4 weeks. Promise: 3× qualified meetings in 30 days. Link: calendly.com/audit-30min”",
+    outputLabel: 'Output · campaign tied to the offer',
     platforms: {
-      linkedin: 'Long-form post · 1,200 chars · comments CTA',
-      instagram: '7-slide carousel · visual hook · targeted hashtags',
-      x: '8-tweet thread · contrarian hook',
-      tiktok: '45-sec video script · 3-sec hook · problem → solution',
+      linkedin: 'Long-form post · 1,200 chars · Calendly CTA',
+      instagram: '7-slide carousel · visual hook · tracked bio link',
+      x: '8-tweet thread · contrarian hook · reply CTA',
+      tiktok: '45-sec video script · 3-sec hook · "link in bio" CTA',
     },
   },
   problem: {
-    title: 'You publish AI content → it shows → your audience tunes out.',
+    title: "86% of creators already use AI. Content isn't the problem anymore — conversion is.",
     body:
-      "You ship fast with ChatGPT, but your posts smell of AI from a mile away: flat structure, predictable vocabulary, a voice that isn't yours. And every platform demands its own format — so you rewrite five times, or you flatly copy-paste. You publish more, you engage less, you eventually quit.",
-    punchline:
-      "The right tool doesn't generate more. It transforms one input into five coherent outputs.",
+      "You ship fast with ChatGPT. But your posts don't bring leads, customers, or revenue. 42% of creators don't know if their content generates business. No tool bridges a post and a euro earned.",
+    punchline: "The right tool doesn't generate more. It turns your expertise into an editorial revenue system.",
   },
   how: {
-    title: 'From a raw input to five native publications, in thirty minutes.',
+    title: 'From your offer to ten posts that sell, in under five minutes.',
     steps: [
       {
-        time: '5-30 seconds',
-        title: 'Paste your input',
+        time: '60 seconds',
+        title: 'Hand us your offer',
         body:
-          'A brief, a podcast transcript, an article, a product page, a long LinkedIn post, a voice memo. You paste. SocialBoost reads.',
+          "Coaching, course, product, free audit, Calendly link. SocialBoost stores your promise, price, target — that's your Offer Memory.",
       },
       {
         time: '30 seconds',
-        title: 'The engine remixes',
+        title: 'The engine builds the campaign',
         body:
-          "Five publications adapted to each network's native format: LinkedIn long-form, IG carousel, X thread, TikTok script, Facebook. Not copy-paste. Your voice preserved by Style DNA running in the background.",
+          "Ten posts adapted to LinkedIn, Instagram, X, TikTok. Each written in your Style DNA, tied to your monthly business goal (sales / leads / authority), with an explained Confidence Score.",
       },
       {
         time: 'before publishing',
-        title: 'You pick, you publish',
+        title: 'You validate, publish, measure',
         body:
-          'The Boost Score predicts the performance of each variant. You validate the ones that match your brand. You publish — or you schedule.',
+          "Approve with a swipe. SocialBoost schedules at the best time. The Revenue Signal tells you which posts drove clicks to your offer — not just likes.",
       },
     ],
   },
   pillars: {
-    eyebrow: 'Three levers, in this order',
-    title: "Editorial throughput. Without cheating on the voice.",
+    eyebrow: 'Four layers. One promise: from content to revenue.',
+    title: "We don't make more posts. We make posts that bring business.",
     items: [
       {
         tag: 'The wedge',
-        title: 'Content Remix Engine',
+        title: 'Campaign Engine',
         body:
-          "One input → five publications adapted to each network's native format. No copy-paste. No manual rewriting. The product's core.",
+          'One input + one offer → complete multi-platform campaign. Not reformatting: editorial adaptation per network, in your Style DNA, tied to your monthly goal.',
       },
       {
         tag: 'The moat',
-        title: 'Style DNA',
+        title: 'Self-learning Style DNA',
         body:
-          "Your voice preserved with every generation. SocialBoost trains on your best posts; the more you use it, the sharper it gets. Unmatchable by a competitor without your data.",
+          "Your voice preserved and sharpened with every correction. The more you use it, the more precise. Your data stays on your account, non-transferable — your editorial fingerprint.",
       },
       {
         tag: 'The decision',
-        title: 'Predictive Boost Score',
+        title: 'Confidence Score',
         body:
-          'Before publishing, you know which variant will perform. Score based on structure, hook, length, voice alignment. Learns from your own results over time.',
+          "Before each publication: a 0-100 score with three human reasons. \"This post will work because strong hook, narrative + CTA structure, and you're posting at your best slot.\" Not a number — a decision.",
+      },
+      {
+        tag: 'The attribution',
+        title: 'Revenue Signal',
+        body:
+          'Every generated link is tracked. End of month: "Your 3 posts on March 12 sent 47 people to your Calendly." First solo/SMB tool to bridge content and revenue, no CRM, no pixel.',
       },
     ],
   },
@@ -112,32 +117,32 @@ export const en: typeof fr = {
     title: "SocialBoost isn't another AI tool. It's a different category.",
     cols: { chatgpt: 'ChatGPT', buffer: 'Buffer / Hootsuite', socialboost: 'SocialBoost' },
     rows: [
-      '1 input → native publications per network',
-      'Voice learning from your own posts',
-      'Predictive score before publishing',
-      'Generation in under 30 seconds',
-      'Built for solos (not for IT teams)',
+      'Campaign tied to a business offer',
+      'Self-learning per-user Style DNA',
+      'Explained Confidence Score before publishing',
+      'Revenue Signal — tracked clicks to your links',
+      'Native editorial adaptation per network',
       'Publishing scheduler',
     ],
     soon: 'Soon',
   },
   forwho: {
-    title: 'For solo media operators who do a lot with little.',
+    title: 'For those who do everything themselves — and want to sell, not just publish.',
     items: [
       {
         title: 'Solo consultants & coaches',
         body:
-          'Your content = your pipeline. Publish 3× a week on LinkedIn without diluting your expert voice.',
+          'Your content = your pipeline. Publish 3× a week without diluting your expert voice, and measure which posts fill your calendar.',
       },
       {
         title: 'Course creators & infopreneurs',
         body:
-          'Recycle a course module, a podcast, or a live into 20 posts to fuel your cohort launches.',
+          'Recycle a course module, podcast, or live into a campaign tied to your cohort launch. Track signups per post.',
       },
       {
         title: 'E-commerce founders',
         body:
-          "Turn product pages, founder podcasts, and behind-the-scenes into mixed lifestyle / acquisition campaigns.",
+          "Turn product pages into mixed lifestyle / acquisition campaigns tied to your Shopify catalog. Measure content-attributed sales.",
       },
     ],
   },
@@ -145,24 +150,24 @@ export const en: typeof fr = {
     items: [
       {
         quote:
-          "I used to publish once a week on LinkedIn. Now four times, plus IG and X automatically. My ghostwriter cost €1,200/mo. SocialBoost costs me €79.",
+          "I sell coaching at €900. SocialBoost generated 47 qualified meetings in 8 weeks via my LinkedIn posts. First time a content tool gave me a real business number.",
         who: 'Marc D., business coach · 9k followers',
       },
       {
         quote:
-          "I got 8 hours back per week. And my posts no longer smell of AI — the voice holds across all five platforms. LinkedIn engagement doubled in 60 days.",
+          "I got 8 hours back per week. And my posts no longer smell of AI — the voice holds across five platforms. LinkedIn engagement doubled in 60 days.",
         who: 'Léa M., strategy consultant · 18k followers',
       },
       {
         quote:
-          "The Boost Score is a game-changer. I no longer publish blind — I know which variant to pick before.",
+          "The Confidence Score changes everything. I no longer publish blind — I know which post will work before I click.",
         who: 'Sofia L., infopreneur · 32k followers',
       },
     ],
   },
   pricingHome: {
-    title: 'Three plans. No free tier diluting the signal.',
-    subtitle: '14 days free on Pro. Cancel in one click.',
+    title: 'Four plans. Free available, no watermark.',
+    subtitle: 'Free to test the promise. Pro at €39/mo for the weekly production engine.',
   },
   faq: {
     title: 'The questions we hear most.',
@@ -170,32 +175,32 @@ export const en: typeof fr = {
       {
         q: 'Concretely, what do I paste into the Studio?',
         a:
-          "Any input with substance: a text brief, a podcast transcript (10-60 minutes), an article URL, a product sheet, a long LinkedIn post, a pillar email. SocialBoost extracts the main argument and declines it across networks.",
+          "An offer (coaching, course, product, free audit, Calendly link) + an input with substance (article, podcast transcript, product sheet, long LinkedIn post). SocialBoost extracts the argument, declines it across networks, and ties it to your offer.",
       },
       {
-        q: 'How many platforms per generation?',
+        q: 'How does the Revenue Signal connect to my business?',
         a:
-          'Starter: 3 networks (LinkedIn, IG, X). Pro and Studio: all 5 (LinkedIn, IG, X, TikTok, Facebook), with 3 to 5 variants per network. You choose which to publish.',
+          "Every link generated in your posts is tracked via a short link. End of month, you see exactly how many people clicked through to your offer, per post. No CRM needed, no pixel — included from Pro.",
       },
       {
         q: "And the voice — won't it get diluted in the remix?",
         a:
-          "No. Style DNA runs in the background on every generation: we extract your style from 3-5 of your best posts, we filter LLM clichés (\"In a world where…\", \"Game-changer\"), and you can always edit before publishing.",
+          "No. Style DNA runs in the background on every generation: we extract your style from 3-5 of your best posts, we learn from every correction you make, we filter LLM clichés. The more you use it, the more precise.",
       },
       {
-        q: 'I already have ChatGPT — what do you do extra?',
+        q: 'How many platforms per generation?',
         a:
-          "ChatGPT gives you generic text on one platform. SocialBoost ships a campaign tailored to 5 platforms, trained on your voice, with a predictive score before publishing. It's a different category of tool.",
+          'Free: LinkedIn only. Solo: 2 networks. Pro: all (LinkedIn, IG, X, TikTok, Facebook), 3-5 variants per network. Agency: 20 multi-client accounts.',
       },
       {
-        q: 'Too expensive for yet another tool?',
+        q: 'I already have ChatGPT (or Taplio) — what do you do extra?',
         a:
-          "Do the math: 15 hours of rewriting per week → 1 hour. At €80/h billed, payback under a week. Pro at €79/mo is cheaper than a €1,200 ghostwriter — and it doesn't go on holiday.",
+          "ChatGPT = generic text. Taplio = LinkedIn only, no business attribution. SocialBoost = multi-platform campaign natively adapted, tied to your offer, with Revenue Signal that tells you what actually brings customers. It's a different category of tool.",
       },
       {
-        q: 'Is the Boost Score serious, or marketing fluff?',
+        q: 'Is the Confidence Score serious or marketing fluff?',
         a:
-          "It's a predictive score based on length, hooks, structure, voice alignment, and hashtags. Initially rule-based; as you publish, it learns from YOUR own results — not a global average.",
+          "It's a score based on length, hook, structure, Style DNA alignment, publishing time, and your performance history. Initially rule-based; as you publish, it learns from YOUR own results — not a global average.",
       },
       {
         q: 'Which platforms for auto-publishing?',
@@ -205,77 +210,97 @@ export const en: typeof fr = {
       {
         q: 'Is my data safe?',
         a:
-          "EU hosting, GDPR compliance, OAuth tokens encrypted at rest. We don't sell anything, we don't use your content to train a global model — your Brand Voice stays isolated to your account.",
+          "EU hosting, GDPR compliance, encrypted OAuth tokens. We don't sell anything, we don't use your content to train a global model — your Style DNA stays isolated to your account.",
       },
       {
         q: 'What if I cancel?',
         a:
-          'One click from your account. No fees, no commitment. You keep access until the end of your paid period.',
+          'One click from your account. No fees, no commitment. You keep access until the end of your paid period and can export your campaigns.',
       },
     ],
   },
   finalCta: {
-    title: 'Stop rewriting the same post five times. Remix once, publish everywhere.',
-    subtitle: '14 days free on Pro. No credit card. First campaign in under 5 minutes.',
-    cta: 'Remix my first idea',
+    title: 'Hand us your offer. SocialBoost builds the campaign that sells it.',
+    subtitle: 'Free plan available. No credit card. First campaign in under 5 minutes.',
+    cta: 'Build my campaign',
   },
   pricingPage: {
     eyebrow: 'Pricing',
-    title: 'Three plans. No free tier.',
+    title: 'Four plans. From test to multi-client agency.',
     subtitle:
-      'All plans include the Remix Engine, Style DNA, and multi-platform generation. 14-day Pro trial. Cancel in one click.',
+      'Free to validate the promise. Solo at €17 to start. Pro at €39 for weekly production. Agency at €89 to manage clients. Yearly = -20%.',
     monthly: 'Monthly',
     yearly: 'Yearly',
-    yearlyBadge: '2 months free',
+    yearlyBadge: '−20%',
     perMonth: '/ month',
     yearlyTotal: '{total} € billed yearly',
     popular: 'Most popular',
-    fineprint: '14-day Pro trial · Cancel in one click · Secure payment via Stripe',
+    betaBadge: 'Beta price',
+    free: 'Free',
+    fineprint: 'Free without watermark · 14-day Pro trial · Cancel in one click · Stripe',
     questionsTitle: 'Frequently asked',
   },
   plans: {
-    starter: {
-      name: 'Starter',
-      tagline: 'Test the wedge',
-      cta: 'Get started',
+    free: {
+      name: 'Free',
+      tagline: 'Discovery',
+      cta: 'Start free',
       features: [
-        '20 inputs / month',
-        '3 platforms (LinkedIn, IG, X)',
-        '2 variants per platform',
-        '1 Brand Voice',
-        'Standard Style DNA',
-        'Manual publishing (copy-paste)',
+        '1 social account',
+        '5 AI posts / month',
+        'Basic Style DNA',
+        'Basic Confidence Score',
+        'No Campaign Engine',
+        'No watermark',
+      ],
+    },
+    solo: {
+      name: 'Solo',
+      tagline: 'The engine',
+      cta: 'Start Solo',
+      features: [
+        '2 social accounts',
+        '80 AI posts / month',
+        'Campaign Engine (3 / month)',
+        'Full Style DNA',
+        'Confidence Score',
+        'Smart scheduling',
         'Email support',
       ],
     },
     pro: {
       name: 'Pro',
-      tagline: 'My weekly production engine',
+      tagline: 'The arsenal — weekly production',
       cta: 'Start 14-day trial',
       features: [
-        '100 inputs / month',
-        'All platforms (5)',
-        '3 variants per platform',
-        '3 Brand Voices',
-        'Advanced Style DNA (post analysis)',
-        'Predictive Boost Score',
+        '5 social accounts',
+        '300 AI posts / month',
+        'Unlimited Campaign Engine',
+        'Advanced Style DNA (self-learning)',
+        'Premium Confidence Score',
+        'Monthly Goal-Driven Strategy',
+        'Basic Revenue Signal',
+        'Audio / video repurposing (transcript → campaign)',
         'LinkedIn auto-publish',
         'Priority support',
       ],
     },
-    studio: {
-      name: 'Studio',
-      tagline: 'I manage clients',
-      cta: 'Choose Studio',
+    agency: {
+      name: 'Agency',
+      tagline: 'Multi-client studio',
+      cta: 'Choose Agency',
       features: [
-        'Unlimited inputs',
-        '5 variants per platform',
-        '10 Brand Voices (team / clients)',
-        'Existing post import',
-        'Boost Score + recommendations',
-        'Multi-network publishing',
-        '3 seats included (+€39/seat)',
-        'Shared Slack with the team',
+        '20 multi-client social accounts',
+        'Unlimited posts',
+        '3 client Brand Voices',
+        '3 seats included',
+        'Full Revenue Signal',
+        'Slack priority support',
+      ],
+      soonFeatures: [
+        'White-label reports',
+        'API access',
+        '1:1 onboarding',
       ],
     },
   },
@@ -293,8 +318,8 @@ export const en: typeof fr = {
       google: 'Continue with Google',
     },
     signup: {
-      title: 'Remix your first idea.',
-      subtitle: '14 days free. No credit card. First campaign in 5 minutes.',
+      title: 'Build your first campaign.',
+      subtitle: 'Free plan available. No credit card. First campaign in 5 minutes.',
       email: 'Email',
       password: 'Password',
       passwordHint: '8 characters minimum.',
@@ -360,12 +385,12 @@ export const en: typeof fr = {
         {
           h: 'Data collected',
           p:
-            'Email, hashed password, content provided (reference posts, briefs), usage metadata (model used, tokens consumed), payment data processed by Stripe.',
+            'Email, hashed password, content provided (reference posts, briefs, offers), usage metadata (model used, tokens consumed), payment data processed by Stripe, click stats on tracked links (Revenue Signal).',
         },
         {
           h: 'Purposes',
           p:
-            'Provide the service, compute your billing, improve your Brand Voice (on your account only), respond to support.',
+            'Provide the service, compute your billing, improve your Style DNA (on your account only), produce your Revenue Signal, respond to support.',
         },
         {
           h: 'Hosting',
@@ -418,24 +443,24 @@ export const en: typeof fr = {
   },
   about: {
     eyebrow: 'About',
-    title: 'We build SocialBoost for solo media operators.',
+    title: 'We build the first Editorial Revenue System for solo media operators.',
     subtitle:
-      "The AI that turns an idea into a profitable social campaign, without losing your voice. Not for IT teams or 50-person agencies — for those who do everything themselves.",
+      "The AI that turns your expertise into revenue, post after post. Not for IT teams or 50-person agencies — for those who do everything themselves and want to sell, not just publish.",
     sections: [
       {
-        h: 'The origin',
+        h: 'The verdict',
         p:
-          "Solo creators and SMBs spend 15 hours a week producing content. With ChatGPT, it's faster — but generic, and you still rewrite for each platform. SocialBoost flips it: one input, five native outputs, voice preserved as a guarantee.",
+          "86% of creators already use AI for content. Content isn't the problem — conversion is. 42% don't know if their posts generate business. No SMB tool bridges a post and a euro earned.",
       },
       {
         h: 'The conviction',
         p:
-          "AI is a commodity. The moat isn't in the model — it's in the system: one input, five platforms, stable voice, predictive score, and progressively a business attribution layer (which content actually drives leads).",
+          "AI is a commodity. The moat isn't in the model — it's in the system: one input, your offer, a multi-platform campaign, a stable voice, a predictive score, and progressively a business attribution layer. Private data, real switching cost.",
       },
       {
         h: 'The trajectory',
         p:
-          "V1: Remix Engine + Style DNA + Boost Score. V2: real publishing on LinkedIn then the rest. V3: revenue intelligence — which content generates leads, meetings, sales. We prefer doing three things well over thirty things badly.",
+          "V1: Campaign Engine + Style DNA + Confidence Score + Revenue Signal v1. V2: real LinkedIn then IG publishing. V3: controlled autonomous Media Agent, full Micro-Funnel (lead magnet + email seq + landing). We prefer doing four things well over thirty things badly.",
       },
     ],
   },
@@ -458,9 +483,9 @@ export const en: typeof fr = {
   },
   studio: {
     title: 'Remix Studio',
-    heading: 'One input → your native platforms.',
+    heading: 'Hand us your offer. Build your campaign.',
     subtitle:
-      "Paste a brief, a transcript, a URL, or a long post. SocialBoost remixes into variants tailored to each network's native format, without diluting your voice.",
+      "Paste your offer + an idea, a transcript, a URL or a long post. SocialBoost builds a multi-platform campaign in your Style DNA, tied to your business goal.",
   },
   notFound: {
     title: '404',

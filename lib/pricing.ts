@@ -2,15 +2,22 @@ import type { Dict } from '@/lib/i18n';
 import type { Plan } from '@/components/marketing/PricingTable';
 
 const PRICES = {
-  starter: { monthly: 29, yearly: 24 },
-  pro: { monthly: 79, yearly: 66 },
-  studio: { monthly: 199, yearly: 166 },
+  free: { monthly: 0, yearly: 0 },
+  solo: { monthly: 17, yearly: 14 },
+  pro: { monthly: 39, yearly: 31 },
+  agency: { monthly: 89, yearly: 71 },
 } as const;
 
 export function buildPlans(dict: Dict): Plan[] {
   return [
-    { id: 'starter', ...PRICES.starter, ...dict.plans.starter },
+    { id: 'free', ...PRICES.free, ...dict.plans.free },
+    { id: 'solo', ...PRICES.solo, ...dict.plans.solo },
     { id: 'pro', ...PRICES.pro, highlight: true, ...dict.plans.pro },
-    { id: 'studio', ...PRICES.studio, ...dict.plans.studio },
+    {
+      id: 'agency',
+      ...PRICES.agency,
+      beta: true,
+      ...dict.plans.agency,
+    },
   ];
 }
