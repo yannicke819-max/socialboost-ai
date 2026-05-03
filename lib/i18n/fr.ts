@@ -459,4 +459,4 @@ export const fr = {
     subtitle: "Cette page n'existe pas — ou plus.",
     cta: "Retour à l'accueil",
   },
-} as const;
+};
