@@ -167,6 +167,30 @@ export const it: typeof fr = {
       },
     ],
   },
+  measurable: {
+    eyebrow: 'Segnali tracciati',
+    title: 'Cosa SocialBoost ti permette di misurare.',
+    subtitle:
+      "Nessun numero cliente inventato. Ecco i segnali che il prodotto traccia per aiutarti a decidere cosa pubblicare, ripetere, amplificare o tagliare.",
+    items: [
+      {
+        title: 'Clic alla tua offerta',
+        body: 'Ogni link generato nei tuoi post è tracciato. Vedi quante persone sono andate alla tua offerta, per post, per campagna.',
+      },
+      {
+        title: 'Post che innescano risposte',
+        body: "Rileva i post che generano commenti, DM, condivisioni — i segnali di engagement reali, non i like passivi.",
+      },
+      {
+        title: 'Campagne da amplificare',
+        body: 'Identifica le campagne che performano sopra la tua baseline. Rigioca, deriva, potenzia ciò che funziona.',
+      },
+      {
+        title: 'Contenuti da tagliare',
+        body: "Individua ciò che non porta nulla. Risparmia tempo, aggiusta l'angolo o abbandona il formato.",
+      },
+    ],
+  },
   pricingHome: {
     title: 'Quattro piani. Free disponibile, senza watermark.',
     subtitle: 'Free per testare la promessa. Pro a 39 €/mese per la produzione settimanale.',
@@ -277,7 +301,7 @@ export const it: typeof fr = {
         'Export LinkedIn 1-clic',
         'Supporto prioritario',
       ],
-      soonFeatures: ['Pubblicazione LinkedIn automatica'],
+      soonFeatures: ['Auto-publish LinkedIn'],
     },
     agency: {
       name: 'Agency',

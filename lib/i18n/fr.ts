@@ -165,6 +165,30 @@ export const fr = {
       },
     ],
   },
+  measurable: {
+    eyebrow: 'Signaux suivis',
+    title: 'Ce que SocialBoost te permet de mesurer.',
+    subtitle:
+      "Pas de chiffre client inventé. Voici les signaux que le produit suit pour t'aider à décider quoi publier, refaire, amplifier ou couper.",
+    items: [
+      {
+        title: 'Clics vers ton offre',
+        body: 'Chaque lien généré dans tes posts est tracké. Tu sais combien de personnes vont vers ton offre, par post, par campagne.',
+      },
+      {
+        title: 'Posts qui déclenchent des réponses',
+        body: "Détecte les posts qui génèrent des commentaires, des DMs, des partages — les signaux d'engagement réels, pas les likes passifs.",
+      },
+      {
+        title: 'Campagnes à amplifier',
+        body: 'Identifie les campagnes qui performent au-dessus de ton baseline. Rejoue, dérive, booste celles qui marchent.',
+      },
+      {
+        title: 'Contenus à couper',
+        body: "Repère ce qui ne ramène rien. Économise du temps, ajuste l'angle ou abandonne le format.",
+      },
+    ],
+  },
   pricingHome: {
     title: 'Quatre plans. Free dispo, sans watermark.',
     subtitle: 'Free pour tester la promesse. Pro à 39 €/mois pour la machine de prod hebdo.',
@@ -285,7 +309,7 @@ export const fr = {
         'Support prioritaire',
       ],
       soonFeatures: [
-        'Publication LinkedIn automatique',
+        'Auto-publish LinkedIn',
       ],
     },
     agency: {
