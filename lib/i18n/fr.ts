@@ -279,8 +279,11 @@ export const fr = {
         'Goal-Driven Strategy mensuelle',
         'Revenue Signal basique',
         'Repurposing audio / vidéo (transcript → campagne)',
-        'Publication LinkedIn auto',
+        'Export LinkedIn 1-clic',
         'Support prioritaire',
+      ],
+      soonFeatures: [
+        'Publication LinkedIn automatique',
       ],
     },
     agency: {
