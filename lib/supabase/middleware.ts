@@ -1,7 +1,7 @@
 import { createServerClient, type CookieOptions } from '@supabase/ssr';
 import { NextResponse, type NextRequest } from 'next/server';
 
-const APP_PREFIXES = ['/dashboard', '/onboarding', '/calendar', '/generator', '/analytics', '/settings'];
+const APP_PREFIXES = ['/studio', '/onboarding', '/campaigns', '/performance', '/settings'];
 
 export async function updateSession(request: NextRequest) {
   let response = NextResponse.next({ request });
