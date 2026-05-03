@@ -1,6 +1,6 @@
 # Landing Page — SocialBoost AI
 
-**Ton** : énergétique, direct, créateur-to-créateur, phrases courtes, 0 jargon. Tutoiement.
+**Ton** : énergique, direct, créateur-to-créateur, phrases courtes, 0 jargon. Tutoiement.
 
 ## Structure de la page
 1. Hero
