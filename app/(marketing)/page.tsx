@@ -1,99 +1,97 @@
 import Link from 'next/link';
-import {
-  ArrowRight,
-  Dna,
-  Layers,
-  Gauge,
-  Mic,
-  Globe,
-  FileText,
-  Sparkles,
-  Check,
-  X,
-} from 'lucide-react';
+import { ArrowRight, Dna, Layers, Gauge, Mic, Globe, FileText, Sparkles, Check, X } from 'lucide-react';
 import { FAQ } from '@/components/marketing/FAQ';
 import { PricingTable } from '@/components/marketing/PricingTable';
+import { getDict } from '@/lib/i18n';
+import { buildPlans } from '@/lib/pricing';
 
 export default function HomePage() {
+  const t = getDict();
   return (
     <>
-      <Hero />
-      <Problem />
-      <HowItWorks />
-      <Pillars />
-      <Comparison />
-      <ForWho />
-      <Testimonials />
-      <PricingSection />
-      <FAQSection />
-      <FinalCTA />
+      <Hero t={t.hero} demo={t.demo} />
+      <Problem t={t.problem} />
+      <HowItWorks t={t.how} />
+      <Pillars t={t.pillars} />
+      <Comparison t={t.comparison} />
+      <ForWho t={t.forwho} />
+      <Testimonials t={t.testimonials} />
+      <PricingSection t={t.pricingHome} plans={buildPlans(t)} labels={t.pricingPage} />
+      <FAQSection title={t.faq.title} items={t.faq.items} />
+      <FinalCTA t={t.finalCta} />
     </>
   );
 }
 
-function Hero() {
+function Hero({
+  t,
+  demo,
+}: {
+  t: ReturnType<typeof getDict>['hero'];
+  demo: ReturnType<typeof getDict>['demo'];
+}) {
   return (
-    <section className="mx-auto max-w-6xl px-6 pb-16 pt-20 sm:pt-28">
+    <section className="mx-auto max-w-6xl px-4 pb-12 pt-14 sm:px-6 sm:pb-16 sm:pt-24">
       <div className="mx-auto max-w-3xl text-center">
-        <p className="mb-4 text-sm font-semibold uppercase tracking-widest text-brand-600">
-          Studio de production éditoriale piloté par IA
+        <p className="mb-4 text-xs font-semibold uppercase tracking-widest text-brand-600 sm:text-sm">
+          {t.eyebrow}
         </p>
-        <h1 className="text-5xl font-bold leading-[1.05] tracking-tight sm:text-6xl">
-          Une idée. Une semaine de contenu. <span className="text-brand-500">Ta voix.</span>
+        <h1 className="text-4xl font-bold leading-[1.1] tracking-tight sm:text-5xl md:text-6xl">
+          {t.titleStart} <span className="text-brand-500">{t.titleEnd}</span>
         </h1>
-        <p className="mt-6 text-lg text-gray-600 dark:text-gray-300">
-          Colle un transcript, une URL ou une note. SocialBoost livre une campagne LinkedIn,
-          Instagram, X et TikTok qui sonne réellement comme toi. Pas du ChatGPT générique.
+        <p className="mt-5 text-base text-gray-600 dark:text-gray-300 sm:mt-6 sm:text-lg">
+          {t.subtitle}
         </p>
-        <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
+        <div className="mt-7 flex flex-col items-stretch gap-3 sm:mt-8 sm:flex-row sm:items-center sm:justify-center">
           <Link
             href="/signup"
-            className="rounded-lg bg-brand-500 px-6 py-3 font-semibold text-white transition hover:bg-brand-600"
+            className="rounded-lg bg-brand-500 px-6 py-3 text-center font-semibold text-white transition hover:bg-brand-600"
           >
-            Démarrer mon Brand Voice
+            {t.primaryCta}
           </Link>
           <Link
             href="#how"
-            className="rounded-lg border border-gray-300 px-6 py-3 font-semibold transition hover:border-brand-500 hover:text-brand-600 dark:border-gray-700"
+            className="rounded-lg border border-gray-300 px-6 py-3 text-center font-semibold transition hover:border-brand-500 hover:text-brand-600 dark:border-gray-700"
           >
-            Voir une démo de 90 s
+            {t.secondaryCta}
           </Link>
         </div>
-        <p className="mt-4 text-sm text-gray-500">
-          Trial 14 jours sur le plan Pro · Sans carte bleue · Annulation en 1 clic
-        </p>
+        <p className="mt-4 text-xs text-gray-500 sm:text-sm">{t.fineprint}</p>
       </div>
 
-      <div className="mx-auto mt-16 max-w-5xl">
-        <DemoFrame />
+      <div className="mx-auto mt-12 max-w-5xl sm:mt-16">
+        <DemoFrame t={demo} />
       </div>
     </section>
   );
 }
 
-function DemoFrame() {
+function DemoFrame({ t }: { t: ReturnType<typeof getDict>['demo'] }) {
+  const platforms: { key: keyof typeof t.platforms; label: string }[] = [
+    { key: 'linkedin', label: 'LinkedIn' },
+    { key: 'instagram', label: 'Instagram' },
+    { key: 'x', label: 'X / Twitter' },
+    { key: 'tiktok', label: 'TikTok' },
+  ];
   return (
     <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-xl dark:border-gray-800 dark:bg-gray-950">
       <div className="grid gap-0 md:grid-cols-2">
-        <div className="border-b border-gray-100 p-6 dark:border-gray-800 md:border-b-0 md:border-r">
+        <div className="border-b border-gray-100 p-5 dark:border-gray-800 sm:p-6 md:border-b-0 md:border-r">
           <p className="text-xs font-semibold uppercase tracking-wider text-gray-500">
-            Input · 1 brief
+            {t.inputLabel}
           </p>
           <div className="mt-3 rounded-lg bg-gray-50 p-4 text-sm text-gray-700 dark:bg-gray-900 dark:text-gray-300">
-            « J&apos;ai testé 4 outils de prospection LinkedIn pendant 60 jours. Voici les 3 erreurs
-            que je vois chez 90 % des consultants solo, et comment j&apos;ai triplé mon taux de
-            réponse… »
+            {t.inputExample}
           </div>
         </div>
-        <div className="p-6">
+        <div className="p-5 sm:p-6">
           <p className="text-xs font-semibold uppercase tracking-wider text-gray-500">
-            Output · 4 plateformes natives
+            {t.outputLabel}
           </p>
           <div className="mt-3 space-y-2">
-            <PlatformPill name="LinkedIn" preview="Post long-form · 1 200 caractères · CTA commentaires" />
-            <PlatformPill name="Instagram" preview="Carrousel 7 slides · hook visuel · hashtags ciblés" />
-            <PlatformPill name="X / Twitter" preview="Thread 8 tweets · hook contradictoire" />
-            <PlatformPill name="TikTok" preview="Script vidéo 45 s · hook 3 s · structure problème → solution" />
+            {platforms.map((p) => (
+              <PlatformPill key={p.key} name={p.label} preview={t.platforms[p.key]} />
+            ))}
           </div>
         </div>
       </div>
@@ -115,70 +113,42 @@ function PlatformPill({ name, preview }: { name: string; preview: string }) {
   );
 }
 
-function Problem() {
+function Problem({ t }: { t: ReturnType<typeof getDict>['problem'] }) {
   return (
-    <section className="border-y border-gray-100 bg-gray-50 py-20 dark:border-gray-800 dark:bg-gray-900">
-      <div className="mx-auto max-w-3xl px-6 text-center">
-        <h2 className="text-3xl font-bold sm:text-4xl">
-          Tu publies du contenu IA → ça se voit → ton audience décroche.
-        </h2>
-        <p className="mt-6 text-lg text-gray-600 dark:text-gray-300">
-          Tu connais ChatGPT. Tu produis vite. Mais tes posts sentent l&apos;IA à 10 km :
-          structure plate, vocabulaire convenu, voix qui n&apos;est pas la tienne. Résultat : tu
-          publies plus, tu engages moins, tu finis par lâcher.
+    <section className="border-y border-gray-100 bg-gray-50 py-16 dark:border-gray-800 dark:bg-gray-900 sm:py-20">
+      <div className="mx-auto max-w-3xl px-4 text-center sm:px-6">
+        <h2 className="text-2xl font-bold sm:text-3xl md:text-4xl">{t.title}</h2>
+        <p className="mt-5 text-base text-gray-600 dark:text-gray-300 sm:mt-6 sm:text-lg">
+          {t.body}
         </p>
-        <p className="mt-4 text-lg font-semibold text-gray-900 dark:text-gray-100">
-          Le problème n&apos;est pas l&apos;IA. C&apos;est l&apos;IA générique.
+        <p className="mt-4 text-base font-semibold text-gray-900 dark:text-gray-100 sm:text-lg">
+          {t.punchline}
         </p>
       </div>
     </section>
   );
 }
 
-function HowItWorks() {
-  const steps = [
-    {
-      n: '1',
-      title: 'Setup ta voix',
-      time: '5 min, une fois',
-      body: "Tu colles 3 à 5 de tes meilleurs posts. SocialBoost extrait ton style, ton ton, tes tics de langage. C'est ton Brand Voice — il ne bouge plus.",
-      icon: <Dna size={20} />,
-    },
-    {
-      n: '2',
-      title: 'Remixe une idée',
-      time: '30 secondes',
-      body: 'Brief, transcript, URL, note vocale. SocialBoost décompose, adapte au format natif de chaque réseau, garde ta voix. Pas du copier-coller multi-plateformes.',
-      icon: <Layers size={20} />,
-    },
-    {
-      n: '3',
-      title: 'Publie ce qui compte',
-      time: 'avant publication',
-      body: "Le Boost Score prédit la performance de chaque variante. Tu choisis. Tu publies. Tu n'apprends plus en post-mortem — tu décides en amont.",
-      icon: <Gauge size={20} />,
-    },
-  ];
+function HowItWorks({ t }: { t: ReturnType<typeof getDict>['how'] }) {
+  const icons = [<Dna key="dna" size={20} />, <Layers key="layers" size={20} />, <Gauge key="gauge" size={20} />];
   return (
-    <section id="how" className="mx-auto max-w-6xl px-6 py-24">
+    <section id="how" className="mx-auto max-w-6xl px-4 py-20 sm:px-6 sm:py-24">
       <div className="mx-auto max-w-2xl text-center">
-        <h2 className="text-3xl font-bold sm:text-4xl">
-          De l&apos;idée brute à 4 publications, sans diluer ta voix.
-        </h2>
+        <h2 className="text-2xl font-bold sm:text-3xl md:text-4xl">{t.title}</h2>
       </div>
-      <div className="mt-12 grid gap-6 md:grid-cols-3">
-        {steps.map((s) => (
-          <div key={s.n} className="rounded-2xl border border-gray-200 bg-white p-7 dark:border-gray-800 dark:bg-gray-950">
+      <div className="mt-10 grid gap-5 sm:mt-12 sm:gap-6 md:grid-cols-3">
+        {t.steps.map((s, i) => (
+          <div key={s.title} className="rounded-2xl border border-gray-200 bg-white p-6 dark:border-gray-800 dark:bg-gray-950 sm:p-7">
             <div className="flex items-center gap-3">
               <span className="grid h-10 w-10 place-items-center rounded-lg bg-brand-500 font-bold text-white">
-                {s.n}
+                {i + 1}
               </span>
               <span className="text-xs font-medium uppercase tracking-wider text-gray-500">
                 {s.time}
               </span>
             </div>
             <div className="mt-5 flex items-center gap-2">
-              <span className="text-brand-500">{s.icon}</span>
+              <span className="text-brand-500">{icons[i]}</span>
               <h3 className="text-lg font-bold">{s.title}</h3>
             </div>
             <p className="mt-2 text-sm text-gray-600 dark:text-gray-300">{s.body}</p>
@@ -189,43 +159,22 @@ function HowItWorks() {
   );
 }
 
-function Pillars() {
-  const pillars = [
-    {
-      icon: <Dna size={22} />,
-      title: 'Style DNA',
-      tag: 'Le moat',
-      body: "L'IA n'invente pas ta voix, elle la reproduit. Entraîné sur tes propres posts, ton Brand Voice s'affine à chaque génération.",
-    },
-    {
-      icon: <Layers size={22} />,
-      title: 'Remix multi-plateformes',
-      tag: 'Le rendement',
-      body: 'Un input → 5 outputs au format natif. Pas du copier-coller adapté à la marge : LinkedIn long-form, IG carrousel, X thread, TikTok script.',
-    },
-    {
-      icon: <Gauge size={22} />,
-      title: 'Boost Score prédictif',
-      tag: 'La décision',
-      body: 'Avant de publier, tu sais quelle variante va performer. Apprend de tes propres résultats au fil du temps.',
-    },
-  ];
+function Pillars({ t }: { t: ReturnType<typeof getDict>['pillars'] }) {
+  const icons = [<Dna key="dna" size={22} />, <Layers key="layers" size={22} />, <Gauge key="gauge" size={22} />];
   return (
-    <section id="features" className="bg-gray-50 py-24 dark:bg-gray-900">
-      <div className="mx-auto max-w-6xl px-6">
+    <section id="features" className="bg-gray-50 py-20 dark:bg-gray-900 sm:py-24">
+      <div className="mx-auto max-w-6xl px-4 sm:px-6">
         <div className="mx-auto max-w-2xl text-center">
-          <p className="text-sm font-semibold uppercase tracking-widest text-brand-600">
-            Trois piliers, zéro fioriture
+          <p className="text-xs font-semibold uppercase tracking-widest text-brand-600 sm:text-sm">
+            {t.eyebrow}
           </p>
-          <h2 className="mt-3 text-3xl font-bold sm:text-4xl">
-            On ne fait pas le travail à ta place. On fait ton meilleur travail, plus vite.
-          </h2>
+          <h2 className="mt-3 text-2xl font-bold sm:text-3xl md:text-4xl">{t.title}</h2>
         </div>
-        <div className="mt-12 grid gap-6 md:grid-cols-3">
-          {pillars.map((p) => (
-            <div key={p.title} className="rounded-2xl bg-white p-7 shadow-sm dark:bg-gray-800">
+        <div className="mt-10 grid gap-5 sm:mt-12 sm:gap-6 md:grid-cols-3">
+          {t.items.map((p, i) => (
+            <div key={p.title} className="rounded-2xl bg-white p-6 shadow-sm dark:bg-gray-800 sm:p-7">
               <span className="grid h-12 w-12 place-items-center rounded-xl bg-brand-500/10 text-brand-600">
-                {p.icon}
+                {icons[i]}
               </span>
               <p className="mt-5 text-xs font-semibold uppercase tracking-wider text-brand-600">
                 {p.tag}
@@ -240,43 +189,43 @@ function Pillars() {
   );
 }
 
-function Comparison() {
-  const rows: Array<[string, boolean | string, boolean | string, boolean | string]> = [
-    ['Multi-plateformes au format natif', false, false, true],
-    ['Apprentissage de ta voix sur tes propres posts', false, false, true],
-    ['Score prédictif avant publication', false, false, true],
-    ['Génération en 30 secondes', true, false, true],
-    ['Pensé pour les solos (pas pour DSI)', true, false, true],
-    ['Scheduling de publication', false, true, 'Bientôt'],
+function Comparison({ t }: { t: ReturnType<typeof getDict>['comparison'] }) {
+  const cells: Array<[boolean | string, boolean | string, boolean | string]> = [
+    [false, false, true],
+    [false, false, true],
+    [false, false, true],
+    [true, false, true],
+    [true, false, true],
+    [false, true, t.soon],
   ];
   return (
-    <section className="mx-auto max-w-5xl px-6 py-24">
+    <section className="mx-auto max-w-5xl px-4 py-20 sm:px-6 sm:py-24">
       <div className="mx-auto max-w-2xl text-center">
-        <h2 className="text-3xl font-bold sm:text-4xl">
-          SocialBoost n&apos;est pas une IA en plus. C&apos;est une autre catégorie.
-        </h2>
+        <h2 className="text-2xl font-bold sm:text-3xl md:text-4xl">{t.title}</h2>
       </div>
-      <div className="mt-10 overflow-hidden rounded-2xl border border-gray-200 dark:border-gray-800">
-        <table className="w-full text-sm">
-          <thead className="bg-gray-50 dark:bg-gray-900">
-            <tr>
-              <th className="px-4 py-3 text-left font-semibold"></th>
-              <th className="px-4 py-3 text-center font-semibold text-gray-500">ChatGPT</th>
-              <th className="px-4 py-3 text-center font-semibold text-gray-500">Buffer / Hootsuite</th>
-              <th className="px-4 py-3 text-center font-semibold text-brand-600">SocialBoost</th>
-            </tr>
-          </thead>
-          <tbody>
-            {rows.map(([label, a, b, c], i) => (
-              <tr key={i} className="border-t border-gray-100 dark:border-gray-800">
-                <td className="px-4 py-3 font-medium">{label}</td>
-                <td className="px-4 py-3 text-center">{renderCell(a)}</td>
-                <td className="px-4 py-3 text-center">{renderCell(b)}</td>
-                <td className="px-4 py-3 text-center">{renderCell(c)}</td>
+      <div className="mt-8 overflow-hidden rounded-2xl border border-gray-200 dark:border-gray-800 sm:mt-10">
+        <div className="overflow-x-auto">
+          <table className="w-full min-w-[480px] text-sm">
+            <thead className="bg-gray-50 dark:bg-gray-900">
+              <tr>
+                <th className="px-3 py-3 text-left font-semibold sm:px-4"></th>
+                <th className="px-3 py-3 text-center font-semibold text-gray-500 sm:px-4">{t.cols.chatgpt}</th>
+                <th className="px-3 py-3 text-center font-semibold text-gray-500 sm:px-4">{t.cols.buffer}</th>
+                <th className="px-3 py-3 text-center font-semibold text-brand-600 sm:px-4">{t.cols.socialboost}</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {t.rows.map((label, i) => (
+                <tr key={label} className="border-t border-gray-100 dark:border-gray-800">
+                  <td className="px-3 py-3 font-medium sm:px-4">{label}</td>
+                  <td className="px-3 py-3 text-center sm:px-4">{renderCell(cells[i][0])}</td>
+                  <td className="px-3 py-3 text-center sm:px-4">{renderCell(cells[i][1])}</td>
+                  <td className="px-3 py-3 text-center sm:px-4">{renderCell(cells[i][2])}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </div>
     </section>
   );
@@ -288,37 +237,19 @@ function renderCell(v: boolean | string) {
   return <span className="text-xs font-medium text-gray-500">{v}</span>;
 }
 
-function ForWho() {
-  const cases = [
-    {
-      icon: <Mic size={22} />,
-      title: 'Consultants & coachs solo',
-      body: "Ton contenu = ton pipeline. Publie 3× par semaine sur LinkedIn sans diluer ta voix d'expert.",
-    },
-    {
-      icon: <FileText size={22} />,
-      title: 'Infopreneurs & formateurs',
-      body: 'Recycle un module de cours, un podcast ou un live en 20 posts pour nourrir tes lancements de cohorte.',
-    },
-    {
-      icon: <Globe size={22} />,
-      title: 'Founders e-commerce',
-      body: 'Transforme tes fiches produit, ton podcast fondateur et tes coulisses en campagnes mix lifestyle / acquisition.',
-    },
-  ];
+function ForWho({ t }: { t: ReturnType<typeof getDict>['forwho'] }) {
+  const icons = [<Mic key="mic" size={22} />, <FileText key="file" size={22} />, <Globe key="globe" size={22} />];
   return (
-    <section className="bg-gray-50 py-24 dark:bg-gray-900">
-      <div className="mx-auto max-w-6xl px-6">
+    <section className="bg-gray-50 py-20 dark:bg-gray-900 sm:py-24">
+      <div className="mx-auto max-w-6xl px-4 sm:px-6">
         <div className="mx-auto max-w-2xl text-center">
-          <h2 className="text-3xl font-bold sm:text-4xl">
-            Pour les médias solos qui font beaucoup avec peu.
-          </h2>
+          <h2 className="text-2xl font-bold sm:text-3xl md:text-4xl">{t.title}</h2>
         </div>
-        <div className="mt-12 grid gap-6 md:grid-cols-3">
-          {cases.map((c) => (
+        <div className="mt-10 grid gap-5 sm:mt-12 sm:gap-6 md:grid-cols-3">
+          {t.items.map((c, i) => (
             <div key={c.title} className="rounded-2xl bg-white p-6 dark:bg-gray-800">
               <span className="grid h-11 w-11 place-items-center rounded-lg bg-brand-500/10 text-brand-600">
-                {c.icon}
+                {icons[i]}
               </span>
               <h3 className="mt-4 text-lg font-bold">{c.title}</h3>
               <p className="mt-2 text-sm text-gray-600 dark:text-gray-300">{c.body}</p>
@@ -330,28 +261,14 @@ function ForWho() {
   );
 }
 
-function Testimonials() {
-  const items = [
-    {
-      quote: "J'ai retrouvé 8 h par semaine. Et surtout, mes posts ne sentent plus l'IA. Mon engagement LinkedIn a doublé en 60 jours.",
-      who: 'Léa M., consultante stratégie · 18 k followers',
-    },
-    {
-      quote: "Je publiais 1 fois par semaine. Maintenant 4. Mon ghostwriter coûtait 1 200 €/mois. SocialBoost me coûte 79 €.",
-      who: 'Marc D., coach business · 9 k followers',
-    },
-    {
-      quote: "Le Boost Score change la donne. Je ne publie plus à l'aveugle, je sais quelle variante choisir.",
-      who: 'Sofia L., infopreneuse · 32 k followers',
-    },
-  ];
+function Testimonials({ t }: { t: ReturnType<typeof getDict>['testimonials'] }) {
   return (
-    <section className="mx-auto max-w-6xl px-6 py-24">
-      <div className="grid gap-6 md:grid-cols-3">
-        {items.map((t) => (
-          <blockquote key={t.who} className="rounded-2xl border border-gray-200 p-6 dark:border-gray-800">
-            <p className="text-base font-medium leading-relaxed">« {t.quote} »</p>
-            <footer className="mt-4 text-sm text-gray-500">— {t.who}</footer>
+    <section className="mx-auto max-w-6xl px-4 py-20 sm:px-6 sm:py-24">
+      <div className="grid gap-5 sm:gap-6 md:grid-cols-3">
+        {t.items.map((it) => (
+          <blockquote key={it.who} className="rounded-2xl border border-gray-200 p-6 dark:border-gray-800">
+            <p className="text-base font-medium leading-relaxed">« {it.quote} »</p>
+            <footer className="mt-4 text-sm text-gray-500">— {it.who}</footer>
           </blockquote>
         ))}
       </div>
@@ -359,55 +276,59 @@ function Testimonials() {
   );
 }
 
-function PricingSection() {
+function PricingSection({
+  t,
+  plans,
+  labels,
+}: {
+  t: ReturnType<typeof getDict>['pricingHome'];
+  plans: ReturnType<typeof buildPlans>;
+  labels: ReturnType<typeof getDict>['pricingPage'];
+}) {
   return (
-    <section id="pricing" className="bg-gray-50 py-24 dark:bg-gray-900">
-      <div className="mx-auto max-w-6xl px-6">
+    <section id="pricing" className="bg-gray-50 py-20 dark:bg-gray-900 sm:py-24">
+      <div className="mx-auto max-w-6xl px-4 sm:px-6">
         <div className="text-center">
-          <h2 className="text-3xl font-bold sm:text-4xl">
-            Trois plans. Pas de free tier qui dilue le signal.
-          </h2>
-          <p className="mt-3 text-gray-600 dark:text-gray-300">
-            14 jours gratuits sur le Pro. Annulation en 1 clic.
-          </p>
+          <h2 className="text-2xl font-bold sm:text-3xl md:text-4xl">{t.title}</h2>
+          <p className="mt-3 text-gray-600 dark:text-gray-300">{t.subtitle}</p>
         </div>
-        <div className="mt-12">
-          <PricingTable />
+        <div className="mt-10 sm:mt-12">
+          <PricingTable plans={plans} labels={labels} />
         </div>
       </div>
     </section>
   );
 }
 
-function FAQSection() {
+function FAQSection({
+  title,
+  items,
+}: {
+  title: string;
+  items: ReturnType<typeof getDict>['faq']['items'];
+}) {
   return (
-    <section id="faq" className="mx-auto max-w-3xl px-6 py-24">
-      <h2 className="text-center text-3xl font-bold sm:text-4xl">
-        Les objections qu&apos;on entend le plus.
-      </h2>
-      <div className="mt-12">
-        <FAQ />
+    <section id="faq" className="mx-auto max-w-3xl px-4 py-20 sm:px-6 sm:py-24">
+      <h2 className="text-center text-2xl font-bold sm:text-3xl md:text-4xl">{title}</h2>
+      <div className="mt-10 sm:mt-12">
+        <FAQ items={items} />
       </div>
     </section>
   );
 }
 
-function FinalCTA() {
+function FinalCTA({ t }: { t: ReturnType<typeof getDict>['finalCta'] }) {
   return (
-    <section className="bg-brand-500 py-20 text-white">
-      <div className="mx-auto max-w-3xl px-6 text-center">
+    <section className="bg-brand-500 py-16 text-white sm:py-20">
+      <div className="mx-auto max-w-3xl px-4 text-center sm:px-6">
         <Sparkles size={32} className="mx-auto opacity-50" />
-        <h2 className="mt-4 text-3xl font-bold sm:text-4xl">
-          Arrête de publier du contenu IA générique. Publie le tien, en mieux.
-        </h2>
-        <p className="mt-4 text-lg text-brand-50">
-          14 jours gratuits sur le Pro. Sans carte bleue. Première campagne dans 5 minutes.
-        </p>
+        <h2 className="mt-4 text-2xl font-bold sm:text-3xl md:text-4xl">{t.title}</h2>
+        <p className="mt-4 text-base text-brand-50 sm:text-lg">{t.subtitle}</p>
         <Link
           href="/signup"
-          className="mt-8 inline-flex items-center gap-2 rounded-lg bg-white px-7 py-3.5 font-semibold text-brand-600 transition hover:bg-gray-100"
+          className="mt-7 inline-flex items-center gap-2 rounded-lg bg-white px-6 py-3 font-semibold text-brand-600 transition hover:bg-gray-100 sm:mt-8 sm:px-7 sm:py-3.5"
         >
-          Démarrer mon Brand Voice <ArrowRight size={18} />
+          {t.cta} <ArrowRight size={18} />
         </Link>
       </div>
     </section>
