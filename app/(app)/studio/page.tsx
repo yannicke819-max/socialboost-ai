@@ -10,10 +10,8 @@ export default function StudioPage() {
       <div className="flex-1 p-4 sm:p-6 md:p-8">
         <div className="mx-auto max-w-3xl space-y-6">
           <div>
-            <h2 className="text-xl font-bold tracking-tight sm:text-2xl">{t.heading}</h2>
-            <p className="mt-2 text-sm text-gray-600 dark:text-gray-300 sm:text-base">
-              {t.subtitle}
-            </p>
+            <h2 className="text-xl font-bold tracking-tight text-fg sm:text-2xl">{t.heading}</h2>
+            <p className="mt-2 text-sm text-fg-muted sm:text-base">{t.subtitle}</p>
           </div>
           <GeneratorForm />
         </div>

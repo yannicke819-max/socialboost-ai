@@ -15,22 +15,29 @@ export function FAQ({ items }: { items: ReadonlyArray<FAQItem> }) {
         return (
           <div
             key={i}
-            className="rounded-xl border border-gray-200 bg-white transition dark:border-gray-800 dark:bg-gray-900"
+            className="rounded-xl border border-border bg-bg-elevated transition hover:border-border-strong"
           >
             <button
               type="button"
               onClick={() => setOpen(isOpen ? null : i)}
-              className="flex w-full items-center justify-between gap-4 px-4 py-3.5 text-left font-semibold sm:px-5 sm:py-4"
+              className="flex w-full items-center justify-between gap-4 px-4 py-3.5 text-left text-fg sm:px-5 sm:py-4"
               aria-expanded={isOpen}
             >
-              <span className="text-sm sm:text-base">{item.q}</span>
+              <span className="flex items-baseline gap-3 text-sm font-semibold sm:text-base">
+                <span className="font-mono text-[10px] uppercase tracking-wider text-fg-subtle">
+                  {String(i + 1).padStart(2, '0')}
+                </span>
+                {item.q}
+              </span>
               <ChevronDown
                 size={18}
-                className={`shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`}
+                className={`shrink-0 text-fg-muted transition-transform ${
+                  isOpen ? 'rotate-180' : ''
+                }`}
               />
             </button>
             {isOpen && (
-              <div className="px-4 pb-4 text-sm text-gray-600 dark:text-gray-300 sm:px-5 sm:pb-5 sm:text-base">
+              <div className="px-4 pb-4 text-sm leading-relaxed text-fg-muted sm:px-5 sm:pb-5 sm:text-base">
                 {item.a}
               </div>
             )}

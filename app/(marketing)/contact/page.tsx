@@ -1,4 +1,6 @@
 import { Mail } from 'lucide-react';
+import { Badge } from '@/components/ui/Badge';
+import { Button } from '@/components/ui/Button';
 import { getDict } from '@/lib/i18n';
 
 export const metadata = { title: 'Contact — SocialBoost AI' };
@@ -8,20 +10,22 @@ export default function ContactPage() {
 
   return (
     <main className="mx-auto max-w-3xl px-4 py-16 sm:px-6 sm:py-20">
-      <p className="mb-3 text-xs font-semibold uppercase tracking-widest text-brand-600 sm:text-sm">
+      <Badge variant="mono" className="mb-4">
         {t.eyebrow}
-      </p>
-      <h1 className="text-3xl font-bold tracking-tight sm:text-4xl md:text-5xl">{t.title}</h1>
-      <p className="mt-4 text-base text-gray-600 dark:text-gray-300 sm:text-lg">{t.subtitle}</p>
+      </Badge>
+      <h1 className="text-3xl font-bold tracking-tight text-fg sm:text-4xl md:text-5xl">
+        {t.title}
+      </h1>
+      <p className="mt-4 text-base text-fg-muted sm:text-lg">{t.subtitle}</p>
 
       <div className="mt-10 grid gap-10 md:grid-cols-2">
-        <form className="space-y-4 rounded-2xl border border-gray-200 bg-white p-6 dark:border-gray-800 dark:bg-gray-950">
+        <form className="space-y-4 rounded-2xl border border-border bg-bg-elevated p-6">
           <Field label={t.name}>
             <input
               type="text"
               name="name"
               required
-              className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2.5 text-sm focus:border-brand-500 focus:outline-none dark:border-gray-700 dark:bg-gray-900"
+              className="w-full rounded-lg border border-border bg-bg px-3 py-2.5 text-sm text-fg placeholder:text-fg-subtle focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/30"
             />
           </Field>
           <Field label={t.email}>
@@ -29,7 +33,7 @@ export default function ContactPage() {
               type="email"
               name="email"
               required
-              className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2.5 text-sm focus:border-brand-500 focus:outline-none dark:border-gray-700 dark:bg-gray-900"
+              className="w-full rounded-lg border border-border bg-bg px-3 py-2.5 text-sm text-fg placeholder:text-fg-subtle focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/30"
             />
           </Field>
           <Field label={t.message}>
@@ -37,26 +41,29 @@ export default function ContactPage() {
               name="message"
               required
               rows={5}
-              className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2.5 text-sm focus:border-brand-500 focus:outline-none dark:border-gray-700 dark:bg-gray-900"
+              className="w-full rounded-lg border border-border bg-bg px-3 py-2.5 text-sm text-fg placeholder:text-fg-subtle focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/30"
             />
           </Field>
-          <button
-            type="submit"
-            className="w-full rounded-lg bg-brand-500 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-brand-600 sm:w-auto"
-          >
+          <Button type="submit" variant="brand" className="w-full sm:w-auto">
             {t.submit}
-          </button>
+          </Button>
         </form>
 
         <aside>
-          <p className="text-sm font-semibold">{t.or}</p>
+          <p className="text-sm font-semibold text-fg">{t.or}</p>
           <ul className="mt-4 space-y-3">
             {t.addresses.map((a) => (
-              <li key={a.email} className="flex items-start gap-3 rounded-lg border border-gray-200 p-3 dark:border-gray-800">
-                <Mail size={18} className="mt-0.5 shrink-0 text-brand-500" />
+              <li
+                key={a.email}
+                className="flex items-start gap-3 rounded-lg border border-border bg-bg-elevated p-3"
+              >
+                <Mail size={18} className="mt-0.5 shrink-0 text-amber" aria-hidden />
                 <div className="min-w-0">
-                  <p className="text-sm font-semibold">{a.label}</p>
-                  <a href={`mailto:${a.email}`} className="break-all text-sm text-brand-600 hover:underline">
+                  <p className="text-sm font-semibold text-fg">{a.label}</p>
+                  <a
+                    href={`mailto:${a.email}`}
+                    className="break-all font-mono text-xs text-fg-muted hover:text-fg"
+                  >
                     {a.email}
                   </a>
                 </div>
@@ -72,7 +79,7 @@ export default function ContactPage() {
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <label className="block">
-      <span className="mb-1.5 block text-sm font-semibold">{label}</span>
+      <span className="mb-1.5 block text-sm font-semibold text-fg">{label}</span>
       {children}
     </label>
   );
