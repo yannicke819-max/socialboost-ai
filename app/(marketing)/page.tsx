@@ -9,6 +9,7 @@ import {
   FileText,
   Inbox,
   Sparkles,
+  TrendingUp,
   Check,
   X,
 } from 'lucide-react';
@@ -172,7 +173,12 @@ function HowItWorks({ t }: { t: ReturnType<typeof getDict>['how'] }) {
 }
 
 function Pillars({ t }: { t: ReturnType<typeof getDict>['pillars'] }) {
-  const icons = [<Wand2 key="wand" size={22} />, <Dna key="dna" size={22} />, <Gauge key="gauge" size={22} />];
+  const icons = [
+    <Wand2 key="wand" size={22} />,
+    <Dna key="dna" size={22} />,
+    <Gauge key="gauge" size={22} />,
+    <TrendingUp key="rev" size={22} />,
+  ];
   return (
     <section id="features" className="bg-gray-50 py-20 dark:bg-gray-900 sm:py-24">
       <div className="mx-auto max-w-6xl px-4 sm:px-6">
@@ -182,7 +188,7 @@ function Pillars({ t }: { t: ReturnType<typeof getDict>['pillars'] }) {
           </p>
           <h2 className="mt-3 text-2xl font-bold sm:text-3xl md:text-4xl">{t.title}</h2>
         </div>
-        <div className="mt-10 grid gap-5 sm:mt-12 sm:gap-6 md:grid-cols-3">
+        <div className="mt-10 grid gap-5 sm:mt-12 sm:grid-cols-2 sm:gap-6 lg:grid-cols-4">
           {t.items.map((p, i) => (
             <div key={p.title} className="rounded-2xl bg-white p-6 shadow-sm dark:bg-gray-800 sm:p-7">
               <span className="grid h-12 w-12 place-items-center rounded-xl bg-brand-500/10 text-brand-600">
@@ -203,12 +209,12 @@ function Pillars({ t }: { t: ReturnType<typeof getDict>['pillars'] }) {
 
 function Comparison({ t }: { t: ReturnType<typeof getDict>['comparison'] }) {
   const cells: Array<[boolean | string, boolean | string, boolean | string]> = [
-    [false, false, true],
-    [false, false, true],
-    [false, false, true],
-    [true, false, true],
-    [true, false, true],
-    [false, true, t.soon],
+    [false, false, true], // offer-tied campaign
+    [false, false, true], // self-learning Style DNA
+    [false, false, true], // explained Confidence Score
+    [false, false, true], // Revenue Signal
+    [false, false, true], // native editorial adaptation
+    [false, true, t.soon], // scheduling
   ];
   return (
     <section className="mx-auto max-w-5xl px-4 py-20 sm:px-6 sm:py-24">
