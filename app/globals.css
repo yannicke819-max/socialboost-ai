@@ -10,14 +10,14 @@
     --bg-elevated: 240 16% 8%;   /* #111118 — cards / panels */
     --bg-muted: 240 13% 11%;     /* #181820 — subtle inset */
 
-    /* Foregrounds */
+    /* Foregrounds — bumped for AAA legibility on dark bg */
     --fg: 40 33% 97%;            /* #F8F7F4 — paper text */
-    --fg-muted: 240 10% 65%;     /* secondary */
-    --fg-subtle: 240 8% 45%;     /* captions */
+    --fg-muted: 240 10% 75%;     /* secondary, was 65 */
+    --fg-subtle: 240 8% 60%;     /* captions, was 45 */
 
     /* Borders */
-    --border: 0 0% 100% / 0.06;  /* hairline, premium feel */
-    --border-strong: 0 0% 100% / 0.12;
+    --border: 0 0% 100% / 0.08;  /* slightly stronger hairline */
+    --border-strong: 0 0% 100% / 0.16;
 
     /* Brand — purple, used sparingly for CTA / focus / link */
     --brand: 262 83% 58%;        /* #7C3AED */

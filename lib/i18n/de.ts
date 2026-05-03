@@ -167,6 +167,30 @@ export const de: typeof fr = {
       },
     ],
   },
+  measurable: {
+    eyebrow: 'Getrackte Signale',
+    title: 'Was SocialBoost dich messen lässt.',
+    subtitle:
+      "Keine erfundenen Kundenzahlen. Das sind die Signale, die das Produkt trackt, um dir zu helfen zu entscheiden, was du veröffentlichst, wiederholst, verstärkst oder streichst.",
+    items: [
+      {
+        title: 'Klicks zu deinem Angebot',
+        body: 'Jeder generierte Link in deinen Posts wird getrackt. Du siehst, wie viele Personen zu deinem Angebot gegangen sind, pro Post, pro Kampagne.',
+      },
+      {
+        title: 'Posts, die Antworten auslösen',
+        body: 'Erkennt Posts, die Kommentare, DMs, Shares generieren — die echten Engagement-Signale, keine passiven Likes.',
+      },
+      {
+        title: 'Kampagnen zum Verstärken',
+        body: 'Identifiziert Kampagnen, die über deinem Baseline performen. Wiederhole, leite ab, boost was funktioniert.',
+      },
+      {
+        title: 'Content zum Streichen',
+        body: 'Erkennt, was nichts bringt. Spart Zeit, passt den Winkel an oder lässt das Format fallen.',
+      },
+    ],
+  },
   pricingHome: {
     title: 'Vier Pläne. Free verfügbar, kein Wasserzeichen.',
     subtitle: 'Free zum Testen des Versprechens. Pro für 39 €/Monat für die wöchentliche Produktion.',
@@ -223,7 +247,7 @@ export const de: typeof fr = {
       tagline: 'Das Arsenal — wöchentliche Produktion',
       cta: '14-Tage-Trial starten',
       features: ['5 Social-Accounts', '300 KI-Posts / Monat', 'Campaign Engine unbegrenzt', 'Style DNA fortgeschritten (selbstlernend)', 'Confidence Score Premium', 'Monatliche Goal-Driven Strategy', 'Revenue Signal basic', 'Repurposing Audio / Video (Transkript → Kampagne)', 'LinkedIn 1-Klick-Export', 'Priority-Support'],
-      soonFeatures: ['LinkedIn Auto-Publishing'],
+      soonFeatures: ['Auto-publish LinkedIn'],
     },
     agency: {
       name: 'Agency',

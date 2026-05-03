@@ -39,7 +39,7 @@ export default function HomePage() {
       <WorkflowHow t={t.how} />
       <BentoPillars t={t.pillars} />
       <NotAScheduler t={t.comparison} />
-      <BusinessProof t={t.testimonials} />
+      <Measurable t={t.measurable} />
       <PricingSection homeT={t.pricingHome} plans={plans} labels={t.pricingPage} />
       <FAQSection title={t.faq.title} items={t.faq.items} />
       <FinalCTA t={t.finalCta} />
@@ -273,7 +273,7 @@ function WorkflowHow({ t }: { t: ReturnType<typeof getDict>['how'] }) {
           <Badge variant="mono" className="mb-4">
             Workflow
           </Badge>
-          <h2 className="font-display text-display-2 text-fg">{t.title}</h2>
+          <h2 className="text-3xl font-bold tracking-tight text-fg sm:text-4xl">{t.title}</h2>
         </div>
 
         <div className="mt-16 space-y-24 sm:mt-20 sm:space-y-32">
@@ -297,7 +297,7 @@ function WorkflowHow({ t }: { t: ReturnType<typeof getDict>['how'] }) {
                     </span>
                   </div>
                 </div>
-                <h3 className="mt-4 font-display text-3xl text-fg sm:text-4xl">
+                <h3 className="mt-4 text-2xl font-bold tracking-tight text-fg sm:text-3xl">
                   {step.title}
                 </h3>
                 <p className="mt-4 text-base leading-relaxed text-fg-muted sm:text-lg">
@@ -327,7 +327,7 @@ function BentoPillars({ t }: { t: ReturnType<typeof getDict>['pillars'] }) {
           <Badge variant="mono" className="mb-4">
             {t.eyebrow}
           </Badge>
-          <h2 className="font-display text-display-2 text-fg">{t.title}</h2>
+          <h2 className="text-3xl font-bold tracking-tight text-fg sm:text-4xl">{t.title}</h2>
         </div>
 
         {/* Asymmetric bento — 4 tiles, 2 large + 2 standard */}
@@ -453,7 +453,7 @@ function PillarTile({
           {tag}
         </span>
       </div>
-      <h3 className="mt-4 font-display text-2xl text-fg">{title}</h3>
+      <h3 className="mt-4 text-xl font-bold tracking-tight text-fg">{title}</h3>
       <p className="mt-2 text-sm text-fg-muted">{body}</p>
       {visual}
     </div>
@@ -482,7 +482,7 @@ function NotAScheduler({ t }: { t: ReturnType<typeof getDict>['comparison'] }) {
           <Badge variant="mono" className="mb-4">
             Pas un scheduler
           </Badge>
-          <h2 className="font-display text-display-2 text-fg">{t.title}</h2>
+          <h2 className="text-3xl font-bold tracking-tight text-fg sm:text-4xl">{t.title}</h2>
         </div>
 
         <div className="mt-12 space-y-2 sm:mt-16">
@@ -545,15 +545,15 @@ function ComparisonCell({ value, winner = false }: { value: boolean | string; wi
 }
 
 /* ================================================================== */
-/* BUSINESS PROOF — testimonials with handles + business metrics       */
+/* MEASURABLE — what the product tracks (no fake testimonials)         */
 /* ================================================================== */
 
-function BusinessProof({ t }: { t: ReturnType<typeof getDict>['testimonials'] }) {
-  // Each testimonial gets a synthetic business metric to highlight
-  const metrics = [
-    { value: '+47', unit: 'RDV qualifiés', period: '8 semaines' },
-    { value: '×4', unit: 'fréquence publi', period: '60 jours' },
-    { value: '0', unit: 'posts à l\'aveugle', period: 'depuis SocialBoost' },
+function Measurable({ t }: { t: ReturnType<typeof getDict>['measurable'] }) {
+  const icons = [
+    <ArrowUpRight key="i0" size={20} />,
+    <Sparkles key="i1" size={20} />,
+    <TrendingUp key="i2" size={20} />,
+    <X key="i3" size={20} />,
   ];
 
   return (
@@ -561,53 +561,25 @@ function BusinessProof({ t }: { t: ReturnType<typeof getDict>['testimonials'] })
       <div className="mx-auto max-w-6xl px-4 sm:px-6">
         <div className="mx-auto max-w-2xl text-center">
           <Badge variant="amber" className="mb-4">
-            Preuve business
+            {t.eyebrow}
           </Badge>
-          <h2 className="font-display text-display-2 text-fg">
-            Pas des likes. Des chiffres business.
-          </h2>
+          <h2 className="text-3xl font-bold tracking-tight text-fg sm:text-4xl">{t.title}</h2>
+          <p className="mt-4 text-base text-fg-muted sm:text-lg">{t.subtitle}</p>
         </div>
 
-        <div className="mt-12 grid gap-5 sm:mt-16 sm:gap-6 md:grid-cols-3">
-          {t.items.map((item, i) => {
-            const m = metrics[i];
-            const initials = item.who
-              .split(/[,·\s]+/)[0]!
-              .slice(0, 2)
-              .toUpperCase();
-            return (
-              <article
-                key={item.who}
-                className="flex flex-col rounded-xl border border-border bg-bg-elevated p-6 transition hover:border-border-strong"
-              >
-                {/* Metric headline */}
-                {m && (
-                  <div className="mb-5 border-b border-border pb-5">
-                    <div className="flex items-baseline gap-2">
-                      <span className="font-display text-5xl text-amber">{m.value}</span>
-                      <span className="text-sm text-fg-muted">{m.unit}</span>
-                    </div>
-                    <p className="mt-1 font-mono text-[10px] uppercase tracking-wider text-fg-subtle">
-                      {m.period}
-                    </p>
-                  </div>
-                )}
-
-                <blockquote className="flex-1">
-                  <p className="font-display text-lg italic leading-relaxed text-fg">
-                    « {item.quote} »
-                  </p>
-                </blockquote>
-
-                <footer className="mt-5 flex items-center gap-3">
-                  <div className="grid h-9 w-9 place-items-center rounded-full bg-bg-muted font-mono text-xs text-fg">
-                    {initials}
-                  </div>
-                  <span className="text-xs text-fg-muted">{item.who}</span>
-                </footer>
-              </article>
-            );
-          })}
+        <div className="mt-12 grid gap-5 sm:mt-16 sm:grid-cols-2 sm:gap-6 lg:grid-cols-4">
+          {t.items.map((item, i) => (
+            <article
+              key={item.title}
+              className="flex flex-col rounded-xl border border-border bg-bg-elevated p-6 transition hover:border-border-strong"
+            >
+              <span className="grid h-9 w-9 place-items-center rounded-md bg-amber-soft text-amber">
+                {icons[i]}
+              </span>
+              <h3 className="mt-4 text-base font-semibold text-fg">{item.title}</h3>
+              <p className="mt-2 text-sm leading-relaxed text-fg-muted">{item.body}</p>
+            </article>
+          ))}
         </div>
       </div>
     </section>
@@ -637,7 +609,7 @@ function PricingSection({
     <section id="pricing" className="bg-bg py-20 sm:py-28">
       <div className="mx-auto max-w-6xl px-4 sm:px-6">
         <div className="text-center">
-          <h2 className="font-display text-display-2 text-fg">{homeT.title}</h2>
+          <h2 className="text-3xl font-bold tracking-tight text-fg sm:text-4xl">{homeT.title}</h2>
           <p className="mt-3 text-fg-muted">{homeT.subtitle}</p>
         </div>
 
@@ -676,7 +648,7 @@ function FAQSection({
   return (
     <section id="faq" className="bg-bg-elevated/30 py-20 sm:py-28">
       <div className="mx-auto max-w-3xl px-4 sm:px-6">
-        <h2 className="text-center font-display text-display-2 text-fg">{title}</h2>
+        <h2 className="text-center text-3xl font-bold tracking-tight text-fg sm:text-4xl">{title}</h2>
         <div className="mt-10 sm:mt-14">
           <FAQ items={items} />
         </div>

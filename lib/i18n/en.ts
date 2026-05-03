@@ -167,6 +167,30 @@ export const en: typeof fr = {
       },
     ],
   },
+  measurable: {
+    eyebrow: 'Tracked signals',
+    title: 'What SocialBoost lets you measure.',
+    subtitle:
+      "No fabricated customer numbers. Here are the signals the product tracks to help you decide what to publish, repeat, amplify, or cut.",
+    items: [
+      {
+        title: 'Clicks to your offer',
+        body: 'Every link generated in your posts is tracked. You see how many people went to your offer, per post, per campaign.',
+      },
+      {
+        title: 'Posts that trigger replies',
+        body: 'Detects posts that generate comments, DMs, shares — the real engagement signals, not passive likes.',
+      },
+      {
+        title: 'Campaigns to amplify',
+        body: 'Identifies campaigns performing above your baseline. Replay, derive, boost what works.',
+      },
+      {
+        title: 'Content to cut',
+        body: "Spots what brings nothing. Save time, adjust the angle or drop the format.",
+      },
+    ],
+  },
   pricingHome: {
     title: 'Four plans. Free available, no watermark.',
     subtitle: 'Free to test the promise. Pro at €39/mo for the weekly production engine.',
@@ -287,7 +311,7 @@ export const en: typeof fr = {
         'Priority support',
       ],
       soonFeatures: [
-        'LinkedIn auto-publishing',
+        'Auto-publish LinkedIn',
       ],
     },
     agency: {
