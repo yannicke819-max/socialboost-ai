@@ -281,8 +281,11 @@ export const en: typeof fr = {
         'Monthly Goal-Driven Strategy',
         'Basic Revenue Signal',
         'Audio / video repurposing (transcript → campaign)',
-        'LinkedIn auto-publish',
+        'LinkedIn 1-click export',
         'Priority support',
+      ],
+      soonFeatures: [
+        'LinkedIn auto-publishing',
       ],
     },
     agency: {
