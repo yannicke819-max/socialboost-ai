@@ -7,7 +7,7 @@ export function MarketingFooter() {
       <div className="mx-auto grid max-w-6xl grid-cols-2 gap-10 px-6 py-12 sm:grid-cols-4">
         <div className="col-span-2 sm:col-span-1">
           <Logo />
-          <p className="mt-3 text-sm text-gray-500">Publie moins, gagne plus.</p>
+          <p className="mt-3 text-sm text-gray-500">Une idée. Une semaine de contenu. Ta voix.</p>
         </div>
         <FooterCol title="Produit">
           <FooterLink href="/#features">Fonctionnalités</FooterLink>
