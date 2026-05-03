@@ -1,69 +1,62 @@
-```
 # Dependencies
 node_modules/
+.pnp
+.pnp.js
+.yarn/install-state.gz
 
-# Build outputs
-dist/
+# Next.js
+.next/
+out/
 build/
-coverage/
-htmlcov/
+dist/
 
-# Environment variables
+# Production
+*.tsbuildinfo
+next-env.d.ts
+
+# Env
 .env
 .env.local
 .env.*
+.env.development.local
+.env.test.local
+.env.production.local
 
-# Python
-__pycache__/
-*.pyc
-*.pyo
-*.pyd
-.Python
-env/
-venv/
-.venv/
-pip-log.txt
-pip-delete-this-directory.txt
-.tox/
-.coverage
-.coverage.*
-.cache
-nosetests.xml
-coverage.xml
-*.cover
-*.log
-*.tmp
-*.swp
-.DS_Store
-Thumbs.db
-
-# IDE
+# IDE / OS
 .vscode/
 .idea/
-
-# Testing
-.mypy_cache/
-.pytest_cache/
-.hypothesis/
-
-# Distribution / packaging
-.Python
-env/
-venv/
-.venv/
-.ENV
-.venv.bak/
-env.bak/
-
-# Logs
-*.log
-
-# OS generated files
 .DS_Store
 .DS_Store?
 ._*
-.Spotlight-V100
-.Trashes
-ehthumbs.db
 Thumbs.db
-```
+ehthumbs.db
+*.swp
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Vercel
+.vercel
+
+# Test coverage
+coverage/
+.nyc_output/
+htmlcov/
+
+# Supabase
+supabase/.branches/
+supabase/.temp/
+
+# Sentry
+.sentryclirc
+
+# Python (legacy / scripts)
+__pycache__/
+*.pyc
+.venv/
+.mypy_cache/
+.pytest_cache/
