@@ -34,8 +34,10 @@ export const en: typeof fr = {
   },
   hero: {
     eyebrow: 'Editorial Revenue System for solo creators & SMBs',
-    titleStart: 'Hand us your offer.',
-    titleEnd: "We build the campaign that sells it.",
+    titleLine1: 'Hand us your offer.',
+    titleLine2Pre: 'We build the ',
+    titleAccent: 'campaign',
+    titleLine2Post: ' that sells it.',
     subtitle:
       "SocialBoost turns your expertise — an article, a transcript, an offer brief — into a multi-platform campaign, in your voice, tied to a measurable business goal. Not likes. Results.",
     primaryCta: 'Build my campaign',
@@ -55,9 +57,9 @@ export const en: typeof fr = {
     },
   },
   problem: {
-    title: "86% of creators already use AI. Content isn't the problem anymore — conversion is.",
+    title: "Generative AI is everywhere. Content isn't scarce anymore. What is: conversion.",
     body:
-      "You ship fast with ChatGPT. But your posts don't bring leads, customers, or revenue. 42% of creators don't know if their content generates business. No tool bridges a post and a euro earned.",
+      "You ship fast with ChatGPT. But your posts don't bring leads, customers, or revenue. Most creators don't know if their content generates business. No tool bridges a post and a euro earned.",
     punchline: "The right tool doesn't generate more. It turns your expertise into an editorial revenue system.",
   },
   how: {
@@ -453,7 +455,7 @@ export const en: typeof fr = {
       {
         h: 'The verdict',
         p:
-          "86% of creators already use AI for content. Content isn't the problem — conversion is. 42% don't know if their posts generate business. No SMB tool bridges a post and a euro earned.",
+          "Generative AI has become ubiquitous. Content isn't scarce anymore — conversion is. Most solos and SMBs don't know which posts drive business. No SMB tool bridges a post and a euro earned.",
       },
       {
         h: 'The conviction',

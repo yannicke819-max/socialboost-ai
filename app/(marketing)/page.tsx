@@ -50,7 +50,10 @@ function Hero({
           {t.eyebrow}
         </p>
         <h1 className="text-4xl font-bold leading-[1.1] tracking-tight sm:text-5xl md:text-6xl">
-          {t.titleStart} <span className="text-brand-500">{t.titleEnd}</span>
+          {t.titleLine1}{' '}
+          {t.titleLine2Pre}
+          <span className="text-brand">{t.titleAccent}</span>
+          {t.titleLine2Post}
         </h1>
         <p className="mt-5 text-base text-gray-600 dark:text-gray-300 sm:mt-6 sm:text-lg">
           {t.subtitle}

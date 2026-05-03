@@ -32,8 +32,10 @@ export const fr = {
   },
   hero: {
     eyebrow: 'Editorial Revenue System pour solo creators & TPE',
-    titleStart: 'Donne ton offre.',
-    titleEnd: 'On construit la campagne qui la vend.',
+    titleLine1: 'Donne ton offre.',
+    titleLine2Pre: 'On construit la ',
+    titleAccent: 'campagne',
+    titleLine2Post: ' qui la vend.',
     subtitle:
       "SocialBoost transforme ton expertise — un article, un transcript, une fiche offre — en campagne multi-plateformes, dans ta voix, reliée à un objectif business mesurable. Pas des likes. Des résultats.",
     primaryCta: 'Construire ma campagne',
@@ -53,9 +55,9 @@ export const fr = {
     },
   },
   problem: {
-    title: '86 % des créateurs utilisent déjà l\'IA. Le contenu n\'est plus le problème — la conversion l\'est.',
+    title: "L'IA générative est partout. Le contenu n'est plus rare. Ce qui l'est : la conversion.",
     body:
-      "Tu produis vite avec ChatGPT. Mais tes posts ne ramènent ni leads, ni clients, ni revenus. 42 % des créateurs ne savent même pas si leur contenu génère du business. Aucun outil ne fait le pont entre un post publié et un euro entré.",
+      "Tu produis vite avec ChatGPT. Mais tes posts ne ramènent ni leads, ni clients, ni revenus. La plupart des créateurs ne savent même pas si leur contenu génère du business. Aucun outil ne fait le pont entre un post publié et un euro entré.",
     punchline: 'Le bon outil ne génère pas plus. Il transforme ton expertise en système de vente éditorial.',
   },
   how: {
@@ -451,7 +453,7 @@ export const fr = {
       {
         h: "Le constat",
         p:
-          "86 % des créateurs utilisent déjà l'IA pour leur contenu. Le contenu n'est plus le problème — la conversion l'est. 42 % ne savent pas si leurs posts génèrent du business. Aucun outil SMB ne fait le pont entre un post et un euro entré.",
+          "L'IA générative est devenue omniprésente. Le contenu n'est plus rare ; la conversion l'est. La plupart des solos et TPE ne savent pas quels posts génèrent du business. Aucun outil SMB ne fait le pont entre un post et un euro entré.",
       },
       {
         h: 'La conviction',
