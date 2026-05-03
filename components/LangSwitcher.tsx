@@ -28,17 +28,17 @@ export function LangSwitcher({
 
   return (
     <div className={cn('flex items-center gap-1', className)} aria-label={label}>
-      <Globe size={14} className="text-gray-400" aria-hidden />
+      <Globe size={14} className="text-fg-subtle" aria-hidden />
       {LOCALES.map((loc, i) => (
         <span key={loc} className="flex items-center">
-          {i > 0 && <span className="px-1 text-gray-300">·</span>}
+          {i > 0 && <span className="px-0.5 text-fg-subtle">·</span>}
           <button
             type="button"
             onClick={() => setLocale(loc)}
             disabled={isPending}
             className={cn(
-              'rounded px-1 text-xs font-semibold uppercase transition',
-              current === loc ? 'text-brand-600' : 'text-gray-500 hover:text-brand-500',
+              'rounded px-1 font-mono text-xs uppercase tracking-wider transition',
+              current === loc ? 'text-fg' : 'text-fg-subtle hover:text-fg',
             )}
             aria-current={current === loc ? 'true' : undefined}
             title={LOCALE_LABELS[loc]}

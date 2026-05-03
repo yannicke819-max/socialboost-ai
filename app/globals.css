@@ -2,20 +2,128 @@
 @tailwind components;
 @tailwind utilities;
 
-:root {
-  --background: 255 255 255;
-  --foreground: 17 24 39;
-}
-
-@media (prefers-color-scheme: dark) {
+@layer base {
   :root {
-    --background: 10 11 20;
-    --foreground: 245 247 255;
+    /* Dark Editorial Intelligence — dark-only MVP */
+    /* Backgrounds */
+    --bg: 240 17% 5%;            /* #0A0A0F — deep ink */
+    --bg-elevated: 240 16% 8%;   /* #111118 — cards / panels */
+    --bg-muted: 240 13% 11%;     /* #181820 — subtle inset */
+
+    /* Foregrounds */
+    --fg: 40 33% 97%;            /* #F8F7F4 — paper text */
+    --fg-muted: 240 10% 65%;     /* secondary */
+    --fg-subtle: 240 8% 45%;     /* captions */
+
+    /* Borders */
+    --border: 0 0% 100% / 0.06;  /* hairline, premium feel */
+    --border-strong: 0 0% 100% / 0.12;
+
+    /* Brand — purple, used sparingly for CTA / focus / link */
+    --brand: 262 83% 58%;        /* #7C3AED */
+    --brand-fg: 40 33% 97%;
+    --brand-soft: 262 60% 18%;   /* dark wash for subtle bg */
+
+    /* Amber — exclusively for scores, business signals, revenue cues */
+    --amber: 38 92% 50%;         /* #F59E0B */
+    --amber-soft: 38 60% 16%;
+
+    /* Accent ink (for editorial decorative use) */
+    --accent: 40 33% 96%;
+
+    --ring: 262 83% 58%;
+    --shadow-rgb: 0 0 0;
+
+    --radius: 12px;
+
+    color-scheme: dark;
+  }
+
+  * {
+    border-color: hsl(var(--border));
+  }
+
+  html {
+    font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
+  }
+
+  body {
+    background-color: hsl(var(--bg));
+    color: hsl(var(--fg));
+    font-family: var(--font-sans), system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  ::selection {
+    background-color: hsl(var(--brand) / 0.35);
+    color: hsl(var(--fg));
+  }
+
+  /* Scrollbar dark */
+  ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+  ::-webkit-scrollbar-track {
+    background: hsl(var(--bg));
+  }
+  ::-webkit-scrollbar-thumb {
+    background: hsl(var(--bg-elevated));
+    border-radius: 8px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: hsl(var(--bg-muted));
   }
 }
 
-html,
-body {
-  background-color: rgb(var(--background));
-  color: rgb(var(--foreground));
+@layer utilities {
+  .font-display {
+    font-family: var(--font-display), Georgia, serif;
+    font-feature-settings: 'liga', 'dlig';
+  }
+
+  .font-mono {
+    font-family: var(--font-mono), ui-monospace, monospace;
+  }
+
+  /* Display fluid sizes */
+  .text-display-1 {
+    font-size: clamp(3rem, 8vw, 7rem);
+    line-height: 0.95;
+    letter-spacing: -0.04em;
+  }
+
+  .text-display-2 {
+    font-size: clamp(2.25rem, 5vw, 4.5rem);
+    line-height: 1;
+    letter-spacing: -0.03em;
+  }
+
+  .text-step-num {
+    font-size: clamp(5rem, 14vw, 12rem);
+    line-height: 0.85;
+    letter-spacing: -0.05em;
+  }
+
+  /* Mono caption — small, uppercase, tracked */
+  .text-caption {
+    font-family: var(--font-mono), ui-monospace, monospace;
+    font-size: 0.75rem;
+    line-height: 1.2;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  /* Glass nav header */
+  .glass {
+    background-color: hsl(var(--bg) / 0.7);
+    backdrop-filter: blur(16px) saturate(140%);
+    -webkit-backdrop-filter: blur(16px) saturate(140%);
+  }
+
+  /* Hairline divider top/bottom — premium editorial */
+  .hairline {
+    border-color: hsl(var(--border));
+  }
 }
