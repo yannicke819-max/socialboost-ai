@@ -2,20 +2,121 @@
 @tailwind components;
 @tailwind utilities;
 
-:root {
-  --background: 255 255 255;
-  --foreground: 17 24 39;
-}
-
-@media (prefers-color-scheme: dark) {
+@layer base {
   :root {
-    --background: 10 11 20;
-    --foreground: 245 247 255;
+    /* Inkwell × Coral — Light theme */
+    --bg: 38 33% 97%;
+    --bg-elevated: 0 0% 100%;
+    --bg-muted: 38 22% 92%;
+    --fg: 220 25% 10%;
+    --fg-muted: 220 12% 38%;
+    --fg-subtle: 220 10% 60%;
+    --border: 38 18% 86%;
+    --border-strong: 220 15% 75%;
+
+    --brand: 8 92% 62%;
+    --brand-fg: 38 33% 97%;
+    --brand-soft: 8 100% 95%;
+
+    --accent: 220 90% 14%;
+    --lime: 72 95% 50%;
+    --violet: 268 75% 62%;
+
+    --ring: 8 92% 62%;
+    --shadow-rgb: 16 24 40;
+
+    --radius: 12px;
+
+    color-scheme: light;
+  }
+
+  [data-theme='dark'] {
+    /* Inkwell × Coral — Dark theme */
+    --bg: 220 30% 6%;
+    --bg-elevated: 220 25% 9%;
+    --bg-muted: 220 25% 12%;
+    --fg: 38 33% 96%;
+    --fg-muted: 220 12% 65%;
+    --fg-subtle: 220 10% 45%;
+    --border: 220 20% 18%;
+    --border-strong: 220 15% 30%;
+
+    --brand: 8 92% 62%;
+    --brand-fg: 38 33% 97%;
+    --brand-soft: 8 50% 16%;
+
+    --accent: 38 33% 96%;
+    --lime: 72 95% 60%;
+    --violet: 268 75% 70%;
+
+    --ring: 8 92% 62%;
+    --shadow-rgb: 0 0 0;
+
+    color-scheme: dark;
+  }
+
+  * {
+    border-color: hsl(var(--border));
+  }
+
+  html {
+    font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
+  }
+
+  body {
+    background-color: hsl(var(--bg));
+    color: hsl(var(--fg));
+    font-family: var(--font-sans), system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  ::selection {
+    background-color: hsl(var(--brand) / 0.25);
+    color: hsl(var(--fg));
   }
 }
 
-html,
-body {
-  background-color: rgb(var(--background));
-  color: rgb(var(--foreground));
+@layer utilities {
+  .font-display {
+    font-family: var(--font-display), Georgia, serif;
+    font-feature-settings: 'liga', 'dlig';
+  }
+
+  .font-mono {
+    font-family: var(--font-mono), ui-monospace, monospace;
+  }
+
+  /* Display fluid sizes */
+  .text-display-1 {
+    font-size: clamp(3rem, 7.5vw, 6.5rem);
+    line-height: 0.95;
+    letter-spacing: -0.04em;
+  }
+
+  .text-display-2 {
+    font-size: clamp(2.25rem, 5vw, 4.25rem);
+    line-height: 1;
+    letter-spacing: -0.03em;
+  }
+
+  .text-step-num {
+    font-size: clamp(5rem, 14vw, 11rem);
+    line-height: 0.85;
+    letter-spacing: -0.05em;
+  }
+
+  /* Mono caption — small, uppercase, tracked */
+  .text-caption {
+    font-family: var(--font-mono), ui-monospace, monospace;
+    font-size: 0.75rem;
+    line-height: 1.2;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .glass {
+    background-color: hsl(var(--bg) / 0.7);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+  }
 }
