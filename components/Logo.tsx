@@ -1,15 +1,28 @@
 import Link from 'next/link';
-import { Sparkles } from 'lucide-react';
 
-export function Logo({ href = '/' }: { href?: string }) {
+export function Logo({
+  href = '/',
+  size = 'md',
+}: {
+  href?: string;
+  size?: 'sm' | 'md' | 'lg';
+}) {
+  const wordSize =
+    size === 'sm' ? 'text-base' : size === 'lg' ? 'text-2xl' : 'text-lg';
+  const dotSize =
+    size === 'sm' ? 'h-1 w-1' : size === 'lg' ? 'h-1.5 w-1.5' : 'h-1.5 w-1.5';
+
   return (
-    <Link href={href} className="flex items-center gap-2 font-bold">
-      <span className="grid h-8 w-8 place-items-center rounded-lg bg-brand-500 text-white">
-        <Sparkles size={18} />
-      </span>
-      <span className="text-lg tracking-tight">
-        SocialBoost <span className="text-brand-500">AI</span>
-      </span>
+    <Link
+      href={href}
+      className="group inline-flex items-baseline font-display tracking-tight text-fg"
+      aria-label="SocialBoost AI — home"
+    >
+      <span className={wordSize}>SocialBoost</span>
+      <span className={`${wordSize} italic`}>.ai</span>
+      <span
+        className={`ml-1 inline-block ${dotSize} rounded-full bg-brand transition-transform group-hover:scale-125`}
+      />
     </Link>
   );
 }
