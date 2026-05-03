@@ -125,7 +125,7 @@ export function GeneratorForm() {
           className="inline-flex items-center gap-2 rounded-lg bg-brand-500 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-brand-600 disabled:cursor-not-allowed disabled:opacity-50"
         >
           {loading ? <Loader2 size={16} className="animate-spin" /> : <Sparkles size={16} />}
-          {loading ? 'Génération…' : 'Générer 3 variantes'}
+          {loading ? 'Génération…' : 'Remixer en 3 variantes'}
         </button>
       </form>
 

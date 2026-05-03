@@ -2,34 +2,25 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import {
-  LayoutDashboard,
-  Calendar,
-  Sparkles,
-  BarChart3,
-  Settings,
-  type LucideIcon,
-} from 'lucide-react';
+import { Wand2, LineChart, Settings, type LucideIcon } from 'lucide-react';
 import { Logo } from '@/components/Logo';
 import { cn } from '@/lib/utils';
 
 type Item = { href: string; label: string; icon: LucideIcon };
 
 const ITEMS: Item[] = [
-  { href: '/dashboard', label: 'Tableau de bord', icon: LayoutDashboard },
-  { href: '/generator', label: 'Générateur', icon: Sparkles },
-  { href: '/calendar', label: 'Calendrier', icon: Calendar },
-  { href: '/analytics', label: 'Analytics', icon: BarChart3 },
-  { href: '/settings', label: 'Paramètres', icon: Settings },
+  { href: '/studio', label: 'Studio', icon: Wand2 },
+  { href: '/performance', label: 'Performance', icon: LineChart },
+  { href: '/settings', label: 'Réglages', icon: Settings },
 ];
 
 export function Sidebar() {
   const pathname = usePathname();
 
   return (
-    <aside className="hidden w-64 shrink-0 border-r border-gray-100 bg-white dark:border-gray-800 dark:bg-gray-950 md:flex md:flex-col">
+    <aside className="hidden w-60 shrink-0 border-r border-gray-100 bg-white dark:border-gray-800 dark:bg-gray-950 md:flex md:flex-col">
       <div className="flex h-16 items-center border-b border-gray-100 px-6 dark:border-gray-800">
-        <Logo href="/dashboard" />
+        <Logo href="/studio" />
       </div>
       <nav className="flex-1 space-y-1 p-4">
         {ITEMS.map((item) => {
@@ -54,13 +45,13 @@ export function Sidebar() {
       </nav>
       <div className="border-t border-gray-100 p-4 dark:border-gray-800">
         <div className="rounded-lg bg-brand-500/5 p-3 text-sm">
-          <p className="font-semibold">Plan Free</p>
-          <p className="mt-1 text-xs text-gray-500">3 / 10 posts ce mois</p>
+          <p className="font-semibold">Trial Pro</p>
+          <p className="mt-1 text-xs text-gray-500">14 jours · campagnes illimitées</p>
           <Link
             href="/pricing"
             className="mt-2 inline-block text-xs font-semibold text-brand-600 hover:underline"
           >
-            Passer à Creator →
+            Voir les plans →
           </Link>
         </div>
       </div>
