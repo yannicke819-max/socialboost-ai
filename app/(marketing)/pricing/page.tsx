@@ -3,7 +3,7 @@ import { FAQ } from '@/components/marketing/FAQ';
 
 export const metadata = {
   title: 'Tarifs — SocialBoost AI',
-  description: 'Plans simples pour créateurs, TPE et micro-agences. À partir de 14,90 € / mois.',
+  description: 'Trois plans pour les médias solos. Starter 29 €, Pro 79 €, Studio 199 €. Trial 14 jours sur le Pro.',
 };
 
 export default function PricingPage() {
@@ -15,11 +15,11 @@ export default function PricingPage() {
             Tarifs
           </p>
           <h1 className="text-4xl font-bold tracking-tight sm:text-5xl">
-            Choisis le plan qui te ressemble.
+            Trois plans. Pas de free tier.
           </h1>
           <p className="mx-auto mt-4 max-w-2xl text-lg text-gray-600 dark:text-gray-300">
-            Tous les plans incluent l&apos;IA de génération, le calendrier multi-plateformes et
-            l&apos;analyse de performance. Annulation en 1 clic.
+            Tous les plans incluent le Brand Voice Setup et la génération multi-plateformes.
+            Trial 14 jours offert sur le Pro. Annulation en 1 clic.
           </p>
         </div>
         <div className="mt-12">

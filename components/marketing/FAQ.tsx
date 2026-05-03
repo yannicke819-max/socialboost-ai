@@ -7,44 +7,36 @@ type QA = { q: string; a: string };
 
 const FAQS: QA[] = [
   {
-    q: 'Est-ce que les posts ressemblent à du contenu IA générique ?',
-    a: "Non. SocialBoost apprend de tes anciens posts et de tes références pour coller à ton ton. On détecte et on bloque automatiquement les formules LLM clichées (les « Dans un monde où… »). Tu peux éditer chaque post avant publication.",
+    q: "C'est encore du contenu IA générique ?",
+    a: "Non. SocialBoost n'écrit pas avec sa voix, il écrit avec la tienne. Le Brand Voice Setup analyse 3 à 5 de tes meilleurs posts pour extraire ton style. Chaque génération est filtrée pour bannir les formules LLM clichées (« Dans un monde où… », « Game-changer », « Let's gooo »). Tu peux toujours éditer avant publication.",
   },
   {
-    q: 'Est-ce que je risque un shadowban ?',
-    a: "Non. On respecte les APIs officielles, pas de DM automatique, on adapte hashtags et fréquence aux règles de chaque plateforme.",
+    q: "J'ai déjà ChatGPT, qu'est-ce que tu fais en plus ?",
+    a: "ChatGPT te livre un texte générique. SocialBoost te livre une campagne adaptée à 5 plateformes (LinkedIn long-form, IG carrousel, X thread, TikTok script, Facebook), entraînée sur ta voix, avec un score prédictif avant publication. C'est une autre catégorie d'outil.",
+  },
+  {
+    q: "Trop cher pour un outil de plus, non ?",
+    a: "Calcule : 15 h de rédaction par semaine → 1 h. À 80 €/h facturé, le retour est sous 1 semaine. Le plan Pro à 79 €/mois est moins cher qu'un ghostwriter à 1 200 € — et il ne part pas en vacances.",
+  },
+  {
+    q: "Le Boost Score, c'est sérieux ou c'est du marketing ?",
+    a: "C'est un score prédictif basé sur la longueur, les hooks, la structure, l'alignement avec ta voix et les hashtags. Au début, il s'appuie sur des règles ; à mesure que tu publies, il apprend de TES propres résultats — pas d'une moyenne globale.",
   },
   {
     q: 'Quelles plateformes sont supportées ?',
-    a: 'Instagram, TikTok, LinkedIn, X/Twitter, Facebook. YouTube Shorts et Pinterest arrivent très bientôt.',
+    a: 'Génération : Instagram, TikTok, LinkedIn, X, Facebook. Publication automatique : LinkedIn d\'abord (S6), les autres suivent.',
   },
   {
-    q: 'Je peux éditer les posts ?',
-    a: "Oui, chaque brouillon est éditable. Tu peux refuser une idée et en demander d'autres. L'IA apprend de tes choix.",
+    q: 'Mes données et mes posts sont en sécurité ?',
+    a: "Hébergement Europe, conformité RGPD, tokens OAuth chiffrés en base. On ne revend rien à personne, on n'utilise pas ton contenu pour entraîner un modèle global — ton Brand Voice reste isolé sur ton compte.",
   },
   {
-    q: 'Que se passe-t-il si je dépasse mon quota de posts ?',
-    a: "On t'alerte à 80 %. Tu peux acheter un pack de 50 posts à 5 € ou passer au plan supérieur. Rien ne casse.",
+    q: 'Risque de shadowban ?',
+    a: "Aucun automatisme suspect : on respecte les APIs officielles, pas de DM bot, hashtags et fréquence adaptés aux règles de chaque plateforme.",
   },
   {
-    q: 'Je peux annuler quand je veux ?',
-    a: "Oui, en 1 clic depuis ton compte. Pas de frais, pas de mail à envoyer, pas d'engagement.",
-  },
-  {
-    q: 'Mes données sont-elles en sécurité ?',
-    a: "Oui. Hébergement en Europe, conformité RGPD, tokens d'accès chiffrés. On ne revend rien à personne.",
-  },
-  {
-    q: "Et si je veux publier manuellement un post en urgence ?",
-    a: "Aucun souci. SocialBoost est un assistant, pas une prison. Tu publies quand tu veux.",
-  },
-  {
-    q: 'Ça marche dans quelle langue ?',
-    a: "Français, anglais, espagnol, allemand, italien. L'IA peut traduire tes posts pour toucher plusieurs audiences.",
-  },
-  {
-    q: "Je n'y connais rien en IA, c'est compliqué ?",
-    a: 'Si tu sais envoyer un SMS, tu sais utiliser SocialBoost. Promis.',
+    q: "Et si j'annule ?",
+    a: "1 clic depuis ton compte. Pas de frais, pas d'engagement. Tu gardes l'accès jusqu'à la fin de ta période payée.",
   },
 ];
 

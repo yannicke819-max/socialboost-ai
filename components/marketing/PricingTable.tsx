@@ -6,7 +6,7 @@ import { Check } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 type Plan = {
-  id: 'free' | 'creator' | 'pro' | 'agency';
+  id: 'starter' | 'pro' | 'studio';
   name: string;
   tagline: string;
   monthly: number;
@@ -18,70 +18,57 @@ type Plan = {
 
 const PLANS: Plan[] = [
   {
-    id: 'free',
-    name: 'Free',
-    tagline: 'Teste l’IA',
-    monthly: 0,
-    yearly: 0,
-    cta: 'Commencer gratuitement',
+    id: 'starter',
+    name: 'Starter',
+    tagline: 'Tester le wedge',
+    monthly: 29,
+    yearly: 24,
+    cta: 'Commencer',
     features: [
-      '1 compte social',
-      '10 posts IA / mois',
-      'Calendrier basique',
-      'Watermark "Créé avec SocialBoost"',
-      'Support communautaire',
-    ],
-  },
-  {
-    id: 'creator',
-    name: 'Creator',
-    tagline: 'Créateur solo',
-    monthly: 14.9,
-    yearly: 11.9,
-    highlight: true,
-    cta: 'Essayer 7 jours',
-    features: [
-      '3 comptes sociaux',
-      '100 posts IA / mois',
-      'Toutes plateformes',
-      'Smart scheduling + Boost Score',
-      'Repurposing 5 / mois',
-      '20 visuels IA / mois',
-      'Support email 48 h',
+      '1 Brand Voice',
+      '20 inputs / mois',
+      '3 plateformes (LinkedIn, IG, X)',
+      '2 variantes par plateforme',
+      'Brand Voice Setup standard',
+      'Publication manuelle (copier-coller)',
+      'Support email',
     ],
   },
   {
     id: 'pro',
     name: 'Pro',
-    tagline: 'TPE / freelance',
-    monthly: 29.9,
-    yearly: 23.9,
-    cta: 'Choisir Pro',
+    tagline: 'Ma machine de prod hebdo',
+    monthly: 79,
+    yearly: 66,
+    highlight: true,
+    cta: 'Démarrer 14 j gratuits',
     features: [
-      '6 comptes sociaux',
-      '400 posts IA / mois',
-      'Repurposing illimité',
-      'Recos IA hebdo',
-      '100 visuels IA / mois',
-      'Auto-refresh des posts',
-      'Export PDF rapports',
-      'Support chat prioritaire',
+      '3 Brand Voices',
+      '100 inputs / mois',
+      'Toutes plateformes (5)',
+      '3 variantes par plateforme',
+      'Brand Voice Setup avancé (analyse posts)',
+      'Boost Score prédictif',
+      'Publication LinkedIn auto',
+      'Support prioritaire',
     ],
   },
   {
-    id: 'agency',
-    name: 'Agency',
-    tagline: 'Micro-agence',
-    monthly: 79.9,
-    yearly: 63.9,
-    cta: 'Choisir Agency',
+    id: 'studio',
+    name: 'Studio',
+    tagline: 'Je gère mes clients',
+    monthly: 199,
+    yearly: 166,
+    cta: 'Choisir Studio',
     features: [
-      '20 comptes sociaux multi-clients',
-      '1 500 posts IA / mois',
-      '3 seats inclus',
-      'White-label reports',
-      'API access',
-      'Support dédié + onboarding 1:1',
+      '10 Brand Voices (équipe / clients)',
+      'Inputs illimités',
+      '5 variantes par plateforme',
+      'Import posts existants',
+      'Boost Score + recommandations',
+      'Publication multi-réseaux',
+      '3 sièges inclus (+39 €/siège)',
+      'Slack partagé avec l’équipe',
     ],
   },
 ];
@@ -108,43 +95,43 @@ export function PricingTable() {
           />
         </button>
         <span className={cn('text-sm', yearly && 'font-semibold')}>
-          Annuel <span className="text-brand-500">−20 %</span>
+          Annuel <span className="text-brand-500">soit 2 mois offerts</span>
         </span>
       </div>
 
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+      <div className="mx-auto grid max-w-5xl gap-6 md:grid-cols-3">
         {PLANS.map((plan) => {
           const price = yearly ? plan.yearly : plan.monthly;
           return (
             <div
               key={plan.id}
               className={cn(
-                'flex flex-col rounded-2xl border bg-white p-6 dark:bg-gray-900',
+                'flex flex-col rounded-2xl border bg-white p-7 dark:bg-gray-900',
                 plan.highlight
                   ? 'border-brand-500 shadow-xl ring-1 ring-brand-500/30'
                   : 'border-gray-200 dark:border-gray-800',
               )}
             >
               {plan.highlight && (
-                <span className="mb-3 inline-block rounded-full bg-brand-500/10 px-2.5 py-0.5 text-xs font-semibold text-brand-600 w-fit">
+                <span className="mb-3 inline-block w-fit rounded-full bg-brand-500/10 px-2.5 py-0.5 text-xs font-semibold text-brand-600">
                   Le plus populaire
                 </span>
               )}
               <h3 className="text-xl font-bold">{plan.name}</h3>
               <p className="text-sm text-gray-500">{plan.tagline}</p>
-              <div className="mt-4">
+              <div className="mt-5">
                 <span className="text-4xl font-bold">
-                  {price === 0 ? '0 €' : `${price.toFixed(2).replace('.', ',')} €`}
+                  {price} €
                 </span>
-                {price > 0 && <span className="text-sm text-gray-500"> / mois</span>}
+                <span className="text-sm text-gray-500"> / mois</span>
               </div>
-              {yearly && price > 0 && (
+              {yearly && (
                 <p className="mt-1 text-xs text-gray-500">
-                  Facturé {(plan.yearly * 12).toFixed(0)} € / an
+                  Soit {plan.yearly * 12} € / an facturés
                 </p>
               )}
               <Link
-                href={plan.id === 'free' ? '/signup' : `/signup?plan=${plan.id}`}
+                href={`/signup?plan=${plan.id}`}
                 className={cn(
                   'mt-6 rounded-lg px-4 py-2.5 text-center text-sm font-semibold transition',
                   plan.highlight
@@ -168,7 +155,7 @@ export function PricingTable() {
       </div>
 
       <p className="text-center text-sm text-gray-500">
-        Annulation en 1 clic · Sans engagement · Paiement sécurisé Stripe
+        Trial 14 jours sur le Pro · Annulation en 1 clic · Paiement sécurisé Stripe
       </p>
     </div>
   );
