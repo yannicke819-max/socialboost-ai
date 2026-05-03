@@ -44,23 +44,27 @@ export function PricingTable({
   return (
     <div className="space-y-10">
       <div className="flex flex-wrap items-center justify-center gap-3">
-        <span className={cn('text-sm', !yearly && 'font-semibold')}>{labels.monthly}</span>
+        <span className={cn('text-sm text-fg-muted', !yearly && 'font-semibold text-fg')}>
+          {labels.monthly}
+        </span>
         <button
           type="button"
           onClick={() => setYearly((y) => !y)}
-          className="relative h-6 w-11 rounded-full bg-gray-200 transition dark:bg-gray-700"
+          className="relative h-6 w-11 rounded-full bg-bg-muted transition"
           role="switch"
           aria-checked={yearly}
+          aria-label={`Toggle ${yearly ? labels.monthly : labels.yearly}`}
         >
           <span
             className={cn(
-              'absolute top-0.5 h-5 w-5 rounded-full bg-brand-500 shadow transition',
+              'absolute top-0.5 h-5 w-5 rounded-full bg-brand shadow transition',
               yearly ? 'left-5' : 'left-0.5',
             )}
           />
         </button>
-        <span className={cn('text-sm', yearly && 'font-semibold')}>
-          {labels.yearly} <span className="text-brand-500">{labels.yearlyBadge}</span>
+        <span className={cn('text-sm text-fg-muted', yearly && 'font-semibold text-fg')}>
+          {labels.yearly}{' '}
+          <span className="font-mono text-xs text-amber">{labels.yearlyBadge}</span>
         </span>
       </div>
 
@@ -74,49 +78,54 @@ export function PricingTable({
             <div
               key={plan.id}
               className={cn(
-                'relative flex flex-col rounded-2xl border bg-white p-6 dark:bg-gray-900',
+                'relative flex flex-col rounded-2xl border bg-bg-elevated p-6',
                 plan.highlight
-                  ? 'border-brand-500 shadow-xl ring-1 ring-brand-500/30'
-                  : 'border-gray-200 dark:border-gray-800',
+                  ? 'border-brand/40 shadow-glow'
+                  : 'border-border hover:border-border-strong',
               )}
             >
               <div className="mb-3 flex flex-wrap items-center gap-2">
                 {plan.highlight && (
-                  <span className="inline-block rounded-full bg-brand-500/10 px-2.5 py-0.5 text-xs font-semibold text-brand-600">
+                  <span className="inline-block rounded-full bg-brand-soft px-2.5 py-0.5 font-mono text-[10px] uppercase tracking-wider text-brand">
                     {labels.popular}
                   </span>
                 )}
                 {plan.beta && (
-                  <span className="inline-block rounded-full border border-amber-400/50 bg-amber-400/10 px-2.5 py-0.5 text-xs font-semibold text-amber-700 dark:text-amber-400">
+                  <span className="inline-block rounded-full border border-amber/40 bg-amber-soft px-2.5 py-0.5 font-mono text-[10px] uppercase tracking-wider text-amber">
                     {labels.betaBadge}
                   </span>
                 )}
               </div>
 
-              <h3 className="text-xl font-bold">{plan.name}</h3>
-              <p className="text-sm text-gray-500">{plan.tagline}</p>
+              <h3 className="text-xl font-bold text-fg">{plan.name}</h3>
+              <p className="text-sm text-fg-muted">{plan.tagline}</p>
 
               <div className="mt-5">
                 {isFree ? (
-                  <span className="text-4xl font-bold">{labels.free}</span>
+                  <span className="font-display text-4xl text-fg">{labels.free}</span>
                 ) : (
                   <>
-                    <span className="text-4xl font-bold">{price} €</span>
-                    <span className="text-sm text-gray-500"> {labels.perMonth}</span>
+                    <span className="font-display text-4xl text-fg">{price} €</span>
+                    <span className="font-mono text-xs uppercase tracking-wider text-fg-subtle">
+                      {' '}
+                      {labels.perMonth}
+                    </span>
                   </>
                 )}
               </div>
               {!isFree && yearly && (
-                <p className="mt-1 text-xs text-gray-500">{yearlyTotal}</p>
+                <p className="mt-1 font-mono text-[10px] uppercase tracking-wider text-fg-subtle">
+                  {yearlyTotal}
+                </p>
               )}
 
               <Link
                 href={`/signup?plan=${plan.id}`}
                 className={cn(
-                  'mt-6 rounded-lg px-4 py-2.5 text-center text-sm font-semibold transition',
+                  'mt-6 rounded-md px-4 py-2.5 text-center text-sm font-semibold transition',
                   plan.highlight
-                    ? 'bg-brand-500 text-white hover:bg-brand-600'
-                    : 'border border-gray-300 hover:border-brand-500 hover:text-brand-600 dark:border-gray-700',
+                    ? 'bg-brand text-brand-fg hover:bg-brand/90'
+                    : 'border border-border-strong text-fg hover:border-fg hover:bg-bg-muted',
                 )}
               >
                 {plan.cta}
@@ -124,20 +133,23 @@ export function PricingTable({
 
               <ul className="mt-6 space-y-3 text-sm">
                 {plan.features.map((f) => (
-                  <li key={f} className="flex items-start gap-2">
-                    <Check size={16} className="mt-0.5 shrink-0 text-brand-500" />
+                  <li key={f} className="flex items-start gap-2 text-fg">
+                    <Check size={16} className="mt-0.5 shrink-0 text-fg-muted" aria-hidden />
                     <span>{f}</span>
                   </li>
                 ))}
               </ul>
 
               {plan.soonFeatures && plan.soonFeatures.length > 0 && (
-                <ul className="mt-4 space-y-2 border-t border-gray-100 pt-4 text-sm dark:border-gray-800">
+                <ul className="mt-4 space-y-2 border-t border-border pt-4 text-sm">
                   {plan.soonFeatures.map((f) => (
-                    <li key={f} className="flex items-start gap-2 text-gray-500">
-                      <Clock size={14} className="mt-1 shrink-0" />
+                    <li key={f} className="flex items-start gap-2 text-fg-muted">
+                      <Clock size={14} className="mt-1 shrink-0 text-fg-subtle" aria-hidden />
                       <span>
-                        {f} <span className="text-xs italic text-gray-400">— bientôt</span>
+                        {f}{' '}
+                        <span className="font-mono text-[10px] uppercase tracking-wider text-fg-subtle">
+                          — bientôt
+                        </span>
                       </span>
                     </li>
                   ))}
@@ -148,7 +160,9 @@ export function PricingTable({
         })}
       </div>
 
-      <p className="text-center text-sm text-gray-500">{labels.fineprint}</p>
+      <p className="text-center font-mono text-[11px] uppercase tracking-wider text-fg-subtle">
+        {labels.fineprint}
+      </p>
     </div>
   );
 }

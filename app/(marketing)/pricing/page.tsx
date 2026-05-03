@@ -1,12 +1,13 @@
 import { PricingTable } from '@/components/marketing/PricingTable';
 import { FAQ } from '@/components/marketing/FAQ';
+import { Badge } from '@/components/ui/Badge';
 import { getDict } from '@/lib/i18n';
 import { buildPlans } from '@/lib/pricing';
 
 export const metadata = {
   title: 'Pricing — SocialBoost AI',
   description:
-    'Three plans for solo media operators. Starter €29, Pro €79, Studio €199. 14-day Pro trial.',
+    'Four plans for solo media operators. Free, Solo €17, Pro €39, Agency €89. 14-day Pro trial.',
 };
 
 export default function PricingPage() {
@@ -17,13 +18,13 @@ export default function PricingPage() {
     <>
       <section className="mx-auto max-w-6xl px-4 py-16 sm:px-6 sm:py-20">
         <div className="text-center">
-          <p className="mb-3 text-xs font-semibold uppercase tracking-widest text-brand-600 sm:text-sm">
+          <Badge variant="mono" className="mb-4">
             {t.pricingPage.eyebrow}
-          </p>
-          <h1 className="text-3xl font-bold tracking-tight sm:text-4xl md:text-5xl">
+          </Badge>
+          <h1 className="text-3xl font-bold tracking-tight text-fg sm:text-4xl md:text-5xl">
             {t.pricingPage.title}
           </h1>
-          <p className="mx-auto mt-4 max-w-2xl text-base text-gray-600 dark:text-gray-300 sm:text-lg">
+          <p className="mx-auto mt-4 max-w-2xl text-base text-fg-muted sm:text-lg">
             {t.pricingPage.subtitle}
           </p>
         </div>
@@ -32,9 +33,9 @@ export default function PricingPage() {
         </div>
       </section>
 
-      <section className="border-t border-gray-100 bg-gray-50 py-16 dark:border-gray-800 dark:bg-gray-900 sm:py-20">
+      <section className="border-t border-border bg-bg-elevated/30 py-16 sm:py-20">
         <div className="mx-auto max-w-3xl px-4 sm:px-6">
-          <h2 className="text-center text-2xl font-bold sm:text-3xl">
+          <h2 className="text-center text-2xl font-bold tracking-tight text-fg sm:text-3xl">
             {t.pricingPage.questionsTitle}
           </h2>
           <div className="mt-8 sm:mt-10">

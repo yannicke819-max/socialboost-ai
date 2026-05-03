@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { Logo } from '@/components/Logo';
+import { Button } from '@/components/ui/Button';
 import { getDict } from '@/lib/i18n';
 
 export const metadata = { title: 'Sign up — SocialBoost AI' };
@@ -12,9 +13,9 @@ export default function SignupPage() {
       <div className="flex justify-center">
         <Logo />
       </div>
-      <div className="mt-8 rounded-2xl border border-gray-200 bg-white p-6 dark:border-gray-800 dark:bg-gray-950 sm:p-8">
-        <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">{t.title}</h1>
-        <p className="mt-1 text-sm text-gray-600 dark:text-gray-300">{t.subtitle}</p>
+      <div className="mt-8 rounded-2xl border border-border bg-bg-elevated p-6 sm:p-8">
+        <h1 className="text-2xl font-bold tracking-tight text-fg sm:text-3xl">{t.title}</h1>
+        <p className="mt-1 text-sm text-fg-muted">{t.subtitle}</p>
 
         <form className="mt-6 space-y-4">
           <Field label={t.email}>
@@ -23,7 +24,7 @@ export default function SignupPage() {
               name="email"
               required
               autoComplete="email"
-              className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2.5 text-sm focus:border-brand-500 focus:outline-none dark:border-gray-700 dark:bg-gray-900"
+              className="w-full rounded-lg border border-border bg-bg px-3 py-2.5 text-sm text-fg placeholder:text-fg-subtle focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/30"
             />
           </Field>
           <Field label={t.password} hint={t.passwordHint}>
@@ -33,22 +34,19 @@ export default function SignupPage() {
               required
               minLength={8}
               autoComplete="new-password"
-              className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2.5 text-sm focus:border-brand-500 focus:outline-none dark:border-gray-700 dark:bg-gray-900"
+              className="w-full rounded-lg border border-border bg-bg px-3 py-2.5 text-sm text-fg placeholder:text-fg-subtle focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/30"
             />
           </Field>
-          <button
-            type="submit"
-            className="w-full rounded-lg bg-brand-500 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-brand-600"
-          >
+          <Button type="submit" variant="brand" className="w-full">
             {t.submit}
-          </button>
-          <p className="text-xs text-gray-500">
+          </Button>
+          <p className="text-xs text-fg-subtle">
             {t.termsBefore}
-            <Link href="/legal/terms" className="font-medium text-brand-600 hover:underline">
+            <Link href="/legal/terms" className="font-medium text-fg-muted underline-offset-2 hover:text-fg hover:underline">
               {t.termsLink}
             </Link>
             {t.termsAnd}
-            <Link href="/legal/privacy" className="font-medium text-brand-600 hover:underline">
+            <Link href="/legal/privacy" className="font-medium text-fg-muted underline-offset-2 hover:text-fg hover:underline">
               {t.privacyLink}
             </Link>
             {t.termsAfter}
@@ -56,22 +54,21 @@ export default function SignupPage() {
         </form>
 
         <div className="my-6 flex items-center gap-3">
-          <span className="h-px flex-1 bg-gray-200 dark:bg-gray-800" />
-          <span className="text-xs uppercase tracking-wider text-gray-400">{t.orContinue}</span>
-          <span className="h-px flex-1 bg-gray-200 dark:bg-gray-800" />
+          <span className="h-px flex-1 bg-border" />
+          <span className="font-mono text-[10px] uppercase tracking-wider text-fg-subtle">
+            {t.orContinue}
+          </span>
+          <span className="h-px flex-1 bg-border" />
         </div>
 
-        <button
-          type="button"
-          className="w-full rounded-lg border border-gray-200 px-4 py-2.5 text-sm font-semibold transition hover:border-brand-500 hover:text-brand-600 dark:border-gray-700"
-        >
+        <Button type="button" variant="outline" className="w-full">
           {t.google}
-        </button>
+        </Button>
       </div>
 
-      <p className="mt-6 text-center text-sm text-gray-600 dark:text-gray-300">
+      <p className="mt-6 text-center text-sm text-fg-muted">
         {t.alreadyAccount}{' '}
-        <Link href="/login" className="font-semibold text-brand-600 hover:underline">
+        <Link href="/login" className="font-semibold text-fg transition-colors hover:text-brand">
           {t.loginLink}
         </Link>
       </p>
@@ -90,9 +87,9 @@ function Field({
 }) {
   return (
     <label className="block">
-      <span className="mb-1.5 block text-sm font-semibold">{label}</span>
+      <span className="mb-1.5 block text-sm font-semibold text-fg">{label}</span>
       {children}
-      {hint && <span className="mt-1 block text-xs text-gray-500">{hint}</span>}
+      {hint && <span className="mt-1 block text-xs text-fg-subtle">{hint}</span>}
     </label>
   );
 }

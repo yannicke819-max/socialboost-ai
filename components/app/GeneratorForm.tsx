@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { Sparkles, Loader2 } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 type Platform = 'instagram' | 'tiktok' | 'linkedin' | 'x' | 'facebook';
 
@@ -66,20 +67,24 @@ export function GeneratorForm() {
 
   return (
     <div className="space-y-6">
-      <form onSubmit={handleSubmit} className="space-y-5 rounded-2xl border border-gray-200 bg-white p-6 dark:border-gray-800 dark:bg-gray-950">
+      <form
+        onSubmit={handleSubmit}
+        className="space-y-5 rounded-2xl border border-border bg-bg-elevated p-6"
+      >
         <div>
-          <label className="mb-2 block text-sm font-semibold">Plateforme</label>
+          <label className="mb-2 block text-sm font-semibold text-fg">Plateforme</label>
           <div className="flex flex-wrap gap-2">
             {PLATFORMS.map((p) => (
               <button
                 key={p.id}
                 type="button"
                 onClick={() => setPlatform(p.id)}
-                className={`rounded-lg px-3 py-1.5 text-sm font-medium transition ${
+                className={cn(
+                  'rounded-md px-3 py-1.5 text-xs font-medium uppercase tracking-wider transition font-mono',
                   platform === p.id
-                    ? 'bg-brand-500 text-white'
-                    : 'border border-gray-200 hover:border-brand-500 dark:border-gray-700'
-                }`}
+                    ? 'bg-fg text-bg'
+                    : 'border border-border text-fg-muted hover:border-border-strong hover:text-fg',
+                )}
               >
                 {p.label}
               </button>
@@ -94,7 +99,7 @@ export function GeneratorForm() {
               value={niche}
               onChange={(e) => setNiche(e.target.value)}
               placeholder="Ex: e-commerce déco minimaliste"
-              className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-brand-500 focus:outline-none dark:border-gray-700 dark:bg-gray-900"
+              className="w-full rounded-md border border-border bg-bg px-3 py-2 text-sm text-fg placeholder:text-fg-subtle focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/30"
             />
           </Field>
           <Field label="Ton">
@@ -103,7 +108,7 @@ export function GeneratorForm() {
               value={tone}
               onChange={(e) => setTone(e.target.value)}
               placeholder="Ex: chaleureux, expert, fun"
-              className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-brand-500 focus:outline-none dark:border-gray-700 dark:bg-gray-900"
+              className="w-full rounded-md border border-border bg-bg px-3 py-2 text-sm text-fg placeholder:text-fg-subtle focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/30"
             />
           </Field>
         </div>
@@ -115,14 +120,14 @@ export function GeneratorForm() {
             placeholder="Décris en une phrase ce que tu veux raconter cette semaine."
             rows={4}
             required
-            className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-brand-500 focus:outline-none dark:border-gray-700 dark:bg-gray-900"
+            className="w-full rounded-md border border-border bg-bg px-3 py-2 text-sm text-fg placeholder:text-fg-subtle focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/30"
           />
         </Field>
 
         <button
           type="submit"
           disabled={loading || !brief.trim()}
-          className="inline-flex items-center gap-2 rounded-lg bg-brand-500 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-brand-600 disabled:cursor-not-allowed disabled:opacity-50"
+          className="inline-flex items-center gap-2 rounded-md bg-brand px-5 py-2.5 text-sm font-semibold text-brand-fg shadow-glow transition hover:bg-brand/90 disabled:cursor-not-allowed disabled:opacity-50"
         >
           {loading ? <Loader2 size={16} className="animate-spin" /> : <Sparkles size={16} />}
           {loading ? 'Génération…' : 'Remixer en 3 variantes'}
@@ -130,11 +135,11 @@ export function GeneratorForm() {
       </form>
 
       {error && (
-        <div className="rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700 dark:border-red-800 dark:bg-red-900/30 dark:text-red-200">
+        <div className="rounded-md border border-amber/40 bg-amber-soft p-4 text-sm text-amber">
           <p className="font-semibold">Erreur</p>
           <p className="mt-1">{error}</p>
           {error === 'Unauthorized' && (
-            <p className="mt-2 text-xs">
+            <p className="mt-2 text-xs text-fg-muted">
               Connecte-toi pour utiliser le générateur.
             </p>
           )}
@@ -143,7 +148,7 @@ export function GeneratorForm() {
 
       {drafts && drafts.length > 0 && (
         <div className="space-y-4">
-          <h3 className="text-lg font-bold">Variantes proposées</h3>
+          <h3 className="text-lg font-bold tracking-tight text-fg">Variantes proposées</h3>
           {drafts.map((d, i) => (
             <DraftCard key={i} draft={d} index={i + 1} />
           ))}
@@ -156,7 +161,7 @@ export function GeneratorForm() {
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <label className="block">
-      <span className="mb-2 block text-sm font-semibold">{label}</span>
+      <span className="mb-2 block text-sm font-semibold text-fg">{label}</span>
       {children}
     </label>
   );
@@ -164,32 +169,34 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
 
 function DraftCard({ draft, index }: { draft: Draft; index: number }) {
   return (
-    <div className="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-gray-950">
+    <div className="rounded-2xl border border-border bg-bg-elevated p-5">
       <div className="mb-3 flex items-center justify-between">
-        <span className="text-xs font-semibold uppercase tracking-wider text-brand-600">
+        <span className="font-mono text-[10px] uppercase tracking-wider text-fg-subtle">
           Variante {index} · {draft.hook_type}
         </span>
-        <span className="text-xs text-gray-500">{draft.estimated_format}</span>
+        <span className="font-mono text-[10px] uppercase tracking-wider text-fg-subtle">
+          {draft.estimated_format}
+        </span>
       </div>
-      <p className="whitespace-pre-wrap text-sm">{draft.body}</p>
+      <p className="whitespace-pre-wrap text-sm text-fg">{draft.body}</p>
       {draft.hashtags?.length > 0 && (
-        <p className="mt-3 text-sm text-brand-600">{draft.hashtags.join(' ')}</p>
+        <p className="mt-3 font-mono text-xs text-fg-muted">{draft.hashtags.join(' ')}</p>
       )}
       {draft.cta && (
-        <p className="mt-3 text-xs text-gray-500">
-          <strong>CTA :</strong> {draft.cta}
+        <p className="mt-3 text-xs text-fg-muted">
+          <strong className="text-fg">CTA :</strong> {draft.cta}
         </p>
       )}
       <div className="mt-4 flex gap-2">
         <button
           type="button"
-          className="rounded-lg bg-brand-500 px-3 py-1.5 text-xs font-semibold text-white hover:bg-brand-600"
+          className="rounded-md bg-brand px-3 py-1.5 text-xs font-semibold text-brand-fg transition hover:bg-brand/90"
         >
           Utiliser cette variante
         </button>
         <button
           type="button"
-          className="rounded-lg border border-gray-200 px-3 py-1.5 text-xs font-semibold hover:border-brand-500 dark:border-gray-700"
+          className="rounded-md border border-border px-3 py-1.5 text-xs font-semibold text-fg transition hover:border-border-strong hover:bg-bg-muted"
         >
           Régénérer
         </button>
