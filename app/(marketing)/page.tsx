@@ -1,40 +1,55 @@
 import Link from 'next/link';
 import {
   ArrowRight,
+  ArrowUpRight,
+  Check,
   Dna,
-  Wand2,
   Gauge,
-  Mic,
-  Globe,
-  FileText,
   Inbox,
+  LineChart,
+  Lock,
   Sparkles,
   TrendingUp,
-  Check,
+  Wand2,
   X,
 } from 'lucide-react';
 import { FAQ } from '@/components/marketing/FAQ';
 import { PricingTable } from '@/components/marketing/PricingTable';
+import { Button } from '@/components/ui/Button';
+import { Badge } from '@/components/ui/Badge';
+import { GradientMesh } from '@/components/ui/GradientMesh';
+import { NoiseLayer } from '@/components/ui/NoiseLayer';
+import { Marquee } from '@/components/ui/Marquee';
+import { InputCard } from '@/components/product/InputCard';
+import { OutputDeck } from '@/components/product/OutputDeck';
+import { BoostMeter } from '@/components/product/BoostMeter';
+import { RevenueSignalMini } from '@/components/product/RevenueSignalMini';
 import { getDict } from '@/lib/i18n';
 import { buildPlans } from '@/lib/pricing';
 
 export default function HomePage() {
   const t = getDict();
+  const plans = buildPlans(t);
+
   return (
     <>
       <Hero t={t.hero} demo={t.demo} />
+      <SocialProofBar />
       <Problem t={t.problem} />
-      <HowItWorks t={t.how} />
-      <Pillars t={t.pillars} />
-      <Comparison t={t.comparison} />
-      <ForWho t={t.forwho} />
-      <Testimonials t={t.testimonials} />
-      <PricingSection t={t.pricingHome} plans={buildPlans(t)} labels={t.pricingPage} />
+      <WorkflowHow t={t.how} />
+      <BentoPillars t={t.pillars} />
+      <NotAScheduler t={t.comparison} />
+      <BusinessProof t={t.testimonials} />
+      <PricingSection homeT={t.pricingHome} plans={plans} labels={t.pricingPage} />
       <FAQSection title={t.faq.title} items={t.faq.items} />
       <FinalCTA t={t.finalCta} />
     </>
   );
 }
+
+/* ================================================================== */
+/* HERO                                                                */
+/* ================================================================== */
 
 function Hero({
   t,
@@ -43,101 +58,133 @@ function Hero({
   t: ReturnType<typeof getDict>['hero'];
   demo: ReturnType<typeof getDict>['demo'];
 }) {
-  return (
-    <section className="mx-auto max-w-6xl px-4 pb-12 pt-14 sm:px-6 sm:pb-16 sm:pt-24">
-      <div className="mx-auto max-w-3xl text-center">
-        <p className="mb-4 text-xs font-semibold uppercase tracking-widest text-brand-600 sm:text-sm">
-          {t.eyebrow}
-        </p>
-        <h1 className="text-4xl font-bold leading-[1.1] tracking-tight sm:text-5xl md:text-6xl">
-          {t.titleLine1}{' '}
-          {t.titleLine2Pre}
-          <span className="text-brand">{t.titleAccent}</span>
-          {t.titleLine2Post}
-        </h1>
-        <p className="mt-5 text-base text-gray-600 dark:text-gray-300 sm:mt-6 sm:text-lg">
-          {t.subtitle}
-        </p>
-        <div className="mt-7 flex flex-col items-stretch gap-3 sm:mt-8 sm:flex-row sm:items-center sm:justify-center">
-          <Link
-            href="/signup"
-            className="rounded-lg bg-brand-500 px-6 py-3 text-center font-semibold text-white transition hover:bg-brand-600"
-          >
-            {t.primaryCta}
-          </Link>
-          <Link
-            href="#how"
-            className="rounded-lg border border-gray-300 px-6 py-3 text-center font-semibold transition hover:border-brand-500 hover:text-brand-600 dark:border-gray-700"
-          >
-            {t.secondaryCta}
-          </Link>
-        </div>
-        <p className="mt-4 text-xs text-gray-500 sm:text-sm">{t.fineprint}</p>
-      </div>
+  const deckCards = [
+    {
+      platform: 'linkedin' as const,
+      format: 'Post long-form · 1 200 caractères',
+      preview: demo.platforms.linkedin,
+      score: 87,
+    },
+    {
+      platform: 'instagram' as const,
+      format: 'Carrousel 7 slides · hook visuel',
+      preview: demo.platforms.instagram,
+      score: 79,
+    },
+    {
+      platform: 'x' as const,
+      format: 'Thread 8 tweets · hook contradictoire',
+      preview: demo.platforms.x,
+      score: 84,
+    },
+    {
+      platform: 'tiktok' as const,
+      format: 'Script 45 s · hook 3 s',
+      preview: demo.platforms.tiktok,
+      score: 72,
+    },
+  ];
 
-      <div className="mx-auto mt-12 max-w-5xl sm:mt-16">
-        <DemoFrame t={demo} />
+  return (
+    <section className="relative overflow-hidden">
+      <GradientMesh intensity="soft" />
+      <NoiseLayer opacity={0.04} />
+
+      <div className="relative mx-auto max-w-6xl px-4 pb-12 pt-14 sm:px-6 sm:pb-20 sm:pt-24">
+        <div className="mx-auto max-w-3xl text-center">
+          <Badge variant="mono" className="mb-6">
+            {t.eyebrow}
+          </Badge>
+          <h1 className="font-display text-display-1 text-fg">
+            {t.titleLine1}
+            <br />
+            <span className="italic text-fg">{t.titleLine2Pre}</span>
+            <span className="italic text-brand">{t.titleAccent}</span>
+            <span className="italic text-fg">{t.titleLine2Post}</span>
+          </h1>
+          <p className="mx-auto mt-6 max-w-2xl text-base text-fg-muted sm:mt-8 sm:text-lg">
+            {t.subtitle}
+          </p>
+          <div className="mt-8 flex flex-col items-stretch gap-3 sm:mt-10 sm:flex-row sm:items-center sm:justify-center">
+            <Button href="/signup" variant="brand" size="lg">
+              {t.primaryCta}
+            </Button>
+            <Button href="#how" variant="outline" size="lg">
+              {t.secondaryCta}
+            </Button>
+          </div>
+          <p className="mt-4 font-mono text-[11px] uppercase tracking-wider text-fg-subtle">
+            {t.fineprint}
+          </p>
+        </div>
+
+        {/* Live demo: Input → Output Deck */}
+        <div className="mx-auto mt-14 max-w-5xl sm:mt-20">
+          <div className="grid gap-6 md:grid-cols-[1fr_2fr]">
+            <InputCard
+              label={demo.inputLabel}
+              offer="Coaching LinkedIn 900 € → Calendly"
+              brief={demo.inputExample}
+            />
+            <div>
+              <p className="mb-3 font-mono text-[10px] uppercase tracking-wider text-fg-subtle">
+                {demo.outputLabel}
+              </p>
+              <OutputDeck cards={deckCards} />
+            </div>
+          </div>
+        </div>
       </div>
     </section>
   );
 }
 
-function DemoFrame({ t }: { t: ReturnType<typeof getDict>['demo'] }) {
-  const platforms: { key: keyof typeof t.platforms; label: string }[] = [
-    { key: 'linkedin', label: 'LinkedIn' },
-    { key: 'instagram', label: 'Instagram' },
-    { key: 'x', label: 'X / Twitter' },
-    { key: 'tiktok', label: 'TikTok' },
+/* ================================================================== */
+/* SOCIAL PROOF BAR                                                    */
+/* ================================================================== */
+
+function SocialProofBar() {
+  // Placeholder labels — to be replaced with real customer logos when available
+  const labels = [
+    'Built for solo media operators',
+    'Made in Europe',
+    'Hosted EU · GDPR',
+    'Powered by Anthropic Claude',
+    'Stripe-secured payments',
+    'Built for solo media operators',
+    'Made in Europe',
+    'Hosted EU · GDPR',
+    'Powered by Anthropic Claude',
+    'Stripe-secured payments',
   ];
   return (
-    <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-xl dark:border-gray-800 dark:bg-gray-950">
-      <div className="grid gap-0 md:grid-cols-2">
-        <div className="border-b border-gray-100 p-5 dark:border-gray-800 sm:p-6 md:border-b-0 md:border-r">
-          <p className="text-xs font-semibold uppercase tracking-wider text-gray-500">
-            {t.inputLabel}
-          </p>
-          <div className="mt-3 rounded-lg bg-gray-50 p-4 text-sm text-gray-700 dark:bg-gray-900 dark:text-gray-300">
-            {t.inputExample}
-          </div>
-        </div>
-        <div className="p-5 sm:p-6">
-          <p className="text-xs font-semibold uppercase tracking-wider text-gray-500">
-            {t.outputLabel}
-          </p>
-          <div className="mt-3 space-y-2">
-            {platforms.map((p) => (
-              <PlatformPill key={p.key} name={p.label} preview={t.platforms[p.key]} />
-            ))}
-          </div>
-        </div>
-      </div>
-    </div>
+    <section className="border-y border-border bg-bg-elevated/60 py-6">
+      <Marquee>
+        {labels.map((label, i) => (
+          <span
+            key={i}
+            className="whitespace-nowrap font-mono text-[11px] uppercase tracking-[0.2em] text-fg-subtle"
+          >
+            {label}
+            <span className="ml-12 text-fg-subtle/30">·</span>
+          </span>
+        ))}
+      </Marquee>
+    </section>
   );
 }
 
-function PlatformPill({ name, preview }: { name: string; preview: string }) {
-  return (
-    <div className="flex items-start gap-3 rounded-lg border border-gray-200 bg-white p-3 dark:border-gray-800 dark:bg-gray-900">
-      <span className="mt-0.5 grid h-7 w-7 shrink-0 place-items-center rounded-md bg-brand-500/10 text-xs font-bold text-brand-600">
-        {name.charAt(0)}
-      </span>
-      <div className="min-w-0">
-        <p className="text-sm font-semibold">{name}</p>
-        <p className="text-xs text-gray-500">{preview}</p>
-      </div>
-    </div>
-  );
-}
+/* ================================================================== */
+/* PROBLEM                                                             */
+/* ================================================================== */
 
 function Problem({ t }: { t: ReturnType<typeof getDict>['problem'] }) {
   return (
-    <section className="border-y border-gray-100 bg-gray-50 py-16 dark:border-gray-800 dark:bg-gray-900 sm:py-20">
+    <section className="bg-bg py-20 sm:py-28">
       <div className="mx-auto max-w-3xl px-4 text-center sm:px-6">
-        <h2 className="text-2xl font-bold sm:text-3xl md:text-4xl">{t.title}</h2>
-        <p className="mt-5 text-base text-gray-600 dark:text-gray-300 sm:mt-6 sm:text-lg">
-          {t.body}
-        </p>
-        <p className="mt-4 text-base font-semibold text-gray-900 dark:text-gray-100 sm:text-lg">
+        <h2 className="font-display text-display-2 text-fg">{t.title}</h2>
+        <p className="mt-6 text-base text-fg-muted sm:text-lg">{t.body}</p>
+        <p className="mt-6 font-display text-2xl italic text-fg sm:text-3xl">
           {t.punchline}
         </p>
       </div>
@@ -145,184 +192,479 @@ function Problem({ t }: { t: ReturnType<typeof getDict>['problem'] }) {
   );
 }
 
-function HowItWorks({ t }: { t: ReturnType<typeof getDict>['how'] }) {
-  const icons = [<Inbox key="inbox" size={20} />, <Wand2 key="wand" size={20} />, <Gauge key="gauge" size={20} />];
+/* ================================================================== */
+/* WORKFLOW #how — sticky scroll storytelling                          */
+/* ================================================================== */
+
+function WorkflowHow({ t }: { t: ReturnType<typeof getDict>['how'] }) {
+  // Visuals per step (right side in desktop split layout)
+  const visuals = [
+    <InputCard
+      key="step1"
+      label="Étape 1 · Offer Memory"
+      offer="Coaching LinkedIn 900 € → Calendly"
+      brief="« Triple les RDV qualifiés en 30 jours pour les consultants solo. Lien : calendly.com/audit-30min »"
+    />,
+    <OutputDeck
+      key="step2"
+      cards={[
+        {
+          platform: 'linkedin',
+          format: 'Long-form · CTA Calendly',
+          preview: '« 3 erreurs que je vois chez 90 % des consultants solo en LinkedIn… »',
+          score: 87,
+        },
+        {
+          platform: 'instagram',
+          format: 'Carrousel 7 slides',
+          preview: '7 visuels — hook → solution → preuve → CTA bio',
+          score: 79,
+        },
+        {
+          platform: 'x',
+          format: 'Thread 8 tweets',
+          preview: 'Hook contradictoire → 6 leçons → CTA réponse',
+          score: 84,
+        },
+        {
+          platform: 'tiktok',
+          format: 'Script 45 s',
+          preview: 'Hook 3 s → 3 erreurs → CTA "lien en bio"',
+          score: 72,
+        },
+      ]}
+    />,
+    <RevenueSignalMini
+      key="step3"
+      totalClicks={47}
+      rows={[
+        {
+          date: '12 mars',
+          post: 'LinkedIn — 3 erreurs des consultants solo',
+          clicks: 23,
+          destination: 'calendly.com',
+        },
+        {
+          date: '14 mars',
+          post: 'IG carrousel — comment tripler tes RDV',
+          clicks: 18,
+          destination: 'calendly.com',
+        },
+        {
+          date: '15 mars',
+          post: 'X thread — réponse contre-intuitive',
+          clicks: 6,
+          destination: 'calendly.com',
+        },
+      ]}
+    />,
+  ];
+
+  const stepIcons = [
+    <Inbox key="i" size={20} />,
+    <Wand2 key="w" size={20} />,
+    <LineChart key="l" size={20} />,
+  ];
+
   return (
-    <section id="how" className="mx-auto max-w-6xl px-4 py-20 sm:px-6 sm:py-24">
-      <div className="mx-auto max-w-2xl text-center">
-        <h2 className="text-2xl font-bold sm:text-3xl md:text-4xl">{t.title}</h2>
-      </div>
-      <div className="mt-10 grid gap-5 sm:mt-12 sm:gap-6 md:grid-cols-3">
-        {t.steps.map((s, i) => (
-          <div key={s.title} className="rounded-2xl border border-gray-200 bg-white p-6 dark:border-gray-800 dark:bg-gray-950 sm:p-7">
-            <div className="flex items-center gap-3">
-              <span className="grid h-10 w-10 place-items-center rounded-lg bg-brand-500 font-bold text-white">
-                {i + 1}
-              </span>
-              <span className="text-xs font-medium uppercase tracking-wider text-gray-500">
-                {s.time}
-              </span>
+    <section id="how" className="bg-bg py-20 sm:py-28">
+      <div className="mx-auto max-w-6xl px-4 sm:px-6">
+        <div className="mx-auto max-w-2xl text-center">
+          <Badge variant="mono" className="mb-4">
+            Workflow
+          </Badge>
+          <h2 className="font-display text-display-2 text-fg">{t.title}</h2>
+        </div>
+
+        <div className="mt-16 space-y-24 sm:mt-20 sm:space-y-32">
+          {t.steps.map((step, i) => (
+            <div
+              key={step.title}
+              className={`grid items-center gap-8 md:grid-cols-2 md:gap-16 ${
+                i % 2 === 1 ? 'md:[&>*:first-child]:order-2' : ''
+              }`}
+            >
+              {/* Text side */}
+              <div>
+                <div className="flex items-baseline gap-4">
+                  <span className="font-display text-step-num text-fg/15 italic">
+                    {String(i + 1).padStart(2, '0')}
+                  </span>
+                  <div className="flex items-center gap-2">
+                    <span className="text-brand">{stepIcons[i]}</span>
+                    <span className="font-mono text-[11px] uppercase tracking-wider text-fg-subtle">
+                      {step.time}
+                    </span>
+                  </div>
+                </div>
+                <h3 className="mt-4 font-display text-3xl text-fg sm:text-4xl">
+                  {step.title}
+                </h3>
+                <p className="mt-4 text-base leading-relaxed text-fg-muted sm:text-lg">
+                  {step.body}
+                </p>
+              </div>
+
+              {/* Visual side */}
+              <div className="relative">{visuals[i]}</div>
             </div>
-            <div className="mt-5 flex items-center gap-2">
-              <span className="text-brand-500">{icons[i]}</span>
-              <h3 className="text-lg font-bold">{s.title}</h3>
-            </div>
-            <p className="mt-2 text-sm text-gray-600 dark:text-gray-300">{s.body}</p>
-          </div>
-        ))}
+          ))}
+        </div>
       </div>
     </section>
   );
 }
 
-function Pillars({ t }: { t: ReturnType<typeof getDict>['pillars'] }) {
-  const icons = [
-    <Wand2 key="wand" size={22} />,
-    <Dna key="dna" size={22} />,
-    <Gauge key="gauge" size={22} />,
-    <TrendingUp key="rev" size={22} />,
-  ];
+/* ================================================================== */
+/* BENTO PILLARS                                                       */
+/* ================================================================== */
+
+function BentoPillars({ t }: { t: ReturnType<typeof getDict>['pillars'] }) {
   return (
-    <section id="features" className="bg-gray-50 py-20 dark:bg-gray-900 sm:py-24">
+    <section id="features" className="bg-bg-elevated/40 py-20 sm:py-28">
       <div className="mx-auto max-w-6xl px-4 sm:px-6">
         <div className="mx-auto max-w-2xl text-center">
-          <p className="text-xs font-semibold uppercase tracking-widest text-brand-600 sm:text-sm">
+          <Badge variant="mono" className="mb-4">
             {t.eyebrow}
-          </p>
-          <h2 className="mt-3 text-2xl font-bold sm:text-3xl md:text-4xl">{t.title}</h2>
+          </Badge>
+          <h2 className="font-display text-display-2 text-fg">{t.title}</h2>
         </div>
-        <div className="mt-10 grid gap-5 sm:mt-12 sm:grid-cols-2 sm:gap-6 lg:grid-cols-4">
-          {t.items.map((p, i) => (
-            <div key={p.title} className="rounded-2xl bg-white p-6 shadow-sm dark:bg-gray-800 sm:p-7">
-              <span className="grid h-12 w-12 place-items-center rounded-xl bg-brand-500/10 text-brand-600">
-                {icons[i]}
-              </span>
-              <p className="mt-5 text-xs font-semibold uppercase tracking-wider text-brand-600">
-                {p.tag}
-              </p>
-              <h3 className="mt-1 text-xl font-bold">{p.title}</h3>
-              <p className="mt-3 text-sm text-gray-600 dark:text-gray-300">{p.body}</p>
-            </div>
-          ))}
+
+        {/* Asymmetric bento — 4 tiles, 2 large + 2 standard */}
+        <div className="mt-12 grid gap-4 sm:mt-16 sm:gap-5 md:grid-cols-3 md:grid-rows-[auto_auto]">
+          {/* Tile 1 — Campaign Engine (large, hero) */}
+          <PillarTile
+            tag={t.items[0]?.tag ?? ''}
+            title={t.items[0]?.title ?? ''}
+            body={t.items[0]?.body ?? ''}
+            icon={<Wand2 size={24} />}
+            className="md:col-span-2 md:row-span-1"
+            visual={
+              <div className="mt-6 grid grid-cols-2 gap-2 opacity-80">
+                {(['linkedin', 'instagram', 'x', 'tiktok'] as const).map((p, i) => (
+                  <div
+                    key={p}
+                    className="rounded border border-border bg-bg p-2"
+                    style={{ animation: `fade-up 0.5s ease-out ${i * 100}ms both` }}
+                  >
+                    <p className="font-mono text-[9px] uppercase tracking-wider text-fg-subtle">
+                      {p}
+                    </p>
+                    <div className="mt-1 h-1.5 w-3/4 rounded-full bg-fg/10" />
+                    <div className="mt-1.5 h-1.5 w-1/2 rounded-full bg-fg/10" />
+                  </div>
+                ))}
+              </div>
+            }
+          />
+
+          {/* Tile 2 — Style DNA (tall right) */}
+          <PillarTile
+            tag={t.items[1]?.tag ?? ''}
+            title={t.items[1]?.title ?? ''}
+            body={t.items[1]?.body ?? ''}
+            icon={<Dna size={24} />}
+            className="md:col-span-1 md:row-span-2"
+            visual={
+              <div className="mt-6 space-y-2">
+                {[
+                  { label: 'Tonalité', value: 'direct, pédagogue' },
+                  { label: 'Hook préféré', value: 'contradiction' },
+                  { label: 'Longueur idéale', value: '1 200 caractères' },
+                  { label: 'Tabous LLM', value: '12 filtrés' },
+                ].map((row) => (
+                  <div
+                    key={row.label}
+                    className="flex items-center justify-between rounded border border-border bg-bg px-2.5 py-1.5"
+                  >
+                    <span className="font-mono text-[9px] uppercase tracking-wider text-fg-subtle">
+                      {row.label}
+                    </span>
+                    <span className="text-xs text-fg">{row.value}</span>
+                  </div>
+                ))}
+              </div>
+            }
+          />
+
+          {/* Tile 3 — Confidence Score */}
+          <PillarTile
+            tag={t.items[2]?.tag ?? ''}
+            title={t.items[2]?.title ?? ''}
+            body={t.items[2]?.body ?? ''}
+            icon={<Gauge size={24} />}
+            className="md:col-span-1"
+            visual={
+              <div className="mt-4 flex justify-center">
+                <BoostMeter value={87} size={140} label="prédiction" />
+              </div>
+            }
+          />
+
+          {/* Tile 4 — Revenue Signal */}
+          <PillarTile
+            tag={t.items[3]?.tag ?? ''}
+            title={t.items[3]?.title ?? ''}
+            body={t.items[3]?.body ?? ''}
+            icon={<TrendingUp size={24} />}
+            className="md:col-span-1"
+            visual={
+              <div className="mt-4 rounded border border-border bg-bg p-3">
+                <div className="flex items-baseline gap-2">
+                  <span className="font-display text-3xl text-fg">47</span>
+                  <span className="text-xs text-fg-muted">clics → ton offre</span>
+                </div>
+                <p className="mt-1 font-mono text-[9px] uppercase tracking-wider text-fg-subtle">
+                  30 derniers jours · tracké
+                </p>
+              </div>
+            }
+          />
         </div>
       </div>
     </section>
   );
 }
 
-function Comparison({ t }: { t: ReturnType<typeof getDict>['comparison'] }) {
+function PillarTile({
+  tag,
+  title,
+  body,
+  icon,
+  visual,
+  className,
+}: {
+  tag: string;
+  title: string;
+  body: string;
+  icon: React.ReactNode;
+  visual?: React.ReactNode;
+  className?: string;
+}) {
+  return (
+    <div
+      className={`group relative flex flex-col overflow-hidden rounded-xl border border-border bg-bg-elevated p-6 transition hover:border-border-strong sm:p-7 ${className ?? ''}`}
+    >
+      <div className="flex items-center gap-2">
+        <span className="grid h-9 w-9 place-items-center rounded-md bg-bg text-fg">
+          {icon}
+        </span>
+        <span className="font-mono text-[10px] uppercase tracking-wider text-fg-subtle">
+          {tag}
+        </span>
+      </div>
+      <h3 className="mt-4 font-display text-2xl text-fg">{title}</h3>
+      <p className="mt-2 text-sm text-fg-muted">{body}</p>
+      {visual}
+    </div>
+  );
+}
+
+/* ================================================================== */
+/* NOT A SCHEDULER — comparison redesigned typographic                 */
+/* ================================================================== */
+
+function NotAScheduler({ t }: { t: ReturnType<typeof getDict>['comparison'] }) {
+  // Each row = a capability. Highlight column = SocialBoost (always wins on first 5)
   const cells: Array<[boolean | string, boolean | string, boolean | string]> = [
-    [false, false, true], // offer-tied campaign
-    [false, false, true], // self-learning Style DNA
-    [false, false, true], // explained Confidence Score
-    [false, false, true], // Revenue Signal
-    [false, false, true], // native editorial adaptation
-    [false, true, t.soon], // scheduling
+    [false, false, true],
+    [false, false, true],
+    [false, false, true],
+    [false, false, true],
+    [false, false, true],
+    [false, true, t.soon],
   ];
+
   return (
-    <section className="mx-auto max-w-5xl px-4 py-20 sm:px-6 sm:py-24">
-      <div className="mx-auto max-w-2xl text-center">
-        <h2 className="text-2xl font-bold sm:text-3xl md:text-4xl">{t.title}</h2>
-      </div>
-      <div className="mt-8 overflow-hidden rounded-2xl border border-gray-200 dark:border-gray-800 sm:mt-10">
-        <div className="overflow-x-auto">
-          <table className="w-full min-w-[480px] text-sm">
-            <thead className="bg-gray-50 dark:bg-gray-900">
-              <tr>
-                <th className="px-3 py-3 text-left font-semibold sm:px-4"></th>
-                <th className="px-3 py-3 text-center font-semibold text-gray-500 sm:px-4">{t.cols.chatgpt}</th>
-                <th className="px-3 py-3 text-center font-semibold text-gray-500 sm:px-4">{t.cols.buffer}</th>
-                <th className="px-3 py-3 text-center font-semibold text-brand-600 sm:px-4">{t.cols.socialboost}</th>
-              </tr>
-            </thead>
-            <tbody>
-              {t.rows.map((label, i) => {
-                const row = cells[i] ?? [false, false, false];
-                return (
-                  <tr key={label} className="border-t border-gray-100 dark:border-gray-800">
-                    <td className="px-3 py-3 font-medium sm:px-4">{label}</td>
-                    <td className="px-3 py-3 text-center sm:px-4">{renderCell(row[0])}</td>
-                    <td className="px-3 py-3 text-center sm:px-4">{renderCell(row[1])}</td>
-                    <td className="px-3 py-3 text-center sm:px-4">{renderCell(row[2])}</td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
+    <section className="bg-bg py-20 sm:py-28">
+      <div className="mx-auto max-w-5xl px-4 sm:px-6">
+        <div className="mx-auto max-w-2xl text-center">
+          <Badge variant="mono" className="mb-4">
+            Pas un scheduler
+          </Badge>
+          <h2 className="font-display text-display-2 text-fg">{t.title}</h2>
+        </div>
+
+        <div className="mt-12 space-y-2 sm:mt-16">
+          {/* Header row */}
+          <div className="grid grid-cols-[1fr_repeat(3,minmax(0,80px))] gap-2 px-3 py-2 sm:grid-cols-[1fr_repeat(3,minmax(0,120px))]">
+            <span />
+            {[t.cols.chatgpt, t.cols.buffer, t.cols.socialboost].map((col, i) => (
+              <span
+                key={col}
+                className={`text-center font-mono text-[10px] uppercase tracking-wider ${
+                  i === 2 ? 'text-amber' : 'text-fg-subtle'
+                }`}
+              >
+                {col}
+              </span>
+            ))}
+          </div>
+
+          {t.rows.map((label, i) => {
+            const row = cells[i] ?? [false, false, false];
+            return (
+              <div
+                key={label}
+                className="grid grid-cols-[1fr_repeat(3,minmax(0,80px))] items-center gap-2 rounded-lg border border-border bg-bg-elevated px-3 py-3 transition hover:border-border-strong sm:grid-cols-[1fr_repeat(3,minmax(0,120px))]"
+              >
+                <span className="text-sm text-fg sm:text-base">{label}</span>
+                <ComparisonCell value={row[0]} />
+                <ComparisonCell value={row[1]} />
+                <ComparisonCell value={row[2]} winner />
+              </div>
+            );
+          })}
         </div>
       </div>
     </section>
   );
 }
 
-function renderCell(v: boolean | string) {
-  if (v === true) return <Check size={18} className="mx-auto text-brand-500" />;
-  if (v === false) return <X size={18} className="mx-auto text-gray-300" />;
-  return <span className="text-xs font-medium text-gray-500">{v}</span>;
+function ComparisonCell({ value, winner = false }: { value: boolean | string; winner?: boolean }) {
+  if (value === true)
+    return (
+      <span className="flex justify-center">
+        <Check
+          size={18}
+          className={winner ? 'text-amber' : 'text-fg-muted'}
+        />
+      </span>
+    );
+  if (value === false)
+    return (
+      <span className="flex justify-center">
+        <X size={18} className="text-fg-subtle/40" />
+      </span>
+    );
+  return (
+    <span className="text-center font-mono text-[10px] uppercase tracking-wider text-fg-subtle">
+      {value}
+    </span>
+  );
 }
 
-function ForWho({ t }: { t: ReturnType<typeof getDict>['forwho'] }) {
-  const icons = [<Mic key="mic" size={22} />, <FileText key="file" size={22} />, <Globe key="globe" size={22} />];
+/* ================================================================== */
+/* BUSINESS PROOF — testimonials with handles + business metrics       */
+/* ================================================================== */
+
+function BusinessProof({ t }: { t: ReturnType<typeof getDict>['testimonials'] }) {
+  // Each testimonial gets a synthetic business metric to highlight
+  const metrics = [
+    { value: '+47', unit: 'RDV qualifiés', period: '8 semaines' },
+    { value: '×4', unit: 'fréquence publi', period: '60 jours' },
+    { value: '0', unit: 'posts à l\'aveugle', period: 'depuis SocialBoost' },
+  ];
+
   return (
-    <section className="bg-gray-50 py-20 dark:bg-gray-900 sm:py-24">
+    <section className="bg-bg-elevated/40 py-20 sm:py-28">
       <div className="mx-auto max-w-6xl px-4 sm:px-6">
         <div className="mx-auto max-w-2xl text-center">
-          <h2 className="text-2xl font-bold sm:text-3xl md:text-4xl">{t.title}</h2>
+          <Badge variant="amber" className="mb-4">
+            Preuve business
+          </Badge>
+          <h2 className="font-display text-display-2 text-fg">
+            Pas des likes. Des chiffres business.
+          </h2>
         </div>
-        <div className="mt-10 grid gap-5 sm:mt-12 sm:gap-6 md:grid-cols-3">
-          {t.items.map((c, i) => (
-            <div key={c.title} className="rounded-2xl bg-white p-6 dark:bg-gray-800">
-              <span className="grid h-11 w-11 place-items-center rounded-lg bg-brand-500/10 text-brand-600">
-                {icons[i]}
-              </span>
-              <h3 className="mt-4 text-lg font-bold">{c.title}</h3>
-              <p className="mt-2 text-sm text-gray-600 dark:text-gray-300">{c.body}</p>
-            </div>
-          ))}
+
+        <div className="mt-12 grid gap-5 sm:mt-16 sm:gap-6 md:grid-cols-3">
+          {t.items.map((item, i) => {
+            const m = metrics[i];
+            const initials = item.who
+              .split(/[,·\s]+/)[0]!
+              .slice(0, 2)
+              .toUpperCase();
+            return (
+              <article
+                key={item.who}
+                className="flex flex-col rounded-xl border border-border bg-bg-elevated p-6 transition hover:border-border-strong"
+              >
+                {/* Metric headline */}
+                {m && (
+                  <div className="mb-5 border-b border-border pb-5">
+                    <div className="flex items-baseline gap-2">
+                      <span className="font-display text-5xl text-amber">{m.value}</span>
+                      <span className="text-sm text-fg-muted">{m.unit}</span>
+                    </div>
+                    <p className="mt-1 font-mono text-[10px] uppercase tracking-wider text-fg-subtle">
+                      {m.period}
+                    </p>
+                  </div>
+                )}
+
+                <blockquote className="flex-1">
+                  <p className="font-display text-lg italic leading-relaxed text-fg">
+                    « {item.quote} »
+                  </p>
+                </blockquote>
+
+                <footer className="mt-5 flex items-center gap-3">
+                  <div className="grid h-9 w-9 place-items-center rounded-full bg-bg-muted font-mono text-xs text-fg">
+                    {initials}
+                  </div>
+                  <span className="text-xs text-fg-muted">{item.who}</span>
+                </footer>
+              </article>
+            );
+          })}
         </div>
       </div>
     </section>
   );
 }
 
-function Testimonials({ t }: { t: ReturnType<typeof getDict>['testimonials'] }) {
-  return (
-    <section className="mx-auto max-w-6xl px-4 py-20 sm:px-6 sm:py-24">
-      <div className="grid gap-5 sm:gap-6 md:grid-cols-3">
-        {t.items.map((it) => (
-          <blockquote key={it.who} className="rounded-2xl border border-gray-200 p-6 dark:border-gray-800">
-            <p className="text-base font-medium leading-relaxed">« {it.quote} »</p>
-            <footer className="mt-4 text-sm text-gray-500">— {it.who}</footer>
-          </blockquote>
-        ))}
-      </div>
-    </section>
-  );
-}
+/* ================================================================== */
+/* PRICING — with trust signals                                        */
+/* ================================================================== */
 
 function PricingSection({
-  t,
+  homeT,
   plans,
   labels,
 }: {
-  t: ReturnType<typeof getDict>['pricingHome'];
+  homeT: ReturnType<typeof getDict>['pricingHome'];
   plans: ReturnType<typeof buildPlans>;
   labels: ReturnType<typeof getDict>['pricingPage'];
 }) {
+  const trustSignals = [
+    { icon: <Lock size={14} />, label: 'RGPD · Hébergement EU' },
+    { icon: <Check size={14} />, label: 'Stripe Verified' },
+    { icon: <ArrowUpRight size={14} />, label: '14 jours money-back Pro' },
+  ];
+
   return (
-    <section id="pricing" className="bg-gray-50 py-20 dark:bg-gray-900 sm:py-24">
+    <section id="pricing" className="bg-bg py-20 sm:py-28">
       <div className="mx-auto max-w-6xl px-4 sm:px-6">
         <div className="text-center">
-          <h2 className="text-2xl font-bold sm:text-3xl md:text-4xl">{t.title}</h2>
-          <p className="mt-3 text-gray-600 dark:text-gray-300">{t.subtitle}</p>
+          <h2 className="font-display text-display-2 text-fg">{homeT.title}</h2>
+          <p className="mt-3 text-fg-muted">{homeT.subtitle}</p>
         </div>
-        <div className="mt-10 sm:mt-12">
+
+        <div className="mt-12 sm:mt-16">
           <PricingTable plans={plans} labels={labels} />
+        </div>
+
+        {/* Trust signals row */}
+        <div className="mt-12 flex flex-wrap items-center justify-center gap-6 border-t border-border pt-8 sm:gap-10">
+          {trustSignals.map((sig) => (
+            <span
+              key={sig.label}
+              className="inline-flex items-center gap-2 font-mono text-[11px] uppercase tracking-wider text-fg-subtle"
+            >
+              <span className="text-fg-muted">{sig.icon}</span>
+              {sig.label}
+            </span>
+          ))}
         </div>
       </div>
     </section>
   );
 }
+
+/* ================================================================== */
+/* FAQ                                                                 */
+/* ================================================================== */
 
 function FAQSection({
   title,
@@ -332,28 +674,33 @@ function FAQSection({
   items: ReturnType<typeof getDict>['faq']['items'];
 }) {
   return (
-    <section id="faq" className="mx-auto max-w-3xl px-4 py-20 sm:px-6 sm:py-24">
-      <h2 className="text-center text-2xl font-bold sm:text-3xl md:text-4xl">{title}</h2>
-      <div className="mt-10 sm:mt-12">
-        <FAQ items={items} />
+    <section id="faq" className="bg-bg-elevated/30 py-20 sm:py-28">
+      <div className="mx-auto max-w-3xl px-4 sm:px-6">
+        <h2 className="text-center font-display text-display-2 text-fg">{title}</h2>
+        <div className="mt-10 sm:mt-14">
+          <FAQ items={items} />
+        </div>
       </div>
     </section>
   );
 }
 
+/* ================================================================== */
+/* FINAL CTA                                                           */
+/* ================================================================== */
+
 function FinalCTA({ t }: { t: ReturnType<typeof getDict>['finalCta'] }) {
   return (
-    <section className="bg-brand-500 py-16 text-white sm:py-20">
-      <div className="mx-auto max-w-3xl px-4 text-center sm:px-6">
-        <Sparkles size={32} className="mx-auto opacity-50" />
-        <h2 className="mt-4 text-2xl font-bold sm:text-3xl md:text-4xl">{t.title}</h2>
-        <p className="mt-4 text-base text-brand-50 sm:text-lg">{t.subtitle}</p>
-        <Link
-          href="/signup"
-          className="mt-7 inline-flex items-center gap-2 rounded-lg bg-white px-6 py-3 font-semibold text-brand-600 transition hover:bg-gray-100 sm:mt-8 sm:px-7 sm:py-3.5"
-        >
-          {t.cta} <ArrowRight size={18} />
-        </Link>
+    <section className="relative overflow-hidden bg-bg py-24 sm:py-32">
+      <GradientMesh intensity="strong" />
+      <NoiseLayer opacity={0.05} />
+      <div className="relative mx-auto max-w-3xl px-4 text-center sm:px-6">
+        <Sparkles size={32} className="mx-auto text-amber opacity-70" />
+        <h2 className="mt-6 font-display text-display-2 italic text-fg">{t.title}</h2>
+        <p className="mt-5 text-base text-fg-muted sm:text-lg">{t.subtitle}</p>
+        <Button href="/signup" variant="brand" size="lg" className="mt-8">
+          {t.cta} <ArrowRight size={16} />
+        </Button>
       </div>
     </section>
   );
