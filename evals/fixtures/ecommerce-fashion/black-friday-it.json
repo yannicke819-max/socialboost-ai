@@ -1,0 +1,34 @@
+{
+  "id": "ecommerce-fashion-black-friday-it",
+  "icp": "ecommerce-fashion",
+  "input": {
+    "offer": {
+      "name": "Black Friday Boutique — fino al -40%",
+      "type": "product",
+      "promise": "5 giorni di sconti fino al -40% sulla nuova collezione, esclusi i must-have della stagione",
+      "audience": "Donne 25-45 anni, mercato italiano, fashion-conscious, valore medio carrello 80-250€",
+      "proof_points": [
+        "Black Friday 2024: +180% rispetto a un giorno medio",
+        "Marchio nato in Italia, prodotto in Toscana",
+        "Spedizione gratuita oltre 100€"
+      ],
+      "objections": [
+        "Sconti fasulli aumentando i prezzi prima",
+        "Solo i prodotti vecchi sono in saldo",
+        "Black Friday è troppo commerciale"
+      ],
+      "cta_url": "https://esempio-fashion.it/black-friday",
+      "funnel_stage": "decision",
+      "seasonality": "limited-time"
+    },
+    "goal": {
+      "type": "sales",
+      "linked_url": "https://esempio-fashion.it/black-friday",
+      "notes": "Campagna 5 giorni, target = 350 ordini totali"
+    },
+    "brief": "Campagna Black Friday in italiano. Angolo : trasparenza totale sulle riduzioni (nessun aumento prima), storia dietro ogni capo scelto, urgenza autentica (stock limitato senza essere fake). Tone : caldo, italiano, no aggressivo.",
+    "language": "it"
+  },
+  "tags": ["black-friday", "limited-time", "italian-market", "it"],
+  "notes": "Tests IT language + sales goal under time pressure. Critic should validate authenticity of urgency claim."
+}

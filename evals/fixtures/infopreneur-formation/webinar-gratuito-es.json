@@ -1,0 +1,34 @@
+{
+  "id": "infopreneur-formation-webinar-gratuito-es",
+  "icp": "infopreneur-formation",
+  "input": {
+    "offer": {
+      "name": "Webinar gratuito: Cómo monetizar tu expertise sin agotar tu agenda",
+      "type": "webinar",
+      "promise": "60 minutos en directo + Q&A. Tres modelos de monetización para experts solo, basados en tu nivel actual",
+      "audience": "Coaches, consultores, formadores online hispanohablantes (España + LATAM), facturación 30-100k$/año",
+      "proof_points": [
+        "8 webinars previos, asistencia media 280 personas",
+        "Conversión webinar → cliente: 6.4%",
+        "Mencionado en Platzi, Hotmart"
+      ],
+      "objections": [
+        "Otro webinar comercial disfrazado",
+        "Ya conozco las opciones (cursos, coaching, eventos)",
+        "Es tarde para empezar a monetizar"
+      ],
+      "cta_url": "https://ejemplo-formacion.es/webinar",
+      "funnel_stage": "awareness",
+      "seasonality": "limited-time"
+    },
+    "goal": {
+      "type": "leads",
+      "linked_url": "https://ejemplo-formacion.es/webinar",
+      "notes": "Llenar el webinar (target 400 inscritos), después conversión vía email"
+    },
+    "brief": "Promoción webinar gratis. Ángulo : 'No te falta más contenido, te falta arquitectura de monetización'. Honesto sobre el funnel : sí, después del webinar habrá una propuesta, pero el webinar tiene valor en sí mismo.",
+    "language": "es"
+  },
+  "tags": ["webinar", "lead-gen", "spanish", "es-latam"],
+  "notes": "Tests ES language + lead-gen with explicit funnel disclosure. Critic should reward no_bullshit when honesty about funnel is shown."
+}

@@ -1,0 +1,35 @@
+{
+  "id": "consultant-strategy-audit-strategique-2500-fr",
+  "icp": "consultant-strategy",
+  "input": {
+    "offer": {
+      "name": "Audit stratégique 360° pour PME",
+      "type": "audit",
+      "promise": "En 14 jours, livrable structuré qui identifie les 3 leviers de croissance prioritaires et le plan d'action 90 jours associé",
+      "audience": "Dirigeants PME 5-50 personnes, secteurs services et industrie légère, France",
+      "price": { "amount": 2500, "currency": "EUR", "recurrence": "one-time" },
+      "proof_points": [
+        "12 audits livrés depuis janvier",
+        "Référence : revue publique du PDG de Y SAS — +18% CA an+1",
+        "Cabinet certifié Bpifrance"
+      ],
+      "objections": [
+        "On a déjà un cabinet de conseil",
+        "C'est cher pour 2 semaines",
+        "Trop générique, on a besoin de spécifique"
+      ],
+      "cta_url": "https://exemple-conseil.fr/audit",
+      "funnel_stage": "consideration",
+      "seasonality": "evergreen"
+    },
+    "goal": {
+      "type": "leads",
+      "linked_url": "https://exemple-conseil.fr/audit",
+      "notes": "Pipeline B2B, target = 6 RDV qualifiés ce mois-ci"
+    },
+    "brief": "Position d'autorité sur LinkedIn pour générer des RDV avec dirigeants PME. Angle : 'Les 3 erreurs que je vois dans 80% des audits stratégiques' — pas un commercial, un retour d'expérience cabinet. Inclut contre-exemple où l'audit n'aurait PAS été le bon investissement (pour la crédibilité).",
+    "language": "fr"
+  },
+  "tags": ["b2b-high-ticket", "linkedin-first", "leads", "fr"],
+  "notes": "Stresses style_match (must sound senior, not pushy) + offer_understanding (audit !== conseil)."
+}

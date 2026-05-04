@@ -1,0 +1,34 @@
+{
+  "id": "infopreneur-formation-lead-magnet-pdf-fr",
+  "icp": "infopreneur-formation",
+  "input": {
+    "offer": {
+      "name": "Le PDF des 7 erreurs de positionnement (gratuit, 18 pages)",
+      "type": "newsletter",
+      "promise": "PDF gratuit + 5 emails sur 14 jours pour repositionner ton offre solo et doubler ton taux de conversion",
+      "audience": "Solos qui débutent ou stagnent, freelances pivotant vers le coaching, francophones",
+      "proof_points": [
+        "Téléchargé 2 400 fois depuis 2024",
+        "Open rate séquence email : 52%",
+        "Conversion lead → client payant : 4.2% sur 90 jours"
+      ],
+      "objections": [
+        "Encore un lead magnet pour collecter mon email",
+        "Je connais déjà la théorie du positionnement",
+        "Trop générique pour mon niche"
+      ],
+      "cta_url": "https://exemple.fr/pdf-positionnement",
+      "funnel_stage": "awareness",
+      "seasonality": "evergreen"
+    },
+    "goal": {
+      "type": "leads",
+      "linked_url": "https://exemple.fr/pdf-positionnement",
+      "notes": "Top of funnel — collecte d'emails qualifiés, conversion via séquence post-download"
+    },
+    "brief": "Promotion lead magnet evergreen. Angle : 'Les 7 erreurs que je vois faire chez 80% des solos en positionnement (et que j'ai faites moi-même)'. Pas de promesse de résultat chiffré pour le PDF lui-même. Crédibilité avant tout.",
+    "language": "fr"
+  },
+  "tags": ["lead-magnet", "evergreen", "leads", "fr"],
+  "notes": "Tests lead-magnet pattern. Critic should not reward inflated claims (no '+X% guaranteed')."
+}

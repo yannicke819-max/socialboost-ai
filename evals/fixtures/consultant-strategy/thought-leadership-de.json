@@ -1,0 +1,34 @@
+{
+  "id": "consultant-strategy-thought-leadership-de",
+  "icp": "consultant-strategy",
+  "input": {
+    "offer": {
+      "name": "Strategie-Beratung für Mittelstand",
+      "type": "service",
+      "promise": "Klare Strategie in 90 Tagen für Mittelständler 50-500 MA — keine PowerPoint-Schlacht, fokussierte Umsetzung",
+      "audience": "Geschäftsführer und Vorstände im DACH Mittelstand, primär Maschinenbau, IT-Dienstleistungen, Logistik",
+      "proof_points": [
+        "20+ Mandate in DACH seit 2023",
+        "Durchschnittlicher Umsatzzuwachs +12% im Jahr nach Strategieumsetzung",
+        "Veröffentlicht im Manager Magazin"
+      ],
+      "objections": [
+        "Wir haben schon McKinsey/BCG angefragt",
+        "Mittelstand braucht keine Strategie-Beratung",
+        "Zu teuer für unsere Größe"
+      ],
+      "cta_url": "https://beispiel-beratung.de/kontakt",
+      "funnel_stage": "awareness",
+      "seasonality": "evergreen"
+    },
+    "goal": {
+      "type": "authority",
+      "linked_url": "https://beispiel-beratung.de/blog",
+      "notes": "Aufbau Sichtbarkeit DACH-Markt, kein direkter Verkauf"
+    },
+    "brief": "Thought-leadership-Inhalt zur Frage: Warum scheitern 70% der Strategie-Initiativen im Mittelstand? Eigene Beobachtungen, konkrete Beispiele (anonymisiert), 3 Hebel die meistens unterschätzt werden.",
+    "language": "de"
+  },
+  "tags": ["thought-leadership", "authority", "de", "dach-market", "linkedin-only"],
+  "notes": "Tests DE language + authority goal. Channel Strategist should focus exclusively on LinkedIn."
+}

@@ -1,0 +1,66 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "AI Core Pipeline Fixture",
+  "description": "Canonical input case used by evals/fixtures and golden case generation.",
+  "type": "object",
+  "required": ["id", "icp", "input"],
+  "properties": {
+    "id": { "type": "string", "pattern": "^[a-z0-9-]+$" },
+    "icp": {
+      "type": "string",
+      "enum": [
+        "coach-business",
+        "consultant-strategy",
+        "ecommerce-fashion",
+        "infopreneur-formation",
+        "saas-b2b"
+      ]
+    },
+    "input": {
+      "type": "object",
+      "required": ["offer", "goal", "brief", "language"],
+      "properties": {
+        "offer": {
+          "type": "object",
+          "required": ["name", "type", "promise", "audience", "cta_url", "funnel_stage"],
+          "properties": {
+            "name": { "type": "string" },
+            "type": {
+              "type": "string",
+              "enum": ["coaching", "course", "product", "service", "audit", "webinar", "newsletter"]
+            },
+            "promise": { "type": "string" },
+            "audience": { "type": "string" },
+            "price": {
+              "type": "object",
+              "required": ["amount", "currency"],
+              "properties": {
+                "amount": { "type": "number", "minimum": 0 },
+                "currency": { "type": "string", "minLength": 3, "maxLength": 3 },
+                "recurrence": { "type": "string", "enum": ["one-time", "monthly", "yearly"] }
+              }
+            },
+            "proof_points": { "type": "array", "items": { "type": "string" } },
+            "objections": { "type": "array", "items": { "type": "string" } },
+            "cta_url": { "type": "string", "format": "uri" },
+            "funnel_stage": { "type": "string", "enum": ["awareness", "consideration", "decision"] },
+            "seasonality": { "type": "string", "enum": ["evergreen", "launch", "limited-time"] }
+          }
+        },
+        "goal": {
+          "type": "object",
+          "required": ["type"],
+          "properties": {
+            "type": { "type": "string", "enum": ["sales", "leads", "authority", "audience"] },
+            "linked_url": { "type": "string", "format": "uri" },
+            "notes": { "type": "string" }
+          }
+        },
+        "brief": { "type": "string", "minLength": 1 },
+        "language": { "type": "string", "enum": ["fr", "en", "es", "it", "de"] }
+      }
+    },
+    "tags": { "type": "array", "items": { "type": "string" } },
+    "notes": { "type": "string" }
+  }
+}

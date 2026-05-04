@@ -1,0 +1,35 @@
+{
+  "id": "ecommerce-fashion-capsule-collection-promo-fr",
+  "icp": "ecommerce-fashion",
+  "input": {
+    "offer": {
+      "name": "Capsule Printemps 2026 — Collection limitée 7 pièces",
+      "type": "product",
+      "promise": "Vestiaire minimaliste 100% coton bio, fabriqué au Portugal, en quantité limitée — précommande ouverte 14 jours",
+      "audience": "Femmes 28-45 ans, urbaines, sensibles au slow fashion, panier moyen 200-400€",
+      "price": { "amount": 60, "currency": "EUR", "recurrence": "one-time" },
+      "proof_points": [
+        "3 collections sold-out en 2025 (avg 240 unités)",
+        "1 200+ avis vérifiés, note 4.8/5",
+        "Audit GOTS + Made in Portugal certifiés"
+      ],
+      "objections": [
+        "Je ne connais pas la marque",
+        "Précommande = j'attends et je ne suis pas sûre",
+        "60-180€ c'est cher pour un vêtement"
+      ],
+      "cta_url": "https://exemple-fashion.fr/capsule-printemps",
+      "funnel_stage": "decision",
+      "seasonality": "limited-time"
+    },
+    "goal": {
+      "type": "sales",
+      "linked_url": "https://exemple-fashion.fr/capsule-printemps",
+      "notes": "Précommande 14 jours, target = 180 unités vendues"
+    },
+    "brief": "Lancement pré-commande capsule 7 pièces. Angle storytelling : la fondatrice raconte le voyage à l'atelier portugais, les choix de matières, pourquoi cette quantité limitée. Mix lifestyle (porté en situation) + détails produit (gros plans matière, finitions).",
+    "language": "fr"
+  },
+  "tags": ["limited-time", "launch", "ecommerce", "instagram-first", "fr"],
+  "notes": "Stresses Channel Strategist on Instagram (carousel + Reels) + style_match (brand voice = poétique mais factuel)."
+}
