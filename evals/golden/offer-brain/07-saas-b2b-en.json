@@ -1,0 +1,54 @@
+{
+  "id": "offer-brain-saas-b2b-en",
+  "title": "SaaS B2B with buyer persona and objections (EN)",
+  "language": "en",
+  "fixture_ref": "saas-b2b/free-trial-productivity-fr",
+  "agent": "offer-brain",
+  "agent_min_version": "0.1.0",
+  "rationale": "B2B SaaS service in English with explicit buyer persona, objections list, free-trial CTA. Tests offer_type='service' classification + LinkedIn-first channel reasoning + EN locale.",
+  "tags": ["saas", "b2b", "en", "service", "free-trial"],
+  "risk_level": "low",
+  "notes": "Buyer persona + objections explicit → audience_fit should be solid. Free trial CTA → strong-ish CTA.",
+  "input": {
+    "raw_offer_text": "Productiv — AI task manager for solo founders and tiny teams. Turns 10 lines of rough notes into a structured weekly plan with smart reminders. Free 14-day trial, then $29/month.",
+    "locale": "en",
+    "user_goal": "leads",
+    "current_offer_name": "Productiv",
+    "current_price": 29,
+    "currency": "USD",
+    "target_customer": "Solo founders and 2-person teams, $80k-300k revenue, frustrated with Notion and Asana, English-speaking",
+    "proof_points": [
+      "1,800 weekly active users since March 2025",
+      "Trial → paid conversion 31%",
+      "Featured Product Hunt #2 of the day"
+    ],
+    "customer_objections": [
+      "I already have Notion / Asana / Todoist",
+      "Just another AI tool",
+      "$29/month feels expensive for a to-do app"
+    ],
+    "desired_cta": "Start free trial — no credit card",
+    "target_platforms": ["linkedin", "x"]
+  },
+  "expectations": {
+    "required_offer_type": "service",
+    "expected_min_scores": {
+      "proof_score": 50,
+      "audience_fit_score": 65,
+      "confidence_score": 75
+    },
+    "required_fields": [
+      "identification.offer_name",
+      "audience.target_audience",
+      "audience.buying_objections",
+      "conversion.cta",
+      "channels.best_channels"
+    ],
+    "expected_channel_hints": ["linkedin", "x"]
+  },
+  "must_pass": [
+    "audience.buying_objections length >= 1 (objections were provided)",
+    "channels.long_form_relevance == 'high'",
+    "intelligence.audience_fit_score above default thanks to explicit persona"
+  ]
+}

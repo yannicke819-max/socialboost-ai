@@ -1,0 +1,45 @@
+{
+  "id": "offer-brain-thought-leadership-de",
+  "title": "DACH consultancy thought leadership (DE)",
+  "language": "de",
+  "fixture_ref": "consultant-strategy/thought-leadership-de",
+  "agent": "offer-brain",
+  "agent_min_version": "0.1.0",
+  "rationale": "German-language consulting authority play (no direct CTA, goal=authority). Tests DE locale + soft funnel handling + LinkedIn-only channel reasoning.",
+  "tags": ["b2b", "authority", "de", "consulting", "thought-leadership"],
+  "risk_level": "medium",
+  "notes": "No CTA → cta_strength absent → conversion_readiness must be capped at 70. Authority goal expected.",
+  "input": {
+    "raw_offer_text": "Strategie-Beratung für Mittelstand — klare Strategie in 90 Tagen für Mittelständler 50-500 MA, keine PowerPoint-Schlacht, fokussierte Umsetzung.",
+    "locale": "de",
+    "user_goal": "authority",
+    "current_offer_name": "Strategie-Beratung Mittelstand",
+    "target_customer": "Geschäftsführer und Vorstände im DACH Mittelstand",
+    "proof_points": [
+      "20+ Mandate in DACH seit 2023",
+      "Veröffentlicht im Manager Magazin"
+    ]
+  },
+  "expectations": {
+    "expected_max_scores": {
+      "conversion_readiness_score": 70
+    },
+    "expected_min_scores": {
+      "proof_score": 50,
+      "audience_fit_score": 60
+    },
+    "required_fields": [
+      "identification.offer_name",
+      "audience.target_audience",
+      "channels.best_channels"
+    ],
+    "expected_channel_hints": ["linkedin"],
+    "expected_missing_information": ["cta"]
+  },
+  "must_pass": [
+    "[real-mode] identification.offer_type == 'service' (mock heuristic does not catch German 'Beratung', deferred to real model)",
+    "conversion.cta_strength == 'absent' (no desired_cta provided)",
+    "channels.long_form_relevance == 'high'",
+    "channels.best_channels contains 'linkedin'"
+  ]
+}

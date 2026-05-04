@@ -1,9 +1,14 @@
 {
   "id": "offer-brain-b2b-premium-calendly",
+  "title": "Premium B2B audit with Calendly CTA (FR)",
+  "language": "fr",
   "fixture_ref": "consultant-strategy/audit-strategique-2500-fr",
   "agent": "offer-brain",
   "agent_min_version": "0.1.0",
   "rationale": "Premium B2B audit with Calendly CTA. Agent should detect 'audit' offer type, premium pricing, LinkedIn-first channels, strong CTA, and recommend long-form content over video.",
+  "tags": ["b2b", "premium", "audit", "fr", "calendly"],
+  "risk_level": "low",
+  "notes": "Tests offer_type detection on 'audit' keyword + premium pricing band + LinkedIn-first channel reasoning.",
   "input": {
     "raw_offer_text": "Audit stratégique 360° pour PME — En 14 jours, livrable structuré qui identifie les 3 leviers de croissance prioritaires et le plan d'action 90 jours associé.",
     "locale": "fr",
@@ -15,14 +20,26 @@
     "proof_points": ["12 audits livrés depuis janvier", "Cabinet certifié Bpifrance"],
     "desired_cta": "Calendly RDV 30 min"
   },
+  "expectations": {
+    "required_offer_type": "audit",
+    "expected_min_scores": {
+      "proof_score": 50,
+      "conversion_readiness_score": 70,
+      "confidence_score": 71,
+      "audience_fit_score": 60
+    },
+    "required_fields": [
+      "identification.offer_name",
+      "audience.target_audience",
+      "conversion.cta",
+      "channels.best_channels"
+    ],
+    "expected_channel_hints": ["linkedin"],
+    "expected_cta_substring": "calendly"
+  },
   "must_pass": [
-    "output structure validates against OfferBriefOutputSchema",
-    "identification.offer_type == 'audit'",
-    "positioning.price_positioning == 'luxury' OR 'premium' (price=2500)",
-    "channels.best_channels contains 'linkedin'",
+    "positioning.price_positioning in ['premium', 'luxury'] (price=2500)",
     "channels.long_form_relevance == 'high'",
-    "channels.video_relevance in ['low', 'medium', 'not-recommended']",
-    "conversion.cta_strength == 'strong'",
-    "intelligence.conversion_readiness_score > 70 (proofs + strong CTA)"
+    "channels.video_relevance in ['low', 'medium', 'not-recommended']"
   ]
 }

@@ -8,8 +8,11 @@
     "start": "next start",
     "lint": "next lint",
     "typecheck": "tsc --noEmit",
-    "test": "node --test --import tsx 'lib/ai/**/__tests__/**/*.test.ts'",
-    "eval:offer-brain": "tsx evals/scripts/offer-brain.ts"
+    "test": "node --test --import tsx 'lib/ai/**/__tests__/**/*.test.ts' 'evals/scripts/__tests__/**/*.test.ts'",
+    "eval:offer-brain": "tsx evals/scripts/offer-brain.ts",
+    "eval:offer-brain:baseline": "tsx evals/scripts/offer-brain.ts --baseline",
+    "eval:offer-brain:diff": "tsx evals/scripts/offer-brain.ts --diff",
+    "eval:all": "tsx evals/scripts/all.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.40.0",

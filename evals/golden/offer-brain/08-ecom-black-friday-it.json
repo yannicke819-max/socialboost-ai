@@ -1,0 +1,43 @@
+{
+  "id": "offer-brain-ecom-black-friday-it",
+  "title": "E-commerce Black Friday limited-time campaign (IT)",
+  "language": "it",
+  "fixture_ref": "ecommerce-fashion/black-friday-it",
+  "agent": "offer-brain",
+  "agent_min_version": "0.1.0",
+  "rationale": "Italian-language e-commerce campaign with explicit limited-time urgency. Tests IT locale + product offer type + visuals-required channel reasoning.",
+  "tags": ["product", "fashion", "it", "limited-time", "black-friday"],
+  "risk_level": "medium",
+  "notes": "Tests IT locale handling + correct channel routing for visual product (IG/TikTok), not LinkedIn.",
+  "input": {
+    "raw_offer_text": "Black Friday Boutique — fino al -40%. 5 giorni di sconti sulla nuova collezione. Marchio nato in Italia, prodotto in Toscana, spedizione gratuita oltre 100€.",
+    "locale": "it",
+    "user_goal": "sales",
+    "current_offer_name": "Black Friday Capsule",
+    "current_price": 80,
+    "currency": "EUR",
+    "target_customer": "Donne 25-45 anni, mercato italiano, valore medio carrello 80-250€",
+    "proof_points": [
+      "Black Friday 2024: +180% rispetto a un giorno medio",
+      "Marchio italiano, prodotto in Toscana"
+    ]
+  },
+  "expectations": {
+    "required_offer_type": "product",
+    "expected_min_scores": {
+      "proof_score": 50,
+      "audience_fit_score": 60
+    },
+    "required_fields": [
+      "identification.offer_name",
+      "audience.target_audience",
+      "channels.best_channels"
+    ],
+    "forbidden_offer_types": ["service", "coaching", "audit"]
+  },
+  "must_pass": [
+    "[real-mode] channels.best_channels contains 'instagram' AND 'tiktok' (mock IT keyword detection limited, deferred to real model)",
+    "[real-mode] channels.video_relevance == 'high'",
+    "[real-mode] channels.carousel_relevance == 'high'"
+  ]
+}
