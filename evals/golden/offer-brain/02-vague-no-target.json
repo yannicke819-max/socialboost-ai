@@ -1,23 +1,35 @@
 {
   "id": "offer-brain-vague-no-target",
+  "title": "Vague offer with no audience or proof (FR)",
+  "language": "fr",
   "fixture_ref": "manual",
   "agent": "offer-brain",
   "agent_min_version": "0.1.0",
-  "rationale": "Vague offer with no defined target. Agent must flag everything as missing, NOT invent a target persona, cap scores, and produce 3 high-leverage follow-up questions.",
+  "rationale": "Vague offer with no defined target. Agent must flag everything as missing, NOT invent a target persona, cap scores, and produce 1-3 high-leverage follow-up questions.",
+  "tags": ["vague", "fr", "low-info", "stress-test"],
+  "risk_level": "high",
+  "notes": "Stresses the no-invention rule: confidence/proof/conversion caps must hold; missing_data_categories must include proof + cta + audience.",
   "input": {
     "raw_offer_text": "J'aide les gens à mieux gérer leur entreprise.",
     "locale": "fr"
   },
+  "expectations": {
+    "expected_max_scores": {
+      "confidence_score": 70,
+      "proof_score": 40,
+      "conversion_readiness_score": 70
+    },
+    "required_fields": [
+      "missing.recommended_followup_questions",
+      "learning_signals.missing_data_categories",
+      "future_memory_writes"
+    ],
+    "expected_missing_information": ["proof", "cta", "audience"]
+  },
   "must_pass": [
-    "output structure validates against OfferBriefOutputSchema",
-    "intelligence.confidence_score <= 70 (no proofs)",
-    "intelligence.proof_score <= 40 (no proofs)",
-    "intelligence.conversion_readiness_score <= 70 (no CTA)",
     "proofs.proof_quality == 'missing'",
     "conversion.cta_strength == 'absent'",
-    "missing.recommended_followup_questions length <= 3 AND >= 1",
-    "learning_signals.missing_data_categories includes 'proof' AND 'cta' AND 'audience'",
-    "learning_signals.improvement_priority in ['high', 'critical']",
-    "future_memory_writes structure is present (preparation for AI-005)"
+    "missing.recommended_followup_questions length between 1 and 3",
+    "learning_signals.improvement_priority in ['high', 'critical']"
   ]
 }

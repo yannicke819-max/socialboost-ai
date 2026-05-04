@@ -1,0 +1,561 @@
+{
+  "agent": "offer-brain",
+  "schema_version": "0.1.0",
+  "prompt_version": "0.1.0",
+  "runner_version": "0.1.0",
+  "generated_at": "2026-05-04T06:12:11.823Z",
+  "mode": "mock",
+  "total_cases": 9,
+  "pass_count": 9,
+  "fail_count": 0,
+  "pass_rate": 1,
+  "per_case_results": [
+    {
+      "id": "offer-brain-coach-clear-with-proofs",
+      "title": "Coaching offer with verifiable proofs (FR)",
+      "language": "fr",
+      "risk_level": "low",
+      "pass": true,
+      "source": "mock",
+      "duration_ms": 3,
+      "agent_metadata": {
+        "diagnostic_version": "0.1.0",
+        "retries": 0
+      },
+      "output_summary": {
+        "offer_type": "coaching",
+        "best_channels": [
+          "linkedin",
+          "x"
+        ],
+        "proof_quality": "partial",
+        "cta_strength": "strong",
+        "followup_count": 0,
+        "improvement_priority": "low",
+        "scores": {
+          "business_potential_score": 68,
+          "clarity_score": 65,
+          "differentiation_score": 45,
+          "proof_score": 70,
+          "audience_fit_score": 70,
+          "conversion_readiness_score": 75,
+          "confidence_score": 80
+        },
+        "missing_data_categories": [
+          "objections"
+        ],
+        "unsupported_claims_count": 0,
+        "risky_claims_count": 0
+      },
+      "issues": [],
+      "learning_signals": {
+        "extraction_confidence": 82,
+        "ambiguity_level": 18,
+        "missing_data_categories": [
+          "objections"
+        ],
+        "likely_user_corrections": [],
+        "feedback_hooks": [
+          "channel_recommendation_acceptance",
+          "proof_gap_detection_accuracy"
+        ],
+        "improvement_priority": "low"
+      },
+      "unsupported_claims": [],
+      "risky_claims": []
+    },
+    {
+      "id": "offer-brain-vague-no-target",
+      "title": "Vague offer with no audience or proof (FR)",
+      "language": "fr",
+      "risk_level": "high",
+      "pass": true,
+      "source": "mock",
+      "duration_ms": 0,
+      "agent_metadata": {
+        "diagnostic_version": "0.1.0",
+        "retries": 0
+      },
+      "output_summary": {
+        "offer_type": "unknown",
+        "best_channels": [
+          "linkedin"
+        ],
+        "proof_quality": "missing",
+        "cta_strength": "absent",
+        "followup_count": 3,
+        "improvement_priority": "critical",
+        "scores": {
+          "business_potential_score": 49,
+          "clarity_score": 50,
+          "differentiation_score": 45,
+          "proof_score": 30,
+          "audience_fit_score": 50,
+          "conversion_readiness_score": 60,
+          "confidence_score": 60
+        },
+        "missing_data_categories": [
+          "proof",
+          "audience",
+          "cta",
+          "pricing",
+          "objections",
+          "goal"
+        ],
+        "unsupported_claims_count": 0,
+        "risky_claims_count": 0
+      },
+      "issues": [],
+      "learning_signals": {
+        "extraction_confidence": 0,
+        "ambiguity_level": 100,
+        "missing_data_categories": [
+          "proof",
+          "audience",
+          "cta",
+          "pricing",
+          "objections",
+          "goal"
+        ],
+        "likely_user_corrections": [],
+        "feedback_hooks": [
+          "channel_recommendation_acceptance",
+          "proof_gap_detection_accuracy"
+        ],
+        "improvement_priority": "critical"
+      },
+      "unsupported_claims": [],
+      "risky_claims": []
+    },
+    {
+      "id": "offer-brain-overpromise-no-proof",
+      "title": "Strong unproven promise — guarantees and big claims (FR)",
+      "language": "fr",
+      "risk_level": "high",
+      "pass": true,
+      "source": "mock",
+      "duration_ms": 1,
+      "agent_metadata": {
+        "diagnostic_version": "0.1.0",
+        "retries": 0
+      },
+      "output_summary": {
+        "offer_type": "unknown",
+        "best_channels": [
+          "linkedin"
+        ],
+        "proof_quality": "missing",
+        "cta_strength": "absent",
+        "followup_count": 3,
+        "improvement_priority": "critical",
+        "scores": {
+          "business_potential_score": 52,
+          "clarity_score": 65,
+          "differentiation_score": 45,
+          "proof_score": 30,
+          "audience_fit_score": 50,
+          "conversion_readiness_score": 60,
+          "confidence_score": 60
+        },
+        "missing_data_categories": [
+          "proof",
+          "audience",
+          "cta",
+          "pricing",
+          "objections"
+        ],
+        "unsupported_claims_count": 0,
+        "risky_claims_count": 0
+      },
+      "issues": [],
+      "learning_signals": {
+        "extraction_confidence": 10,
+        "ambiguity_level": 90,
+        "missing_data_categories": [
+          "proof",
+          "audience",
+          "cta",
+          "pricing",
+          "objections"
+        ],
+        "likely_user_corrections": [],
+        "feedback_hooks": [
+          "channel_recommendation_acceptance",
+          "proof_gap_detection_accuracy"
+        ],
+        "improvement_priority": "critical"
+      },
+      "unsupported_claims": [],
+      "risky_claims": []
+    },
+    {
+      "id": "offer-brain-b2b-premium-calendly",
+      "title": "Premium B2B audit with Calendly CTA (FR)",
+      "language": "fr",
+      "risk_level": "low",
+      "pass": true,
+      "source": "mock",
+      "duration_ms": 2,
+      "agent_metadata": {
+        "diagnostic_version": "0.1.0",
+        "retries": 0
+      },
+      "output_summary": {
+        "offer_type": "audit",
+        "best_channels": [
+          "linkedin",
+          "x"
+        ],
+        "proof_quality": "partial",
+        "cta_strength": "strong",
+        "followup_count": 0,
+        "improvement_priority": "low",
+        "scores": {
+          "business_potential_score": 68,
+          "clarity_score": 65,
+          "differentiation_score": 45,
+          "proof_score": 70,
+          "audience_fit_score": 70,
+          "conversion_readiness_score": 75,
+          "confidence_score": 80
+        },
+        "missing_data_categories": [
+          "objections"
+        ],
+        "unsupported_claims_count": 0,
+        "risky_claims_count": 0
+      },
+      "issues": [],
+      "learning_signals": {
+        "extraction_confidence": 82,
+        "ambiguity_level": 18,
+        "missing_data_categories": [
+          "objections"
+        ],
+        "likely_user_corrections": [],
+        "feedback_hooks": [
+          "channel_recommendation_acceptance",
+          "proof_gap_detection_accuracy"
+        ],
+        "improvement_priority": "low"
+      },
+      "unsupported_claims": [],
+      "risky_claims": []
+    },
+    {
+      "id": "offer-brain-ecommerce-needs-visuals",
+      "title": "E-commerce capsule (visuals + video required) (FR)",
+      "language": "fr",
+      "risk_level": "low",
+      "pass": true,
+      "source": "mock",
+      "duration_ms": 1,
+      "agent_metadata": {
+        "diagnostic_version": "0.1.0",
+        "retries": 0
+      },
+      "output_summary": {
+        "offer_type": "product",
+        "best_channels": [
+          "instagram",
+          "tiktok",
+          "facebook"
+        ],
+        "proof_quality": "partial",
+        "cta_strength": "absent",
+        "followup_count": 1,
+        "improvement_priority": "medium",
+        "scores": {
+          "business_potential_score": 65,
+          "clarity_score": 65,
+          "differentiation_score": 45,
+          "proof_score": 70,
+          "audience_fit_score": 70,
+          "conversion_readiness_score": 60,
+          "confidence_score": 80
+        },
+        "missing_data_categories": [
+          "cta",
+          "objections"
+        ],
+        "unsupported_claims_count": 0,
+        "risky_claims_count": 0
+      },
+      "issues": [],
+      "learning_signals": {
+        "extraction_confidence": 64,
+        "ambiguity_level": 36,
+        "missing_data_categories": [
+          "cta",
+          "objections"
+        ],
+        "likely_user_corrections": [],
+        "feedback_hooks": [
+          "channel_recommendation_acceptance",
+          "proof_gap_detection_accuracy"
+        ],
+        "improvement_priority": "medium"
+      },
+      "unsupported_claims": [],
+      "risky_claims": []
+    },
+    {
+      "id": "offer-brain-formation-promise-risk-es",
+      "title": "Online course with promise-of-result risk (ES)",
+      "language": "es",
+      "risk_level": "high",
+      "pass": true,
+      "source": "mock",
+      "duration_ms": 0,
+      "agent_metadata": {
+        "diagnostic_version": "0.1.0",
+        "retries": 0
+      },
+      "output_summary": {
+        "offer_type": "unknown",
+        "best_channels": [
+          "linkedin"
+        ],
+        "proof_quality": "missing",
+        "cta_strength": "absent",
+        "followup_count": 2,
+        "improvement_priority": "high",
+        "scores": {
+          "business_potential_score": 55,
+          "clarity_score": 65,
+          "differentiation_score": 45,
+          "proof_score": 30,
+          "audience_fit_score": 70,
+          "conversion_readiness_score": 60,
+          "confidence_score": 60
+        },
+        "missing_data_categories": [
+          "proof",
+          "cta",
+          "objections"
+        ],
+        "unsupported_claims_count": 0,
+        "risky_claims_count": 0
+      },
+      "issues": [],
+      "learning_signals": {
+        "extraction_confidence": 46,
+        "ambiguity_level": 54,
+        "missing_data_categories": [
+          "proof",
+          "cta",
+          "objections"
+        ],
+        "likely_user_corrections": [],
+        "feedback_hooks": [
+          "channel_recommendation_acceptance",
+          "proof_gap_detection_accuracy"
+        ],
+        "improvement_priority": "high"
+      },
+      "unsupported_claims": [],
+      "risky_claims": []
+    },
+    {
+      "id": "offer-brain-saas-b2b-en",
+      "title": "SaaS B2B with buyer persona and objections (EN)",
+      "language": "en",
+      "risk_level": "low",
+      "pass": true,
+      "source": "mock",
+      "duration_ms": 0,
+      "agent_metadata": {
+        "diagnostic_version": "0.1.0",
+        "retries": 0
+      },
+      "output_summary": {
+        "offer_type": "service",
+        "best_channels": [
+          "linkedin",
+          "x"
+        ],
+        "proof_quality": "partial",
+        "cta_strength": "medium",
+        "followup_count": 0,
+        "improvement_priority": "low",
+        "scores": {
+          "business_potential_score": 65,
+          "clarity_score": 65,
+          "differentiation_score": 45,
+          "proof_score": 70,
+          "audience_fit_score": 70,
+          "conversion_readiness_score": 60,
+          "confidence_score": 80
+        },
+        "missing_data_categories": [],
+        "unsupported_claims_count": 0,
+        "risky_claims_count": 0
+      },
+      "issues": [],
+      "learning_signals": {
+        "extraction_confidence": 100,
+        "ambiguity_level": 0,
+        "missing_data_categories": [],
+        "likely_user_corrections": [],
+        "feedback_hooks": [
+          "channel_recommendation_acceptance",
+          "proof_gap_detection_accuracy"
+        ],
+        "improvement_priority": "low"
+      },
+      "unsupported_claims": [],
+      "risky_claims": []
+    },
+    {
+      "id": "offer-brain-ecom-black-friday-it",
+      "title": "E-commerce Black Friday limited-time campaign (IT)",
+      "language": "it",
+      "risk_level": "medium",
+      "pass": true,
+      "source": "mock",
+      "duration_ms": 1,
+      "agent_metadata": {
+        "diagnostic_version": "0.1.0",
+        "retries": 0
+      },
+      "output_summary": {
+        "offer_type": "product",
+        "best_channels": [
+          "linkedin"
+        ],
+        "proof_quality": "partial",
+        "cta_strength": "absent",
+        "followup_count": 1,
+        "improvement_priority": "medium",
+        "scores": {
+          "business_potential_score": 65,
+          "clarity_score": 65,
+          "differentiation_score": 45,
+          "proof_score": 70,
+          "audience_fit_score": 70,
+          "conversion_readiness_score": 60,
+          "confidence_score": 80
+        },
+        "missing_data_categories": [
+          "cta",
+          "objections"
+        ],
+        "unsupported_claims_count": 0,
+        "risky_claims_count": 0
+      },
+      "issues": [],
+      "learning_signals": {
+        "extraction_confidence": 64,
+        "ambiguity_level": 36,
+        "missing_data_categories": [
+          "cta",
+          "objections"
+        ],
+        "likely_user_corrections": [],
+        "feedback_hooks": [
+          "channel_recommendation_acceptance",
+          "proof_gap_detection_accuracy"
+        ],
+        "improvement_priority": "medium"
+      },
+      "unsupported_claims": [],
+      "risky_claims": []
+    },
+    {
+      "id": "offer-brain-thought-leadership-de",
+      "title": "DACH consultancy thought leadership (DE)",
+      "language": "de",
+      "risk_level": "medium",
+      "pass": true,
+      "source": "mock",
+      "duration_ms": 0,
+      "agent_metadata": {
+        "diagnostic_version": "0.1.0",
+        "retries": 0
+      },
+      "output_summary": {
+        "offer_type": "unknown",
+        "best_channels": [
+          "linkedin"
+        ],
+        "proof_quality": "partial",
+        "cta_strength": "absent",
+        "followup_count": 1,
+        "improvement_priority": "high",
+        "scores": {
+          "business_potential_score": 65,
+          "clarity_score": 65,
+          "differentiation_score": 45,
+          "proof_score": 70,
+          "audience_fit_score": 70,
+          "conversion_readiness_score": 60,
+          "confidence_score": 80
+        },
+        "missing_data_categories": [
+          "cta",
+          "pricing",
+          "objections"
+        ],
+        "unsupported_claims_count": 0,
+        "risky_claims_count": 0
+      },
+      "issues": [],
+      "learning_signals": {
+        "extraction_confidence": 46,
+        "ambiguity_level": 54,
+        "missing_data_categories": [
+          "cta",
+          "pricing",
+          "objections"
+        ],
+        "likely_user_corrections": [],
+        "feedback_hooks": [
+          "channel_recommendation_acceptance",
+          "proof_gap_detection_accuracy"
+        ],
+        "improvement_priority": "high"
+      },
+      "unsupported_claims": [],
+      "risky_claims": []
+    }
+  ],
+  "aggregate_metrics": {
+    "total_cases": 9,
+    "pass_count": 9,
+    "fail_count": 0,
+    "pass_rate": 1,
+    "total_failures": 0,
+    "total_warnings": 0,
+    "avg_duration_ms": 1,
+    "failure_reasons_top": [],
+    "unsupported_claims_total": 0,
+    "risky_claims_total": 0,
+    "cases_with_critical_priority": 2,
+    "improvement_priority_distribution": {
+      "low": 3,
+      "medium": 2,
+      "high": 2,
+      "critical": 2
+    },
+    "missing_data_categories_distribution": {
+      "objections": 8,
+      "proof": 3,
+      "audience": 2,
+      "cta": 6,
+      "pricing": 3,
+      "goal": 1
+    }
+  },
+  "known_limitations": [
+    "Mock-mode only in CI — real model run requires EVAL_USE_REAL_MODEL=true and a key.",
+    "No semantic / embedding-based checks (deterministic only).",
+    "No LLM-judge.",
+    "No persistence beyond evals/runs/ JSON files (locally) and evals/baselines/ JSON (committed).",
+    "Forbidden patterns are regex/substring only — false positives/negatives possible on rare phrasings.",
+    "Score caps duplicate the agent schema superRefine rules — defensive, may disagree if mock drift.",
+    "Baseline is mock-only (CI policy). Real-mode runs are local + manual.",
+    "Golden schema version: 0.1.0.",
+    "Diagnostic version: 0.1.0.",
+    "Report format: 0.1.0."
+  ]
+}

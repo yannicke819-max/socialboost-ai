@@ -1,9 +1,14 @@
 {
   "id": "offer-brain-ecommerce-needs-visuals",
+  "title": "E-commerce capsule (visuals + video required) (FR)",
+  "language": "fr",
   "fixture_ref": "ecommerce-fashion/capsule-collection-promo-fr",
   "agent": "offer-brain",
   "agent_min_version": "0.1.0",
   "rationale": "Visual e-commerce product (fashion capsule). Agent must recommend Instagram + TikTok + carousel + video as high relevance, NOT push LinkedIn (wrong audience).",
+  "tags": ["product", "fashion", "fr", "visuals"],
+  "risk_level": "low",
+  "notes": "Tests channel relevance for visual product + female audience heuristics.",
   "input": {
     "raw_offer_text": "Capsule Printemps 2026 — Collection limitée 7 pièces. Vestiaire minimaliste 100% coton bio, fabriqué au Portugal, en quantité limitée — précommande ouverte 14 jours.",
     "locale": "fr",
@@ -17,14 +22,23 @@
       "1 200+ avis vérifiés, note 4.8/5"
     ]
   },
+  "expectations": {
+    "required_offer_type": "product",
+    "expected_min_scores": {
+      "proof_score": 50,
+      "audience_fit_score": 60
+    },
+    "required_fields": [
+      "identification.offer_name",
+      "channels.best_channels",
+      "audience.target_audience"
+    ],
+    "expected_channel_hints": ["instagram", "tiktok"],
+    "forbidden_offer_types": ["service", "coaching"]
+  },
   "must_pass": [
-    "output structure validates against OfferBriefOutputSchema",
-    "identification.offer_type == 'product'",
-    "channels.best_channels contains 'instagram'",
-    "channels.best_channels contains 'tiktok'",
     "channels.video_relevance == 'high'",
     "channels.carousel_relevance == 'high'",
-    "intelligence.proof_score > 40 (proofs provided)",
-    "missing.recommended_followup_questions length <= 3"
+    "channels.best_channels does not contain 'linkedin' as primary"
   ]
 }

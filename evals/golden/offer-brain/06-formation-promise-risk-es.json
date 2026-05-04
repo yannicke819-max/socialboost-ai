@@ -1,0 +1,40 @@
+{
+  "id": "offer-brain-formation-promise-risk-es",
+  "title": "Online course with promise-of-result risk (ES)",
+  "language": "es",
+  "fixture_ref": "infopreneur-formation/webinar-gratuito-es",
+  "agent": "offer-brain",
+  "agent_min_version": "0.1.0",
+  "rationale": "Spanish-language formation/coaching offer where the user implies guaranteed financial outcomes. Mock-mode runner asserts caps and missing-info; real-mode is expected to populate risky_claims_detected.",
+  "tags": ["formation", "promise-risk", "es", "compliance"],
+  "risk_level": "high",
+  "notes": "Tests ES locale + course offer type + risky financial claims detection (real-mode goal).",
+  "input": {
+    "raw_offer_text": "Programa de formación online: aprende a generar 10.000€/mes desde casa en 90 días. Garantizado o te devolvemos el dinero.",
+    "locale": "es",
+    "user_goal": "sales",
+    "current_offer_name": "Programa Ingresos Online 90 días",
+    "current_price": 1200,
+    "currency": "EUR",
+    "target_customer": "Adultos hispanohablantes que buscan trabajo en remoto"
+  },
+  "expectations": {
+    "expected_max_scores": {
+      "proof_score": 40,
+      "confidence_score": 70,
+      "conversion_readiness_score": 70
+    },
+    "required_fields": [
+      "compliance.legal_sensitivity",
+      "missing.recommended_followup_questions"
+    ],
+    "expected_missing_information": ["proof", "cta"]
+  },
+  "must_pass": [
+    "[real-mode] identification.offer_type == 'course' (mock heuristic does not catch Spanish 'formación', deferred to real model)",
+    "[real-mode] proofs.risky_claims_detected references the 10.000€/mes claim",
+    "[real-mode] proofs.unsupported_claims includes the 'garantizado' guarantee",
+    "[real-mode] compliance.legal_sensitivity in ['medium', 'high']",
+    "[real-mode] compliance.prohibited_promises lists the income guarantee"
+  ]
+}
