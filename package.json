@@ -7,7 +7,9 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "test": "node --test --import tsx 'lib/ai/**/__tests__/**/*.test.ts'",
+    "eval:offer-brain": "tsx evals/scripts/offer-brain.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.40.0",
@@ -32,6 +34,7 @@
     "eslint-config-next": "14.2.35",
     "postcss": "^8.4.47",
     "tailwindcss": "^3.4.14",
+    "tsx": "^4.19.2",
     "typescript": "^5.6.3"
   },
   "engines": {

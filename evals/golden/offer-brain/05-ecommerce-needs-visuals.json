@@ -1,0 +1,30 @@
+{
+  "id": "offer-brain-ecommerce-needs-visuals",
+  "fixture_ref": "ecommerce-fashion/capsule-collection-promo-fr",
+  "agent": "offer-brain",
+  "agent_min_version": "0.1.0",
+  "rationale": "Visual e-commerce product (fashion capsule). Agent must recommend Instagram + TikTok + carousel + video as high relevance, NOT push LinkedIn (wrong audience).",
+  "input": {
+    "raw_offer_text": "Capsule Printemps 2026 — Collection limitée 7 pièces. Vestiaire minimaliste 100% coton bio, fabriqué au Portugal, en quantité limitée — précommande ouverte 14 jours.",
+    "locale": "fr",
+    "user_goal": "sales",
+    "current_offer_name": "Capsule Printemps 2026",
+    "current_price": 60,
+    "currency": "EUR",
+    "target_customer": "Femmes 28-45 ans, urbaines, sensibles au slow fashion, panier moyen 200-400€",
+    "proof_points": [
+      "3 collections sold-out en 2025 (avg 240 unités)",
+      "1 200+ avis vérifiés, note 4.8/5"
+    ]
+  },
+  "must_pass": [
+    "output structure validates against OfferBriefOutputSchema",
+    "identification.offer_type == 'product'",
+    "channels.best_channels contains 'instagram'",
+    "channels.best_channels contains 'tiktok'",
+    "channels.video_relevance == 'high'",
+    "channels.carousel_relevance == 'high'",
+    "intelligence.proof_score > 40 (proofs provided)",
+    "missing.recommended_followup_questions length <= 3"
+  ]
+}

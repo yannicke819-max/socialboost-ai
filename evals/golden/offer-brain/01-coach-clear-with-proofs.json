@@ -1,0 +1,33 @@
+{
+  "id": "offer-brain-coach-clear-with-proofs",
+  "fixture_ref": "coach-business/launch-cohorte-linkedin-900",
+  "agent": "offer-brain",
+  "agent_min_version": "0.1.0",
+  "rationale": "Clear offer with verifiable proofs. Agent should NOT invent extra proofs, must keep proof_points exactly as provided, recommend LinkedIn-first, detect strong CTA.",
+  "input": {
+    "raw_offer_text": "Programme LinkedIn Pipeline 4 semaines — Tripler les RDV qualifiés en 30 jours pour les consultants solo, sans publicité ni outbound. Méthode validée auprès de 60+ consultants.",
+    "locale": "fr",
+    "user_goal": "sales",
+    "current_offer_name": "Programme LinkedIn Pipeline",
+    "current_price": 900,
+    "currency": "EUR",
+    "target_customer": "Consultants B2B solo, 1-3 ans d'expérience, présents sur LinkedIn",
+    "proof_points": [
+      "47 RDV qualifiés générés sur la dernière cohorte",
+      "Taux de signature 28% sur les RDV obtenus",
+      "60+ consultants accompagnés depuis 2024"
+    ],
+    "desired_cta": "Calendly audit-30min",
+    "target_platforms": ["linkedin", "x"]
+  },
+  "must_pass": [
+    "output structure validates against OfferBriefOutputSchema",
+    "identification.offer_type == 'coaching'",
+    "channels.best_channels contains 'linkedin'",
+    "conversion.cta_strength == 'strong'",
+    "proofs.proof_points length == 3 (exactly as provided, no invention)",
+    "intelligence.proof_score > 40 (proofs were provided)",
+    "intelligence.confidence_score > 70 (proofs were provided)",
+    "missing.recommended_followup_questions length <= 3"
+  ]
+}

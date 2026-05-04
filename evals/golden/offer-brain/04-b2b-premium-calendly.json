@@ -1,0 +1,28 @@
+{
+  "id": "offer-brain-b2b-premium-calendly",
+  "fixture_ref": "consultant-strategy/audit-strategique-2500-fr",
+  "agent": "offer-brain",
+  "agent_min_version": "0.1.0",
+  "rationale": "Premium B2B audit with Calendly CTA. Agent should detect 'audit' offer type, premium pricing, LinkedIn-first channels, strong CTA, and recommend long-form content over video.",
+  "input": {
+    "raw_offer_text": "Audit stratégique 360° pour PME — En 14 jours, livrable structuré qui identifie les 3 leviers de croissance prioritaires et le plan d'action 90 jours associé.",
+    "locale": "fr",
+    "user_goal": "leads",
+    "current_offer_name": "Audit stratégique 360°",
+    "current_price": 2500,
+    "currency": "EUR",
+    "target_customer": "Dirigeants PME 5-50 personnes, secteurs services et industrie légère, France",
+    "proof_points": ["12 audits livrés depuis janvier", "Cabinet certifié Bpifrance"],
+    "desired_cta": "Calendly RDV 30 min"
+  },
+  "must_pass": [
+    "output structure validates against OfferBriefOutputSchema",
+    "identification.offer_type == 'audit'",
+    "positioning.price_positioning == 'luxury' OR 'premium' (price=2500)",
+    "channels.best_channels contains 'linkedin'",
+    "channels.long_form_relevance == 'high'",
+    "channels.video_relevance in ['low', 'medium', 'not-recommended']",
+    "conversion.cta_strength == 'strong'",
+    "intelligence.conversion_readiness_score > 70 (proofs + strong CTA)"
+  ]
+}
