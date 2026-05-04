@@ -98,7 +98,7 @@ Agency is **explicitly capped at 2000/mo**. Above the cap, throttling kicks in (
 | Number of social accounts | 1 | 2 | 5 | 20 multi-client |
 | Premium video (avatar / gen) | ❌ | ❌ | ✅ (with confirmation) | ✅ |
 | Weekly Growth Brief | ❌ | ❌ | ✅ | ✅ |
-| Concurrent campaigns | 1 | 3 | 10 | unlimited |
+| Concurrent campaigns | 1 | 3 | 10 | 100 (fair-use) |
 | Sieges | 1 | 1 | 1 | 3 included |
 | API access | ❌ | ❌ | ❌ | ✅ |
 
@@ -189,7 +189,7 @@ Reservation and finalize must be in the same database transaction context as the
 |---|---|
 | Daily cap | 5× the average daily consumption of the plan, soft alert |
 | Hourly burst cap | 50% of monthly allocation in 1 hour, throttle + alert |
-| Concurrency limit | Per-plan (Free 1, Solo 3, Pro 10, Agency unlimited) |
+| Concurrency limit | Per-plan (Free 1, Solo 3, Pro 10, Agency 100 fair-use) |
 | Premium ops limit | Confirmation required > 50 credits, hard cap on consecutive premium ops |
 | Suspicious patterns | Multiple plan downgrades + heavy usage, manual review |
 
