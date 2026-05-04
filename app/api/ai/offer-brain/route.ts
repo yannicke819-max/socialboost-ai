@@ -1,22 +1,35 @@
 /**
  * POST /api/ai/offer-brain
  *
- * Offer Brain agent endpoint. Accepts an OfferBrainInput JSON body, returns
- * a strictly-validated OfferBrief.
+ * Offer Brain agent endpoint.
  *
- * - No streaming.
- * - No auth wiring (out of scope per AI-001 brief).
- * - Mock by default; real Claude only when OFFER_BRAIN_USE_REAL_MODEL=true.
+ * Security gating (AI-001):
+ *   - Endpoint disabled by default. Set OFFER_BRAIN_API_ENABLED='true' to enable.
+ *   - When disabled: returns 404 with no agent execution, no error details leaked.
+ *   - Enable explicitly per environment (dev/preview/prod) — never enabled by default.
+ *
+ * Real model gating (separate flag):
+ *   - Mock by default. Set OFFER_BRAIN_USE_REAL_MODEL='true' AND ANTHROPIC_API_KEY to call Claude.
+ *
+ * No streaming. No auth wiring (rate-limit + auth = future PR).
  */
 
 import { NextResponse } from 'next/server';
 import { runOfferBrain } from '@/lib/ai/offer-brain/agent';
 import { OfferBrainAgentError } from '@/lib/ai/offer-brain/errors';
+import { endpointEnabled } from '@/lib/ai/offer-brain/api-flag';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
 export async function POST(req: Request): Promise<Response> {
+  if (!endpointEnabled()) {
+    // Pretend the route doesn't exist when disabled. No 403, no agent execution,
+    // no body parsing, no leakage of internal state. The 404 is identical to
+    // Next.js's own 404 for non-existent routes.
+    return new Response('Not Found', { status: 404 });
+  }
+
   let body: unknown;
   try {
     body = await req.json();
@@ -49,6 +62,7 @@ export async function POST(req: Request): Promise<Response> {
       const status = statusForCode(json.code);
       return NextResponse.json({ ok: false, error: json }, { status });
     }
+    // Generic catch — never expose stack trace, only the message string
     return NextResponse.json(
       {
         ok: false,
