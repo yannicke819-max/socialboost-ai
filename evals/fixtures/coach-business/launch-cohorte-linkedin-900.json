@@ -1,0 +1,36 @@
+{
+  "id": "coach-business-launch-cohorte-linkedin-900",
+  "icp": "coach-business",
+  "input": {
+    "offer": {
+      "name": "Programme LinkedIn Pipeline 4 semaines",
+      "type": "coaching",
+      "promise": "Tripler les RDV qualifiés en 30 jours pour les consultants solo, sans publicité ni outbound",
+      "audience": "Consultants B2B solo, 1-3 ans d'expérience, présents sur LinkedIn mais sans pipeline régulier",
+      "price": { "amount": 900, "currency": "EUR", "recurrence": "one-time" },
+      "proof_points": [
+        "47 RDV qualifiés générés sur la dernière cohorte (7 participants, 8 semaines)",
+        "Taux de signature moyen 28% sur les RDV obtenus",
+        "Méthode validée auprès de 60+ consultants depuis 2024"
+      ],
+      "objections": [
+        "Je n'ai pas le temps de poster",
+        "Je ne sais pas quoi écrire",
+        "Mes posts ne génèrent pas de leads",
+        "C'est trop cher pour ce que c'est"
+      ],
+      "cta_url": "https://calendly.com/exemple/audit-30min",
+      "funnel_stage": "consideration",
+      "seasonality": "launch"
+    },
+    "goal": {
+      "type": "sales",
+      "linked_url": "https://calendly.com/exemple/audit-30min",
+      "notes": "Cohorte ouverte 14 jours, target = 8 inscriptions"
+    },
+    "brief": "Lancement de la prochaine cohorte. Cible primaire : consultants solo qui galèrent à transformer LinkedIn en pipeline. Angle : 90% des consultants postent à l'aveugle, voici la méthode systémique en 4 piliers (offre, audience, contenu, conversion). Le coach lui-même a fait +120K€ revenus via LinkedIn organique sur 18 mois.",
+    "language": "fr"
+  },
+  "tags": ["launch", "cohort", "linkedin-first", "high-ticket-b2b", "fr"],
+  "notes": "Stresses business_potential weight + offer_understanding + cta_clarity. Boost Score should reward LinkedIn long-form and X thread, downweight TikTok."
+}

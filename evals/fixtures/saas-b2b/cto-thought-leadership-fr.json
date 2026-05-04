@@ -1,0 +1,34 @@
+{
+  "id": "saas-b2b-cto-thought-leadership-fr",
+  "icp": "saas-b2b",
+  "input": {
+    "offer": {
+      "name": "Productiv (notoriété fondateur)",
+      "type": "service",
+      "promise": "Le fondateur partage sa vision sur l'IA dans la productivité solo (pas vente directe — autorité)",
+      "audience": "Tech-savvy founders, CTO solo, indie makers, francophones",
+      "proof_points": [
+        "10+ ans expérience dev tooling",
+        "Speaker tech conferences (BDX I/O, Devoxx)",
+        "8k followers techniques sur LinkedIn"
+      ],
+      "objections": [
+        "Ça va finir par vendre Productiv",
+        "Encore un fondateur qui parle de SaaS",
+        "Trop technique pour mon usage"
+      ],
+      "cta_url": "https://exemple-productiv.fr/blog",
+      "funnel_stage": "awareness",
+      "seasonality": "evergreen"
+    },
+    "goal": {
+      "type": "authority",
+      "linked_url": "https://exemple-productiv.fr/blog",
+      "notes": "Construction notoriété fondateur, target = 30 nouveaux followers techniques/sem"
+    },
+    "brief": "Contenu d'opinion technique : 'Pourquoi je ne crois pas aux to-do list IA généralistes (et ce qu'on construit à la place)'. Approche contre-intuitive : critique son propre marché. Authentique, pas commercial.",
+    "language": "fr"
+  },
+  "tags": ["thought-leadership", "authority", "founder-led", "fr", "tech-audience"],
+  "notes": "Tests authority goal with self-critique angle. Critic should reward originality + no_bullshit when self-critique is genuine."
+}

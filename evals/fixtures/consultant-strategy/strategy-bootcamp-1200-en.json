@@ -1,0 +1,35 @@
+{
+  "id": "consultant-strategy-bootcamp-1200-en",
+  "icp": "consultant-strategy",
+  "input": {
+    "offer": {
+      "name": "Strategy Bootcamp — 6-week intensive",
+      "type": "course",
+      "promise": "Build a senior-level consulting strategy practice in 6 weeks. Real client work, weekly group review, framework library included.",
+      "audience": "Mid-career consultants (5-10 years experience) wanting to upgrade from execution to strategy advisory",
+      "price": { "amount": 1200, "currency": "USD", "recurrence": "one-time" },
+      "proof_points": [
+        "92 alumni since 2024, average client billing rate up 40% post-bootcamp",
+        "Cohorts capped at 12 for true peer learning",
+        "Curriculum reviewed by ex-McKinsey partner"
+      ],
+      "objections": [
+        "I already have an MBA / consulting experience",
+        "$1200 for a course?",
+        "Will I actually get strategy work after?"
+      ],
+      "cta_url": "https://example.com/bootcamp",
+      "funnel_stage": "decision",
+      "seasonality": "launch"
+    },
+    "goal": {
+      "type": "sales",
+      "linked_url": "https://example.com/bootcamp",
+      "notes": "Cohort opens in 21 days, target = 12 paid signups"
+    },
+    "brief": "Launch promotion for the next cohort. Angle: most consultants stay stuck at execution because nobody taught them strategic framing. The bootcamp is run by a senior who left consulting after burnout to teach what schools don't.",
+    "language": "en"
+  },
+  "tags": ["course-launch", "high-ticket", "english", "decision-stage"],
+  "notes": "Tests Critic on EN-language with explicit price + decision stage. business_potential should weight heavily."
+}

@@ -1,0 +1,35 @@
+{
+  "id": "infopreneur-formation-launch-cohorte-1490-fr",
+  "icp": "infopreneur-formation",
+  "input": {
+    "offer": {
+      "name": "Formation Productivité Solo 7 semaines",
+      "type": "course",
+      "promise": "Reprendre le contrôle de tes 40h hebdo en 7 semaines : 1 chapitre live par semaine + accountability group",
+      "audience": "Solo entrepreneurs, freelances seniors, indépendants débordés, francophones",
+      "price": { "amount": 1490, "currency": "EUR", "recurrence": "one-time" },
+      "proof_points": [
+        "127 alumni depuis 2024",
+        "82% complètent la formation (industry avg 14%)",
+        "Témoignages vidéo de 15 alumni publics"
+      ],
+      "objections": [
+        "1490€ c'est cher pour une formation",
+        "J'ai déjà essayé Notion / GTD / autres",
+        "Je n'ai pas le temps de suivre 7 semaines"
+      ],
+      "cta_url": "https://exemple-formation.fr/cohorte",
+      "funnel_stage": "decision",
+      "seasonality": "launch"
+    },
+    "goal": {
+      "type": "sales",
+      "linked_url": "https://exemple-formation.fr/cohorte",
+      "notes": "Cohorte ouvre dans 21 jours, target = 30 inscrits"
+    },
+    "brief": "Lancement cohorte 6. Angle principal : 'la productivité ne vient pas des outils — elle vient des décisions'. Mix études de cas alumni + contenu pédagogique de fond. Webinar gratuit J-7 comme pivot.",
+    "language": "fr"
+  },
+  "tags": ["course-launch", "cohort", "french-market", "fr"],
+  "notes": "Tests cohort launch dynamics + multi-platform mix (LinkedIn long-form for thought leadership, IG for proof, YouTube short for hooks)."
+}

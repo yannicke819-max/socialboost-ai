@@ -1,0 +1,34 @@
+{
+  "id": "coach-business-newsletter-authority-fr",
+  "icp": "coach-business",
+  "input": {
+    "offer": {
+      "name": "Newsletter Le Solo Pipeline (gratuite)",
+      "type": "newsletter",
+      "promise": "Une étude de cas concrète chaque vendredi — comment un solo a converti X RDV en Y € de revenus. Pas de fluff.",
+      "audience": "Solo consultants, coachs, freelances B2B, francophones, qui veulent apprendre des cas réels plutôt que des théories",
+      "proof_points": [
+        "8 200 abonnés en 14 mois",
+        "Open rate 47% (industry avg : 28%)",
+        "Mention dans 3 podcasts business FR"
+      ],
+      "objections": [
+        "Encore une newsletter de plus",
+        "Pas le temps de lire chaque vendredi",
+        "Ça va finir par vendre quelque chose"
+      ],
+      "cta_url": "https://exemple.fr/newsletter",
+      "funnel_stage": "awareness",
+      "seasonality": "evergreen"
+    },
+    "goal": {
+      "type": "audience",
+      "linked_url": "https://exemple.fr/newsletter",
+      "notes": "Croissance newsletter, pas de ventes directes ce mois-ci"
+    },
+    "brief": "Croissance newsletter en posant des contenus d'autorité. Angle du mois : 'Les 3 mythes que je crois aussi quand j'ai démarré (et ce qui m'a fait changer d'avis)'. Tone : direct, expérience-driven, zero bullshit, contre-intuitif.",
+    "language": "fr"
+  },
+  "tags": ["authority", "newsletter-growth", "audience-goal", "fr"],
+  "notes": "Tests audience goal (not sales). Critic should value originality and no_bullshit highly. CTA toward subscribe page, not a paid product."
+}

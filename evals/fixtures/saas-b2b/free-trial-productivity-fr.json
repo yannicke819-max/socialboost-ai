@@ -1,0 +1,35 @@
+{
+  "id": "saas-b2b-free-trial-productivity-fr",
+  "icp": "saas-b2b",
+  "input": {
+    "offer": {
+      "name": "Productiv — gestionnaire de tâches IA pour équipes solo et duo",
+      "type": "service",
+      "promise": "L'IA qui transforme 10 lignes de notes brouillon en plan de la semaine structuré + reminders intelligents",
+      "audience": "Solo entrepreneurs et duos d'associés, $80k-300k revenue, francophones, déjà users de Notion/Asana mais frustrés",
+      "price": { "amount": 29, "currency": "EUR", "recurrence": "monthly" },
+      "proof_points": [
+        "1 800 utilisateurs actifs hebdo (lancé en mars 2025)",
+        "Trial → paid conversion : 31%",
+        "Featured Product Hunt #2 du jour, 540 upvotes"
+      ],
+      "objections": [
+        "J'ai déjà Notion / Asana / Todoist",
+        "Encore un outil IA",
+        "29€/mois pour un to-do c'est cher"
+      ],
+      "cta_url": "https://exemple-productiv.fr/trial",
+      "funnel_stage": "awareness",
+      "seasonality": "evergreen"
+    },
+    "goal": {
+      "type": "leads",
+      "linked_url": "https://exemple-productiv.fr/trial",
+      "notes": "Free trial signups, target 250 trials ce mois-ci"
+    },
+    "brief": "Acquisition trial via contenu pédagogique. Angle : 'la productivité ne vient pas des outils, mais on a quand même besoin que l'outil ne nous ralentisse pas'. Tone : technique mais accessible. Démos courtes (loom embed, gif IG).",
+    "language": "fr"
+  },
+  "tags": ["saas-trial", "leads", "evergreen", "fr"],
+  "notes": "Tests SaaS B2B narrative — Critic should value 'no over-promise' since SaaS results are subjective."
+}

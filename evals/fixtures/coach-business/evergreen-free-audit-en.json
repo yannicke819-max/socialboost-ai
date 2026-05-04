@@ -1,0 +1,34 @@
+{
+  "id": "coach-business-evergreen-free-audit-en",
+  "icp": "coach-business",
+  "input": {
+    "offer": {
+      "name": "30-min Strategy Audit (free)",
+      "type": "audit",
+      "promise": "In 30 minutes, identify the top 3 leverage points to double your B2B conversion rate without ad spend",
+      "audience": "Solo coaches and consultants, $80k-200k yearly revenue, English-speaking, US/UK/CA market",
+      "proof_points": [
+        "Worked with 200+ solo consultants since 2023",
+        "Average client adds $40k-80k yearly revenue within 6 months",
+        "Featured in IndieHackers, ConsultingMag"
+      ],
+      "objections": [
+        "I'm not sure what to expect from a free audit",
+        "I've talked to other coaches, none worked",
+        "I don't have time for another call"
+      ],
+      "cta_url": "https://calendly.com/example/30min-strategy-audit",
+      "funnel_stage": "awareness",
+      "seasonality": "evergreen"
+    },
+    "goal": {
+      "type": "leads",
+      "linked_url": "https://calendly.com/example/30min-strategy-audit",
+      "notes": "Top of funnel — book audits, qualify on call"
+    },
+    "brief": "Free audit lead magnet to fill the calendar. Target audience: solo coaches in English markets, frustrated with paid ads, looking for organic growth. Angle: most coaches confuse 'visibility' with 'leverage'. The audit shows the 3 leverage points specific to their situation.",
+    "language": "en"
+  },
+  "tags": ["evergreen", "free-audit", "lead-magnet", "english", "us-market"],
+  "notes": "Tests EN-language generation + lead-gen goal. Channel Strategist should prioritize LinkedIn long-form and X threads."
+}

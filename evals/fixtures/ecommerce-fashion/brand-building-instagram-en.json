@@ -1,0 +1,34 @@
+{
+  "id": "ecommerce-fashion-brand-building-instagram-en",
+  "icp": "ecommerce-fashion",
+  "input": {
+    "offer": {
+      "name": "Athleisure brand discovery",
+      "type": "product",
+      "promise": "High-performance athleisure for women who refuse to choose between studio and streetwear",
+      "audience": "Women 22-38, fitness enthusiasts, urban, basket avg $80-200, primary US/UK markets",
+      "proof_points": [
+        "12k Instagram followers, 8% engagement rate",
+        "Featured in Vogue Wellness, Well+Good 2025",
+        "Manufactured in Vietnam, Bluesign certified"
+      ],
+      "objections": [
+        "Why this brand vs Lululemon",
+        "Pricing seems mid-tier",
+        "I don't recognize the brand"
+      ],
+      "cta_url": "https://example-brand.com/shop",
+      "funnel_stage": "awareness",
+      "seasonality": "evergreen"
+    },
+    "goal": {
+      "type": "audience",
+      "linked_url": "https://example-brand.com/shop",
+      "notes": "Grow IG to 25k followers in 90 days"
+    },
+    "brief": "IG-driven brand awareness. Angle: behind-the-scenes content from the design studio + real customer stories. Avoid hard-selling. Tone: confident, body-positive, technical when relevant.",
+    "language": "en"
+  },
+  "tags": ["brand-building", "audience-goal", "instagram-tiktok", "english"],
+  "notes": "Tests Critic on audience-goal (no hard CTA expected). Reels script + IG carousel formats prioritized."
+}

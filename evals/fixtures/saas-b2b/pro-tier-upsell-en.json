@@ -1,0 +1,35 @@
+{
+  "id": "saas-b2b-pro-tier-upsell-en",
+  "icp": "saas-b2b",
+  "input": {
+    "offer": {
+      "name": "Productiv Pro — Team plan upgrade",
+      "type": "service",
+      "promise": "Pro plan unlocks team collaboration, custom AI rules, priority support, and unlimited integrations",
+      "audience": "Existing free / Solo plan users hitting feature limits, English-speaking, US/UK/CA",
+      "price": { "amount": 79, "currency": "USD", "recurrence": "monthly" },
+      "proof_points": [
+        "Average team upgrades within 14 days of hitting Solo limits",
+        "Pro user retention: 92% at month 3",
+        "Net Promoter Score: 64"
+      ],
+      "objections": [
+        "Free tier already covers what I need",
+        "Why $79 vs $29?",
+        "Is this a usage cap or a real Pro tier?"
+      ],
+      "cta_url": "https://example-productiv.com/upgrade",
+      "funnel_stage": "decision",
+      "seasonality": "evergreen"
+    },
+    "goal": {
+      "type": "sales",
+      "linked_url": "https://example-productiv.com/upgrade",
+      "notes": "Upsell existing users, target 80 upgrades this month"
+    },
+    "brief": "In-product nurture content surfaced via blog + LinkedIn. Angle: case studies of teams who upgraded and what they unlocked specifically. Concrete examples beat generic feature lists.",
+    "language": "en"
+  },
+  "tags": ["saas-upsell", "sales", "english", "decision-stage"],
+  "notes": "Tests upsell narrative — Critic should reward concrete proof, penalize generic feature lists."
+}
