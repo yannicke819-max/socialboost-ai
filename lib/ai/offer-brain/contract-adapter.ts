@@ -32,8 +32,42 @@ import {
 } from './schema';
 import { runOfferBrain } from './agent';
 import { isOfferBrainAgentError } from './errors';
+import type { ZodError } from 'zod';
 
 const AGENT_ID = 'offer-brain';
+
+/**
+ * Redact a ZodError into a structural-only summary.
+ *
+ * Outputs only counts, schema field names (which come from the schema, not from
+ * input), and Zod issue codes (a closed enum like 'invalid_type', 'too_small').
+ * Never includes:
+ *   - issue.message (could be customized to embed input values via .refine)
+ *   - issue.path beyond top-level field name
+ *   - any input value
+ */
+function redactZodIssues(err: ZodError): {
+  field_count: number;
+  form_error_count: number;
+  field_error_counts: Record<string, number>;
+  issue_codes: string[];
+} {
+  const flat = err.flatten();
+  const field_error_counts: Record<string, number> = {};
+  for (const [field, msgs] of Object.entries(flat.fieldErrors)) {
+    if (Array.isArray(msgs)) field_error_counts[field] = msgs.length;
+  }
+  const codes = new Set<string>();
+  for (const issue of err.issues) {
+    if (typeof issue.code === 'string') codes.add(issue.code);
+  }
+  return {
+    field_count: Object.keys(field_error_counts).length,
+    form_error_count: flat.formErrors.length,
+    field_error_counts,
+    issue_codes: Array.from(codes).sort(),
+  };
+}
 
 export interface RunViaContractOptions {
   /** Eval context flag — if true, eval gating applies (EVAL_USE_REAL_MODEL). */
@@ -99,7 +133,7 @@ export async function runOfferBrainViaContract(
       code: 'invalid_input',
       message: 'Input validation failed against OfferBrainInputSchema.',
       recoverable: false,
-      details: { issues: parse.error.flatten() },
+      details: redactZodIssues(parse.error),
     });
     trace = completeTrace(trace, {
       validation_status: 'invalid',
