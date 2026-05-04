@@ -1,0 +1,21 @@
+{
+  "id": "offer-brain-overpromise-no-proof",
+  "fixture_ref": "manual",
+  "agent": "offer-brain",
+  "agent_min_version": "0.1.0",
+  "rationale": "Strong promise (3x revenue, money-back guarantee) without supporting proof. Agent must flag the promise as risky/unsupported, NOT validate the claim, and demand evidence in follow-up questions.",
+  "input": {
+    "raw_offer_text": "Triple ton chiffre d'affaires en 30 jours grâce à ma méthode unique. Garantie satisfait ou remboursé.",
+    "locale": "fr",
+    "user_goal": "sales"
+  },
+  "must_pass": [
+    "output structure validates against OfferBriefOutputSchema",
+    "proofs.proof_quality == 'missing'",
+    "intelligence.proof_score <= 40",
+    "intelligence.confidence_score <= 70",
+    "compliance.legal_sensitivity in ['low', 'medium', 'high'] (must be evaluated)",
+    "compliance.regulated_claims_risk OR proofs.unsupported_claims OR proofs.risky_claims_detected has at least one entry referencing the unproven 3x claim",
+    "missing.recommended_followup_questions includes a question requesting proof"
+  ]
+}
