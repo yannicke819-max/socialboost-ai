@@ -1,7 +1,18 @@
 'use client';
 
 import { useMemo, useState } from 'react';
-import { Archive, Copy, Calendar as CalendarIcon, Check, RefreshCw, Send, Sparkles } from 'lucide-react';
+import {
+  Archive,
+  Copy,
+  Calendar as CalendarIcon,
+  Check,
+  RefreshCw,
+  Send,
+  Sparkles,
+  BookOpen,
+  CheckCircle2,
+  ChevronRight,
+} from 'lucide-react';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/Button';
@@ -10,7 +21,7 @@ import { ASSET_KINDS, type Asset, type AssetKind, type AssetStatus, type Offer }
 import type { WorkspaceStore } from '@/lib/offer-workspace/store';
 import { CreatePackButton } from '../CreatePackButton';
 import { PackCoverageCard } from '../PackCoverage';
-import { buildSingleVariant } from '@/lib/offer-workspace/pack-generator';
+import { buildSingleVariant, computePackCoverage } from '@/lib/offer-workspace/pack-generator';
 import { startOfWeekMonday } from '@/lib/offer-workspace/calendar';
 
 interface AssetsTabProps {
@@ -104,6 +115,7 @@ export function AssetsTab({ offer, assets, language, onUpdate, store }: AssetsTa
   const kindLabels = language === 'en' ? KIND_LABELS_EN : KIND_LABELS_FR;
   const categoryLabels = language === 'en' ? CATEGORY_LABELS_EN : CATEGORY_LABELS_FR;
   const rollups = useMemo(() => computeAssetRollups(assets), [assets]);
+  const coverage = useMemo(() => computePackCoverage(assets), [assets]);
 
   const [category, setCategory] = useState<Category>('all');
   const [recentNotice, setRecentNotice] = useState<string | null>(null);
@@ -146,7 +158,6 @@ export function AssetsTab({ offer, assets, language, onUpdate, store }: AssetsTa
 
   const handleScheduleMock = (a: Asset) => {
     if (!SCHEDULABLE_KINDS.has(a.kind)) return;
-    // Default: 2 days from start-of-week (Monday + 2 = Wednesday), mid-day UTC
     const week = startOfWeekMonday(new Date());
     const day = new Date(week);
     day.setUTCDate(week.getUTCDate() + 2);
@@ -163,25 +174,61 @@ export function AssetsTab({ offer, assets, language, onUpdate, store }: AssetsTa
     setTimeout(() => setRecentNotice(null), 1500);
   };
 
+  // -----------------------------------------------------------------------------
+  // Empty / first-use state
+  // -----------------------------------------------------------------------------
+
+  if (assets.length === 0) {
+    return (
+      <div className="space-y-5">
+        <div className="rounded-md border border-brand/30 bg-brand/5 p-8 text-center">
+          <Sparkles size={22} className="mx-auto mb-3 text-brand" />
+          <h2 className="font-display text-2xl font-semibold text-fg">{labels.firstTitle}</h2>
+          <p className="mx-auto mt-2 max-w-xl text-sm text-fg-muted">{labels.firstBody}</p>
+        </div>
+        <CreatePackButton
+          offer={offer}
+          hasExistingAssets={false}
+          language={language}
+          store={store}
+          onAfterCreate={(n) => {
+            onUpdate();
+            setRecentNotice(`${labels.created} ${n}`);
+            setTimeout(() => setRecentNotice(null), 2000);
+          }}
+        />
+        <p className="text-center text-[11px] text-fg-subtle">{labels.mockExplain}</p>
+      </div>
+    );
+  }
+
+  // -----------------------------------------------------------------------------
+  // Populated state
+  // -----------------------------------------------------------------------------
+
+  const approvedCount = coverage.approved;
+  const approveTarget = 3;
+  const stepApprove = approvedCount >= approveTarget;
+  const stepRead = assets.length > 0;
+  // "Planifier" step is the next action once 3 are approved, mirrors PackCoverage logic.
+
   return (
     <div className="space-y-5">
-      <CreatePackButton
-        offer={offer}
-        hasExistingAssets={assets.length > 0}
+      <HeroBlock
         language={language}
-        store={store}
-        onAfterCreate={(n) => {
-          onUpdate();
-          setRecentNotice(`${labels.created} ${n}`);
-          setTimeout(() => setRecentNotice(null), 2000);
-        }}
+        approvedCount={approvedCount}
+        approveTarget={approveTarget}
+        stepRead={stepRead}
+        stepApprove={stepApprove}
       />
 
       <PackCoverageCard assets={assets} language={language} />
 
-      <DimensionsRollup rollups={rollups} language={language} />
+      <p className="rounded border border-amber-400/30 bg-amber-400/5 px-3 py-2 text-[11px] text-amber-400">
+        {labels.mockExplain}
+      </p>
 
-      {assets.length > 0 && (
+      <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex flex-wrap items-center gap-2">
           {(['all', 'texts', 'emails', 'videos', 'images', 'landing', 'hooks_ctas'] as Category[]).map((c) => {
             const active = c === category;
@@ -208,41 +255,50 @@ export function AssetsTab({ offer, assets, language, onUpdate, store }: AssetsTa
             </span>
           )}
         </div>
-      )}
+        <CreatePackButton
+          offer={offer}
+          hasExistingAssets
+          language={language}
+          store={store}
+          onAfterCreate={(n) => {
+            onUpdate();
+            setRecentNotice(`${labels.created} ${n}`);
+            setTimeout(() => setRecentNotice(null), 2000);
+          }}
+        />
+      </div>
 
-      {assets.length === 0 ? (
-        <div className="rounded-md border border-dashed border-border bg-bg-elevated/40 p-8 text-center text-sm text-fg-muted">
-          <p>{labels.emptyHint}</p>
-        </div>
-      ) : (
-        <div className="space-y-4">
-          {ASSET_KINDS.filter((k) => grouped.get(k)?.length).map((kind) => {
-            const items = grouped.get(kind)!;
-            return (
-              <section key={kind} className="rounded-md border border-border bg-bg-elevated">
-                <header className="flex items-center justify-between border-b border-border px-4 py-2.5">
-                  <h3 className="font-mono text-[11px] uppercase tracking-wider text-fg">
-                    {kindLabels[kind]}
-                  </h3>
-                  <span className="font-mono text-[10px] text-fg-subtle">{items.length}</span>
-                </header>
-                <ul className="divide-y divide-border/60">
-                  {items.map((a) => (
-                    <li key={a.id} className="px-4 py-3">
-                      <div className="mb-1.5 flex flex-wrap items-center justify-between gap-2">
-                        <div className="flex flex-wrap items-center gap-2">
-                          <StatusPill status={a.status} language={language} />
-                          {a.title && (
-                            <span className="font-display text-sm font-semibold text-fg">
-                              {a.title}
-                            </span>
-                          )}
-                          {a.channel && (
-                            <span className="font-mono text-[10px] uppercase tracking-wider text-fg-subtle">
-                              · {a.channel}
-                            </span>
-                          )}
-                          {(a.tags ?? []).filter((t) => t.startsWith('angle:') || t.startsWith('cta:') || t.startsWith('proof:')).slice(0, 3).map((t) => (
+      <div className="space-y-4">
+        {ASSET_KINDS.filter((k) => grouped.get(k)?.length).map((kind) => {
+          const items = grouped.get(kind)!;
+          return (
+            <section key={kind} className="rounded-md border border-border bg-bg-elevated">
+              <header className="flex items-center justify-between border-b border-border px-4 py-2.5">
+                <h3 className="font-mono text-[11px] uppercase tracking-wider text-fg">
+                  {kindLabels[kind]}
+                </h3>
+                <span className="font-mono text-[10px] text-fg-subtle">{items.length}</span>
+              </header>
+              <ul className="divide-y divide-border/60">
+                {items.map((a) => (
+                  <li key={a.id} className="px-4 py-3">
+                    <div className="mb-1.5 flex flex-wrap items-center justify-between gap-2">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <StatusPill status={a.status} language={language} />
+                        {a.title && (
+                          <span className="font-display text-sm font-semibold text-fg">
+                            {a.title}
+                          </span>
+                        )}
+                        {a.channel && (
+                          <span className="font-mono text-[10px] uppercase tracking-wider text-fg-subtle">
+                            · {a.channel}
+                          </span>
+                        )}
+                        {(a.tags ?? [])
+                          .filter((t) => t.startsWith('angle:') || t.startsWith('cta:') || t.startsWith('proof:'))
+                          .slice(0, 3)
+                          .map((t) => (
                             <span
                               key={t}
                               className="font-mono text-[10px] uppercase tracking-wider text-fg-subtle"
@@ -250,93 +306,108 @@ export function AssetsTab({ offer, assets, language, onUpdate, store }: AssetsTa
                               · {t}
                             </span>
                           ))}
-                        </div>
-                        <div className="flex flex-wrap items-center gap-1">
-                          <ActionBtn
-                            icon={<Copy size={11} />}
-                            label={labels.copy}
-                            onClick={() => handleCopy(a.body)}
-                          />
-                          {a.status !== 'review_mock' && (
-                            <ActionBtn
-                              icon={<RefreshCw size={11} />}
-                              label={labels.review}
-                              onClick={() => {
-                                store.setAssetStatus(a.id, 'review_mock');
-                                onUpdate();
-                              }}
-                            />
-                          )}
-                          {a.status !== 'approved' ? (
-                            <ActionBtn
-                              icon={<Check size={11} />}
-                              label={labels.approve}
-                              tone="emerald"
-                              onClick={() => {
-                                store.setAssetStatus(a.id, 'approved');
-                                onUpdate();
-                              }}
-                            />
-                          ) : (
-                            <ActionBtn
-                              icon={<RefreshCw size={11} />}
-                              label={labels.unapprove}
-                              onClick={() => {
-                                store.setAssetStatus(a.id, 'draft');
-                                onUpdate();
-                              }}
-                            />
-                          )}
-                          {a.status !== 'archived' && (
-                            <ActionBtn
-                              icon={<Archive size={11} />}
-                              label={labels.archive}
-                              onClick={() => {
-                                store.setAssetStatus(a.id, 'archived');
-                                onUpdate();
-                              }}
-                            />
-                          )}
-                          <ActionBtn
-                            icon={<Sparkles size={11} />}
-                            label={labels.regenerate}
-                            tone="brand"
-                            onClick={() => handleRegenerate(a)}
-                          />
-                          {SCHEDULABLE_KINDS.has(a.kind) && (
-                            <ActionBtn
-                              icon={<CalendarIcon size={11} />}
-                              label={labels.schedule}
-                              onClick={() => handleScheduleMock(a)}
-                              title={labels.scheduleTooltip}
-                            />
-                          )}
-                        </div>
                       </div>
-                      <pre className="whitespace-pre-wrap break-words font-sans text-sm text-fg">
-                        {a.body}
-                      </pre>
-                    </li>
-                  ))}
-                </ul>
-              </section>
-            );
-          })}
-          {filtered.length === 0 && (
-            <div className="rounded-md border border-dashed border-border bg-bg-elevated/40 p-6 text-center text-sm text-fg-muted">
-              {labels.emptyCategory}
-            </div>
-          )}
-        </div>
-      )}
+                      <div className="flex flex-wrap items-center gap-1.5">
+                        {/* PRIMARY */}
+                        {a.status !== 'approved' ? (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              store.setAssetStatus(a.id, 'approved');
+                              onUpdate();
+                            }}
+                            className="inline-flex items-center gap-1 rounded-md border border-emerald-400/60 bg-emerald-400/15 px-2.5 py-1 font-mono text-[11px] uppercase tracking-wider text-emerald-300 transition hover:border-emerald-400 hover:bg-emerald-400/25 hover:text-emerald-200"
+                          >
+                            <Check size={11} /> {labels.approve}
+                          </button>
+                        ) : (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              store.setAssetStatus(a.id, 'draft');
+                              onUpdate();
+                            }}
+                            title={labels.unapprove}
+                            className="inline-flex items-center gap-1 rounded-md border border-emerald-400/40 bg-emerald-400/10 px-2 py-1 font-mono text-[10px] uppercase tracking-wider text-emerald-400"
+                          >
+                            <CheckCircle2 size={11} /> {labels.approved}
+                          </button>
+                        )}
 
-      <div className="text-center">
-        <Link href={`/ai/offer-brain?fromOffer=${offer.id}`}>
-          <Button variant="outline" size="sm">
-            <Send size={12} /> {labels.regenerateFromBrain}
-          </Button>
-        </Link>
+                        {/* SECONDARY */}
+                        <SecondaryBtn
+                          icon={<Copy size={11} />}
+                          label={labels.copy}
+                          onClick={() => handleCopy(a.body)}
+                        />
+                        <SecondaryBtn
+                          icon={<Sparkles size={11} />}
+                          label={labels.regenerate}
+                          onClick={() => handleRegenerate(a)}
+                        />
+                        {SCHEDULABLE_KINDS.has(a.kind) && (
+                          <SecondaryBtn
+                            icon={<CalendarIcon size={11} />}
+                            label={labels.schedule}
+                            onClick={() => handleScheduleMock(a)}
+                            title={labels.scheduleTooltip}
+                          />
+                        )}
+
+                        {/* DISCRETE */}
+                        {a.status !== 'review_mock' && a.status !== 'approved' && (
+                          <DiscreteBtn
+                            icon={<RefreshCw size={11} />}
+                            ariaLabel={labels.review}
+                            onClick={() => {
+                              store.setAssetStatus(a.id, 'review_mock');
+                              onUpdate();
+                            }}
+                          />
+                        )}
+                        {a.status !== 'archived' && (
+                          <DiscreteBtn
+                            icon={<Archive size={11} />}
+                            ariaLabel={labels.archive}
+                            onClick={() => {
+                              store.setAssetStatus(a.id, 'archived');
+                              onUpdate();
+                            }}
+                          />
+                        )}
+                      </div>
+                    </div>
+                    <pre className="whitespace-pre-wrap break-words font-sans text-sm text-fg">
+                      {a.body}
+                    </pre>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          );
+        })}
+        {filtered.length === 0 && (
+          <div className="rounded-md border border-dashed border-border bg-bg-elevated/40 p-6 text-center text-sm text-fg-muted">
+            {labels.emptyCategory}
+          </div>
+        )}
       </div>
+
+      <details className="rounded-md border border-border bg-bg-elevated/40 p-3">
+        <summary className="cursor-pointer font-mono text-[11px] uppercase tracking-wider text-fg-subtle hover:text-fg">
+          {labels.advancedDetails}
+        </summary>
+        <div className="mt-3 space-y-3">
+          <DimensionsRollup rollups={rollups} language={language} />
+          <div className="text-center">
+            <Link href={`/ai/offer-brain?fromOffer=${offer.id}`}>
+              <Button variant="outline" size="sm">
+                <Send size={12} /> {labels.regenerateFromBrain}
+              </Button>
+            </Link>
+          </div>
+        </div>
+      </details>
     </div>
   );
 }
@@ -345,17 +416,94 @@ export function AssetsTab({ offer, assets, language, onUpdate, store }: AssetsTa
 // Sub-components
 // -----------------------------------------------------------------------------
 
-function ActionBtn({
+function HeroBlock({
+  language,
+  approvedCount,
+  approveTarget,
+  stepRead,
+  stepApprove,
+}: {
+  language: 'fr' | 'en';
+  approvedCount: number;
+  approveTarget: number;
+  stepRead: boolean;
+  stepApprove: boolean;
+}) {
+  const labels = language === 'en' ? L_EN : L_FR;
+  const remaining = Math.max(0, approveTarget - approvedCount);
+  const nextActionLabel = stepApprove
+    ? labels.heroNextSchedule
+    : `${labels.heroNextApprovePrefix} ${remaining} ${labels.heroNextApproveSuffix}`;
+
+  return (
+    <section className="rounded-md border border-brand/30 bg-brand/5 p-5">
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div className="min-w-0">
+          <p className="font-mono text-[11px] uppercase tracking-wider text-brand">{labels.heroEyebrow}</p>
+          <h2 className="mt-1 font-display text-xl font-semibold text-fg sm:text-2xl">
+            {labels.heroTitle}
+          </h2>
+          <p className="mt-1 max-w-2xl text-sm text-fg-muted">{labels.heroSubtitle}</p>
+        </div>
+        <div className="inline-flex items-center gap-1.5 rounded-md border border-emerald-400/50 bg-emerald-400/15 px-3 py-1.5 font-mono text-[11px] uppercase tracking-wider text-emerald-300">
+          <ChevronRight size={12} /> {nextActionLabel}
+        </div>
+      </div>
+
+      <ol className="mt-4 grid gap-2 sm:grid-cols-3">
+        <Step n={1} icon={<BookOpen size={12} />} label={labels.step1} done={stepRead} />
+        <Step n={2} icon={<Check size={12} />} label={labels.step2} done={stepApprove} />
+        <Step n={3} icon={<CalendarIcon size={12} />} label={labels.step3} done={false} />
+      </ol>
+    </section>
+  );
+}
+
+function Step({
+  n,
+  icon,
+  label,
+  done,
+}: {
+  n: number;
+  icon: React.ReactNode;
+  label: string;
+  done: boolean;
+}) {
+  return (
+    <li
+      className={cn(
+        'flex items-center gap-2 rounded-md border px-3 py-2 text-sm',
+        done
+          ? 'border-emerald-400/40 bg-emerald-400/5 text-emerald-300'
+          : 'border-border bg-bg-elevated text-fg',
+      )}
+    >
+      <span
+        className={cn(
+          'inline-flex h-5 w-5 items-center justify-center rounded-full border font-mono text-[10px]',
+          done ? 'border-emerald-400/60 bg-emerald-400/10 text-emerald-300' : 'border-border text-fg-subtle',
+        )}
+      >
+        {done ? <Check size={11} /> : n}
+      </span>
+      <span className="inline-flex items-center gap-1.5">
+        {icon}
+        {label}
+      </span>
+    </li>
+  );
+}
+
+function SecondaryBtn({
   icon,
   label,
   onClick,
-  tone,
   title,
 }: {
   icon: React.ReactNode;
   label: string;
   onClick: () => void;
-  tone?: 'emerald' | 'brand';
   title?: string;
 }) {
   return (
@@ -363,13 +511,31 @@ function ActionBtn({
       type="button"
       onClick={onClick}
       title={title}
-      className={cn(
-        'inline-flex items-center gap-1 rounded border border-border bg-bg px-2 py-1 font-mono text-[10px] uppercase tracking-wider text-fg-muted transition hover:border-border-strong hover:text-fg',
-        tone === 'emerald' && 'border-emerald-400/40 bg-emerald-400/5 text-emerald-400 hover:border-emerald-400 hover:text-emerald-300',
-        tone === 'brand' && 'border-brand/40 bg-brand/5 text-fg hover:border-brand',
-      )}
+      className="inline-flex items-center gap-1 rounded-md border border-border bg-bg px-2 py-1 font-mono text-[10px] uppercase tracking-wider text-fg-muted transition hover:border-border-strong hover:text-fg"
     >
       {icon} {label}
+    </button>
+  );
+}
+
+function DiscreteBtn({
+  icon,
+  ariaLabel,
+  onClick,
+}: {
+  icon: React.ReactNode;
+  ariaLabel: string;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      aria-label={ariaLabel}
+      title={ariaLabel}
+      className="inline-flex h-6 w-6 items-center justify-center rounded-md text-fg-subtle transition hover:bg-bg hover:text-fg-muted"
+    >
+      {icon}
     </button>
   );
 }
@@ -443,16 +609,31 @@ function StatusPill({ status, language }: { status: AssetStatus; language: 'fr' 
 }
 
 const L_FR = {
+  firstTitle: 'Créez votre premier pack créatif',
+  firstBody:
+    'En un clic, génère 24 contenus prêts à éditer (posts, emails, hooks, CTAs, scripts, prompts image, carousel, landing). Aucune publication, tu valides ce que tu veux garder.',
+  mockExplain:
+    "Mock V1 : rien n'est publié, ce calendrier est une simulation locale. Tes contenus restent dans ton navigateur.",
+  heroEyebrow: 'Pack créatif',
+  heroTitle: 'Votre pack créatif est prêt',
+  heroSubtitle: 'Choisissez 3 contenus à publier cette semaine.',
+  heroNextApprovePrefix: 'Approuver',
+  heroNextApproveSuffix: 'contenus',
+  heroNextSchedule: 'Planifier 3 créneaux',
+  step1: 'Lisez',
+  step2: 'Approuvez',
+  step3: 'Planifiez',
   dimensions: 'Performance par dimension',
-  emptyHint: 'Aucun asset pour cette offre. Génère un pack créatif pour démarrer.',
-  emptyCategory: 'Aucun asset dans cette catégorie.',
+  advancedDetails: 'Détails avancés',
+  emptyCategory: 'Aucun contenu dans cette catégorie.',
   copy: 'Copier',
   review: 'Mettre en revue',
   approve: 'Approuver',
+  approved: 'Approuvé',
   unapprove: 'Remettre brouillon',
   archive: 'Archiver',
   regenerate: 'Variante',
-  schedule: 'Planifier mock',
+  schedule: 'Planifier',
   scheduleTooltip: "Crée un créneau planned dans le calendrier mock. Aucun POST réseau, aucune publication réelle.",
   regenerateFromBrain: 'Régénérer depuis Offer Brain',
   copied: 'Copié',
@@ -461,16 +642,31 @@ const L_FR = {
   created: 'Pack créé :',
 };
 const L_EN = {
+  firstTitle: 'Create your first creative pack',
+  firstBody:
+    'In one click, generate 24 ready-to-edit contents (posts, emails, hooks, CTAs, scripts, image prompts, carousel, landing). No publishing, you keep only what you validate.',
+  mockExplain:
+    'Mock V1: nothing is published, this calendar is a local simulation. Your contents stay in your browser.',
+  heroEyebrow: 'Creative pack',
+  heroTitle: 'Your creative pack is ready',
+  heroSubtitle: 'Pick 3 contents to publish this week.',
+  heroNextApprovePrefix: 'Approve',
+  heroNextApproveSuffix: 'contents',
+  heroNextSchedule: 'Schedule 3 slots',
+  step1: 'Read',
+  step2: 'Approve',
+  step3: 'Schedule',
   dimensions: 'Performance by dimension',
-  emptyHint: 'No assets for this offer. Generate a creative pack to start.',
-  emptyCategory: 'No asset in this category.',
+  advancedDetails: 'Advanced details',
+  emptyCategory: 'No content in this category.',
   copy: 'Copy',
   review: 'Send to review',
   approve: 'Approve',
+  approved: 'Approved',
   unapprove: 'Back to draft',
   archive: 'Archive',
   regenerate: 'Variant',
-  schedule: 'Schedule mock',
+  schedule: 'Schedule',
   scheduleTooltip: 'Creates a planned slot in the mock calendar. No network POST, no real publishing.',
   regenerateFromBrain: 'Regenerate from Offer Brain',
   copied: 'Copied',

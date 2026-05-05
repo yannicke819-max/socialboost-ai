@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo } from 'react';
 import Link from 'next/link';
-import { ArrowRight, Check, X, Lightbulb } from 'lucide-react';
+import { ArrowRight, Check, X, Calendar as CalendarIcon, Sparkles } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import {
   deriveRecommendations,
@@ -24,6 +24,7 @@ interface RecommendationsTabProps {
   language: 'fr' | 'en';
   store: WorkspaceStore;
   onUpdate: () => void;
+  onNavigateTab?: (tab: 'brief' | 'assets' | 'calendar' | 'analytics' | 'recos') => void;
 }
 
 const PRIO_TONE: Record<RecommendationPriority, string> = {
@@ -51,6 +52,7 @@ export function RecommendationsTab({
   language,
   store,
   onUpdate,
+  onNavigateTab,
 }: RecommendationsTabProps) {
   const labels = language === 'en' ? L_EN : L_FR;
   const derived = useMemo(
@@ -69,10 +71,26 @@ export function RecommendationsTab({
 
   if (ordered.length === 0) {
     return (
-      <div className="rounded-md border border-dashed border-border bg-bg-elevated/40 p-10 text-center">
-        <Lightbulb size={20} className="mx-auto mb-3 text-fg-subtle" />
-        <h3 className="font-display text-lg font-semibold text-fg">{labels.empty}</h3>
-        <p className="mx-auto mt-2 max-w-md text-sm text-fg-muted">{labels.emptyBody}</p>
+      <div className="rounded-md border border-emerald-400/30 bg-emerald-400/5 p-8 text-center">
+        <Check size={22} className="mx-auto mb-3 text-emerald-400" />
+        <h3 className="font-display text-xl font-semibold text-fg">{labels.empty}</h3>
+        <p className="mx-auto mt-2 max-w-lg text-sm text-fg-muted">{labels.emptyBody}</p>
+        <div className="mt-5 flex flex-wrap items-center justify-center gap-2">
+          <button
+            type="button"
+            onClick={() => onNavigateTab?.('calendar')}
+            className="inline-flex items-center gap-1.5 rounded-md border border-emerald-400/40 bg-emerald-400/10 px-3 py-1.5 font-mono text-[11px] uppercase tracking-wider text-emerald-300 transition hover:border-emerald-400 hover:text-emerald-200"
+          >
+            <CalendarIcon size={12} /> {labels.emptyCtaCalendar}
+          </button>
+          <button
+            type="button"
+            onClick={() => onNavigateTab?.('assets')}
+            className="inline-flex items-center gap-1.5 rounded-md border border-brand/40 bg-brand/5 px-3 py-1.5 font-mono text-[11px] uppercase tracking-wider text-fg transition hover:border-brand"
+          >
+            <Sparkles size={12} /> {labels.emptyCtaVariants}
+          </button>
+        </div>
       </div>
     );
   }
@@ -214,8 +232,11 @@ function RecoCard({
 }
 
 const L_FR = {
-  empty: 'Pas de recommandation pour cette offre',
-  emptyBody: "Tu peux remplir le brief plus en détail (preuves, plateformes) ou générer plus d'assets pour faire émerger des suggestions.",
+  empty: 'Tout est prêt pour cette offre',
+  emptyBody:
+    "Tu as déjà approuvé des contenus et planifié un créneau. Prochaine étape : planifie 3 contenus cette semaine ou génère de nouvelles variantes.",
+  emptyCtaCalendar: 'Aller au calendrier',
+  emptyCtaVariants: 'Générer des variantes',
   shown: 'visibles',
   apply: 'Appliquer (mock)',
   dismiss: 'Ignorer',
@@ -224,8 +245,11 @@ const L_FR = {
   mockBadge: 'MOCK V1',
 };
 const L_EN = {
-  empty: 'No recommendation for this offer',
-  emptyBody: 'You can fill the brief in more detail (proofs, platforms) or generate more assets to surface suggestions.',
+  empty: 'Everything is ready for this offer',
+  emptyBody:
+    'You have already approved content and scheduled a slot. Next step: schedule 3 contents this week or generate new variants.',
+  emptyCtaCalendar: 'Go to calendar',
+  emptyCtaVariants: 'Generate variants',
   shown: 'shown',
   apply: 'Apply (mock)',
   dismiss: 'Dismiss',
