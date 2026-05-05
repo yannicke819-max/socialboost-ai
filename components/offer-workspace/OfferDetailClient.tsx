@@ -7,7 +7,9 @@ import { cn } from '@/lib/utils';
 import { useWorkspaceStore } from './useWorkspaceStore';
 import { BriefTab } from './tabs/BriefTab';
 import { AssetsTab } from './tabs/AssetsTab';
-import { ComingSoonTab } from './tabs/ComingSoonTab';
+import { CalendarTab } from './tabs/CalendarTab';
+import { AnalyticsTab } from './tabs/AnalyticsTab';
+import { RecommendationsTab } from './tabs/RecommendationsTab';
 import { QuickActions } from './QuickActions';
 import { STATUS_LABELS } from '@/lib/offer-workspace/types';
 
@@ -19,9 +21,10 @@ interface OfferDetailClientProps {
 type TabKey = 'brief' | 'assets' | 'calendar' | 'analytics' | 'recos';
 
 export function OfferDetailClient({ offerId, language = 'fr' }: OfferDetailClientProps) {
-  const { hydrated, offers, assets, refresh, store } = useWorkspaceStore();
+  const { hydrated, offers, assets, slots, refresh, store } = useWorkspaceStore();
   const offer = useMemo(() => offers.find((o) => o.id === offerId), [offers, offerId]);
   const offerAssets = useMemo(() => assets.filter((a) => a.offerId === offerId), [assets, offerId]);
+  const offerSlots = useMemo(() => slots.filter((s) => s.offerId === offerId), [slots, offerId]);
   const [tab, setTab] = useState<TabKey>('brief');
 
   if (!hydrated) {
@@ -72,16 +75,19 @@ export function OfferDetailClient({ offerId, language = 'fr' }: OfferDetailClien
           {labels.assets} <span className="ml-1 text-[10px] text-fg-subtle">{offerAssets.length}</span>
         </Tab>
         <Tab id="calendar" current={tab} onSelect={setTab} icon={<Calendar size={13} />}>
-          {labels.calendar}
-          <SoonBadge />
+          {labels.calendar}{' '}
+          {offerSlots.length > 0 && (
+            <span className="ml-1 text-[10px] text-fg-subtle">{offerSlots.length}</span>
+          )}
         </Tab>
         <Tab id="analytics" current={tab} onSelect={setTab} icon={<BarChart3 size={13} />}>
           {labels.analytics}
-          <SoonBadge />
+          <span className="ml-1 rounded-full border border-amber-400/40 bg-amber-400/5 px-1.5 text-[9px] font-medium text-amber-400">
+            mock
+          </span>
         </Tab>
         <Tab id="recos" current={tab} onSelect={setTab} icon={<Sparkles size={13} />}>
           {labels.recos}
-          <SoonBadge />
         </Tab>
       </nav>
 
@@ -93,36 +99,26 @@ export function OfferDetailClient({ offerId, language = 'fr' }: OfferDetailClien
           <AssetsTab offer={offer} assets={offerAssets} language={language} onUpdate={() => refresh()} store={store} />
         )}
         {tab === 'calendar' && (
-          <ComingSoonTab
+          <CalendarTab
+            offer={offer}
+            assets={offerAssets}
+            slots={offerSlots}
             language={language}
-            title={labels.calendar}
-            body={
-              language === 'en'
-                ? 'Mock calendar will land in AI-008b: scheduled posts visualised per offer & channel, no real publishing.'
-                : 'Le calendrier mock arrive en AI-008b : visualisation des posts planifiés par offre & canal, sans publication réelle.'
-            }
+            store={store}
+            onUpdate={refresh}
           />
         )}
         {tab === 'analytics' && (
-          <ComingSoonTab
-            language={language}
-            title={labels.analytics}
-            body={
-              language === 'en'
-                ? "AI-008b will show mock analytics rolled up by dimension (offer / promise / proof / angle / objection / CTA / asset / channel). No real connectors."
-                : "AI-008b ajoutera l'analytics mock agrégé par dimension (offre / promesse / preuve / angle / objection / CTA / asset / canal). Aucun connecteur réel."
-            }
-          />
+          <AnalyticsTab offer={offer} assets={offerAssets} language={language} />
         )}
         {tab === 'recos' && (
-          <ComingSoonTab
+          <RecommendationsTab
+            offer={offer}
+            assets={offerAssets}
+            slots={offerSlots}
             language={language}
-            title={labels.recos}
-            body={
-              language === 'en'
-                ? 'AI-008b will surface mock recommendations: "Add a proof to lift confidence", "Try a bolder hook for LinkedIn", etc.'
-                : "AI-008b proposera des recommandations mock : « Ajoutez une preuve pour lever la confiance », « Testez un hook plus audacieux pour LinkedIn », etc."
-            }
+            store={store}
+            onUpdate={refresh}
           />
         )}
       </section>
@@ -160,14 +156,6 @@ function Tab({
       {icon}
       {children}
     </button>
-  );
-}
-
-function SoonBadge() {
-  return (
-    <span className="ml-1 rounded-full border border-border bg-bg-elevated px-1.5 text-[9px] font-medium text-fg-subtle">
-      008b
-    </span>
   );
 }
 

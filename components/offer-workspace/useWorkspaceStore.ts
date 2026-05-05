@@ -11,12 +11,21 @@ import {
   createWorkspaceStore,
   type WorkspaceStore,
 } from '@/lib/offer-workspace/store';
-import type { Asset, Offer, OfferStatus, WorkspaceFile } from '@/lib/offer-workspace/types';
+import type {
+  Asset,
+  CalendarSlot,
+  Offer,
+  OfferStatus,
+  Recommendation,
+  WorkspaceFile,
+} from '@/lib/offer-workspace/types';
 
 export interface WorkspaceState {
   hydrated: boolean;
   offers: Offer[];
   assets: Asset[];
+  slots: CalendarSlot[];
+  recommendations: Recommendation[];
 }
 
 export interface UseWorkspaceStoreApi extends WorkspaceState {
@@ -32,11 +41,15 @@ export function useWorkspaceStore(): UseWorkspaceStoreApi {
   const [hydrated, setHydrated] = useState(false);
   const [offers, setOffers] = useState<Offer[]>([]);
   const [assets, setAssets] = useState<Asset[]>([]);
+  const [slots, setSlots] = useState<CalendarSlot[]>([]);
+  const [recommendations, setRecommendations] = useState<Recommendation[]>([]);
 
   const refresh = useCallback(() => {
     const file = store.exportAll();
     setOffers(file.offers);
     setAssets(file.assets);
+    setSlots(file.calendar_slots ?? []);
+    setRecommendations(file.recommendations ?? []);
   }, [store]);
 
   useEffect(() => {
@@ -44,13 +57,10 @@ export function useWorkspaceStore(): UseWorkspaceStoreApi {
     setHydrated(true);
   }, [refresh]);
 
-  return useMemo(() => ({ hydrated, offers, assets, refresh, store }), [
-    hydrated,
-    offers,
-    assets,
-    refresh,
-    store,
-  ]);
+  return useMemo(
+    () => ({ hydrated, offers, assets, slots, recommendations, refresh, store }),
+    [hydrated, offers, assets, slots, recommendations, refresh, store],
+  );
 }
 
-export type { Offer, Asset, OfferStatus, WorkspaceFile };
+export type { Offer, Asset, CalendarSlot, Recommendation, OfferStatus, WorkspaceFile };

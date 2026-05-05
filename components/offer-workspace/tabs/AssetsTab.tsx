@@ -100,17 +100,31 @@ export function AssetsTab({ offer, assets, language, onUpdate, store }: AssetsTa
                           <span className="text-fg-muted/80">· {a.dimensions.join(' · ')}</span>
                         )}
                       </div>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          const next = a.status === 'approved' ? 'draft' : 'approved';
-                          store.setAssetStatus(a.id, next);
-                          onUpdate();
-                        }}
-                        className="font-mono text-[10px] uppercase tracking-wider text-fg-muted hover:text-fg"
-                      >
-                        {a.status === 'approved' ? labels.markDraft : labels.markApproved}
-                      </button>
+                      <div className="flex items-center gap-1">
+                        {a.status !== 'review_mock' && (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              store.setAssetStatus(a.id, 'review_mock');
+                              onUpdate();
+                            }}
+                            className="font-mono text-[10px] uppercase tracking-wider text-fg-muted hover:text-fg"
+                          >
+                            {labels.markReview}
+                          </button>
+                        )}
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const next = a.status === 'approved' ? 'draft' : 'approved';
+                            store.setAssetStatus(a.id, next);
+                            onUpdate();
+                          }}
+                          className="font-mono text-[10px] uppercase tracking-wider text-fg-muted hover:text-fg"
+                        >
+                          {a.status === 'approved' ? labels.markDraft : labels.markApproved}
+                        </button>
+                      </div>
                     </div>
                     <pre className="whitespace-pre-wrap break-words font-sans text-sm text-fg">
                       {a.body}
@@ -162,6 +176,7 @@ function DimensionsRollup({
 function StatusPill({ status, language }: { status: Asset['status']; language: 'fr' | 'en' }) {
   const map: Record<Asset['status'], { fr: string; en: string; tone: string }> = {
     draft: { fr: 'Brouillon', en: 'Draft', tone: 'text-fg-muted border-border' },
+    review_mock: { fr: 'En revue', en: 'In review', tone: 'text-amber-400 border-amber-400/40' },
     approved: { fr: 'Approuvé', en: 'Approved', tone: 'text-emerald-400 border-emerald-400/40' },
     archived: { fr: 'Archivé', en: 'Archived', tone: 'text-fg-subtle border-border' },
   };
@@ -201,12 +216,14 @@ function Empty({
 
 const L_FR = {
   dimensions: 'Performance par dimension',
+  markReview: 'Mettre en revue',
   markApproved: 'Approuver',
   markDraft: 'Repasser brouillon',
   addMore: 'Générer plus',
 };
 const L_EN = {
   dimensions: 'Performance by dimension',
+  markReview: 'Send to review',
   markApproved: 'Approve',
   markDraft: 'Back to draft',
   addMore: 'Generate more',

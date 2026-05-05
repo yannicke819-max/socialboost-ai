@@ -13,8 +13,13 @@ import {
   WorkspaceStorageError,
   type Asset,
   type AssetKind,
+  type AssetStatus,
+  type CalendarSlot,
+  type CalendarSlotStatus,
   type Offer,
   type OfferStatus,
+  type Recommendation,
+  type RecommendationStatus,
   type WorkspaceFile,
   KIND_TO_DIMENSIONS,
 } from './types';
@@ -31,10 +36,10 @@ function isBrowser(): boolean {
 
 function readEnvelope(): WorkspaceFile {
   if (!isBrowser()) {
-    return { version: STORAGE_VERSION, offers: [], assets: [] };
+    return { version: STORAGE_VERSION, offers: [], assets: [], calendar_slots: [], recommendations: [] };
   }
   const raw = window.localStorage.getItem(STORAGE_KEY);
-  if (!raw) return { version: STORAGE_VERSION, offers: [], assets: [] };
+  if (!raw) return { version: STORAGE_VERSION, offers: [], assets: [], calendar_slots: [], recommendations: [] };
   let parsed: unknown;
   try {
     parsed = JSON.parse(raw);
@@ -53,6 +58,8 @@ function readEnvelope(): WorkspaceFile {
     version: STORAGE_VERSION,
     offers: Array.isArray(env.offers) ? env.offers : [],
     assets: Array.isArray(env.assets) ? env.assets : [],
+    calendar_slots: Array.isArray(env.calendar_slots) ? env.calendar_slots : [],
+    recommendations: Array.isArray(env.recommendations) ? env.recommendations : [],
   };
 }
 
@@ -106,16 +113,30 @@ export interface WorkspaceStore {
   listOffers(): Offer[];
   getOffer(id: string): Offer | undefined;
   listAssetsByOffer(offerId: string): Asset[];
+  listSlotsByOffer(offerId: string): CalendarSlot[];
+  listRecommendationsByOffer(offerId: string): Recommendation[];
 
-  // commands
+  // commands — offers
   createOffer(input: CreateOfferInput): Offer;
   updateOffer(id: string, patch: Partial<Omit<Offer, 'id' | 'createdAt'>>): Offer | undefined;
   setStatus(id: string, status: OfferStatus): Offer | undefined;
   duplicateOffer(id: string): Offer | undefined;
   deleteOffer(id: string): boolean;
 
+  // commands — assets
   createAsset(input: Omit<Asset, 'id' | 'dimensions' | 'createdAt' | 'source'> & { source?: Asset['source'] }): Asset;
-  setAssetStatus(id: string, status: Asset['status']): Asset | undefined;
+  setAssetStatus(id: string, status: AssetStatus): Asset | undefined;
+
+  // commands — calendar slots (AI-008b)
+  createSlot(input: Omit<CalendarSlot, 'id' | 'createdAt'>): CalendarSlot;
+  updateSlot(id: string, patch: Partial<Omit<CalendarSlot, 'id' | 'createdAt' | 'offerId'>>): CalendarSlot | undefined;
+  setSlotStatus(id: string, status: CalendarSlotStatus): CalendarSlot | undefined;
+  shiftSlot(id: string, deltaDays: number): CalendarSlot | undefined;
+  deleteSlot(id: string): boolean;
+
+  // commands — recommendations (AI-008b)
+  upsertRecommendations(offerId: string, recs: Recommendation[]): void;
+  setRecommendationStatus(id: string, status: RecommendationStatus): Recommendation | undefined;
 
   // bulk
   replaceAll(env: WorkspaceFile): void;
@@ -135,6 +156,12 @@ export function createWorkspaceStore(): WorkspaceStore {
     },
     listAssetsByOffer(offerId) {
       return list().assets.filter((a) => a.offerId === offerId);
+    },
+    listSlotsByOffer(offerId) {
+      return (list().calendar_slots ?? []).filter((s) => s.offerId === offerId);
+    },
+    listRecommendationsByOffer(offerId) {
+      return (list().recommendations ?? []).filter((r) => r.offerId === offerId);
     },
 
     createOffer(input) {
@@ -208,7 +235,9 @@ export function createWorkspaceStore(): WorkspaceStore {
       const offers = env.offers.filter((o) => o.id !== id);
       if (offers.length === before) return false;
       const assets = env.assets.filter((a) => a.offerId !== id);
-      writeEnvelope({ ...env, offers, assets });
+      const calendar_slots = (env.calendar_slots ?? []).filter((s) => s.offerId !== id);
+      const recommendations = (env.recommendations ?? []).filter((r) => r.offerId !== id);
+      writeEnvelope({ ...env, offers, assets, calendar_slots, recommendations });
       return true;
     },
 
@@ -243,12 +272,102 @@ export function createWorkspaceStore(): WorkspaceStore {
       return updated;
     },
 
+    // -------------------------------------------------------------------------
+    // Calendar slots (AI-008b)
+    // -------------------------------------------------------------------------
+
+    createSlot(input) {
+      const env = list();
+      const slot: CalendarSlot = {
+        ...input,
+        id: newId('slt'),
+        createdAt: nowIso(),
+      };
+      writeEnvelope({
+        ...env,
+        calendar_slots: [...(env.calendar_slots ?? []), slot],
+      });
+      return slot;
+    },
+
+    updateSlot(id, patch) {
+      const env = list();
+      let updated: CalendarSlot | undefined;
+      const calendar_slots = (env.calendar_slots ?? []).map((s) => {
+        if (s.id !== id) return s;
+        updated = { ...s, ...patch, id: s.id, offerId: s.offerId, createdAt: s.createdAt };
+        return updated;
+      });
+      if (!updated) return undefined;
+      writeEnvelope({ ...env, calendar_slots });
+      return updated;
+    },
+
+    setSlotStatus(id, status) {
+      return this.updateSlot(id, { status });
+    },
+
+    shiftSlot(id, deltaDays) {
+      const env = list();
+      const slot = (env.calendar_slots ?? []).find((s) => s.id === id);
+      if (!slot) return undefined;
+      const next = new Date(slot.scheduledAt);
+      next.setUTCDate(next.getUTCDate() + deltaDays);
+      return this.updateSlot(id, { scheduledAt: next.toISOString() });
+    },
+
+    deleteSlot(id) {
+      const env = list();
+      const before = (env.calendar_slots ?? []).length;
+      const calendar_slots = (env.calendar_slots ?? []).filter((s) => s.id !== id);
+      if (calendar_slots.length === before) return false;
+      writeEnvelope({ ...env, calendar_slots });
+      return true;
+    },
+
+    // -------------------------------------------------------------------------
+    // Recommendations (AI-008b)
+    // -------------------------------------------------------------------------
+
+    upsertRecommendations(offerId, recs) {
+      const env = list();
+      // Drop previous recos for this offer; replace with the new set, but
+      // preserve `status` for ids that already existed (so applied/dismissed
+      // survives a re-derivation).
+      const existing = new Map(
+        (env.recommendations ?? [])
+          .filter((r) => r.offerId === offerId)
+          .map((r) => [r.id, r] as const),
+      );
+      const merged: Recommendation[] = recs.map((r) => {
+        const prev = existing.get(r.id);
+        return prev ? { ...r, status: prev.status, updatedAt: prev.updatedAt } : r;
+      });
+      const others = (env.recommendations ?? []).filter((r) => r.offerId !== offerId);
+      writeEnvelope({ ...env, recommendations: [...others, ...merged] });
+    },
+
+    setRecommendationStatus(id, status) {
+      const env = list();
+      let updated: Recommendation | undefined;
+      const recommendations = (env.recommendations ?? []).map((r) => {
+        if (r.id !== id) return r;
+        updated = { ...r, status, updatedAt: nowIso() };
+        return updated;
+      });
+      if (!updated) return undefined;
+      writeEnvelope({ ...env, recommendations });
+      return updated;
+    },
+
     replaceAll(env) {
       const sanitized: WorkspaceFile = {
         version: STORAGE_VERSION,
         exported_at: env.exported_at,
         offers: Array.isArray(env.offers) ? env.offers : [],
         assets: Array.isArray(env.assets) ? env.assets : [],
+        calendar_slots: Array.isArray(env.calendar_slots) ? env.calendar_slots : [],
+        recommendations: Array.isArray(env.recommendations) ? env.recommendations : [],
       };
       writeEnvelope(sanitized);
     },
@@ -259,7 +378,13 @@ export function createWorkspaceStore(): WorkspaceStore {
     },
 
     reset() {
-      writeEnvelope({ version: STORAGE_VERSION, offers: [], assets: [] });
+      writeEnvelope({
+        version: STORAGE_VERSION,
+        offers: [],
+        assets: [],
+        calendar_slots: [],
+        recommendations: [],
+      });
     },
   };
 }
