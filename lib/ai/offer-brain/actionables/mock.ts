@@ -212,15 +212,44 @@ function audienceLine(input: ActionablesV1Input, lang: Lang): string {
     : 'Audience to clarify — segment not specified in input.';
 }
 
+/** Lowercase only the first character of a string (preserves "B2B", "SaaS", etc.). */
+function lowerFirst(s: string): string {
+  if (!s) return s;
+  return s.charAt(0).toLowerCase() + s.slice(1);
+}
+
+/**
+ * Returns 'les ' / 'the ' before an audience descriptor unless the user
+ * already provided an article. Empty when audience starts with an article.
+ */
+function audienceArticle(audience: string, lang: Lang): string {
+  const lead = audience.trim().toLowerCase();
+  // FR articles + EN articles already in the audience string
+  if (
+    /^(?:le|la|les|l['’]|un|une|des|du|de\s|nos|notre|votre|mon|ma|mes|son|sa|ses)\s/.test(lead) ||
+    /^(?:the|a|an|our|your|my|its)\s/.test(lead)
+  ) {
+    return '';
+  }
+  return lang === 'fr' ? 'les ' : '';
+}
+
 function valueProposition(input: ActionablesV1Input, lang: Lang): string {
-  const audience = audienceLine(input, lang);
-  const head = clamp(input.offer.split(/(?<=[.!?])\s+/)[0] ?? input.offer, 200);
-  return clamp(
-    lang === 'fr'
-      ? `${input.businessName} aide ${audience.toLowerCase().startsWith('audience') ? 'son audience' : audience.toLowerCase()} à passer à un cadre où : ${head}`
-      : `${input.businessName} helps ${audience.toLowerCase().startsWith('audience') ? 'its audience' : audience.toLowerCase()} reach a state where: ${head}`,
-    500,
-  );
+  const head = clamp(stripTrailing(input.offer.split(/(?<=[.!?])\s+/)[0] ?? input.offer), 200);
+  const aud = input.targetAudience?.trim();
+
+  if (lang === 'fr') {
+    if (!aud) {
+      return clamp(`${input.businessName} aide son audience à atteindre : ${head}`, 500);
+    }
+    const article = audienceArticle(aud, 'fr');
+    const audDisplay = lowerFirst(aud);
+    return clamp(`${input.businessName} aide ${article}${audDisplay} à atteindre : ${head}`, 500);
+  }
+  if (!aud) {
+    return clamp(`${input.businessName} helps its audience reach: ${head}`, 500);
+  }
+  return clamp(`${input.businessName} helps ${lowerFirst(aud)} reach: ${head}`, 500);
 }
 
 // -----------------------------------------------------------------------------
@@ -282,7 +311,7 @@ function buildAngles(
       },
       {
         name: 'Réduction de friction',
-        angle: `On enlève les obstacles qui ralentissent la décision : preuve, prix, prochaine étape.${tv.joiner}${tv.closing}`,
+        angle: `On enlève les obstacles qui ralentissent la décision : preuve, prix, prochaine étape${tv.joiner}${tv.closing}`,
         best_for: `${audience} avec du trafic mais peu de demandes qualifiées.`,
       },
       {
@@ -300,7 +329,7 @@ function buildAngles(
     },
     {
       name: 'Friction reduction',
-      angle: `Remove obstacles that slow the decision: proof, pricing, next step.${tv.joiner}${tv.closing}`,
+      angle: `Remove obstacles that slow the decision: proof, pricing, next step${tv.joiner}${tv.closing}`,
       best_for: `${audience} with traffic but few qualified inquiries.`,
     },
     {
