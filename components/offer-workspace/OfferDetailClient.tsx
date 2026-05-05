@@ -129,6 +129,7 @@ export function OfferDetailClient({ offerId, language = 'fr' }: OfferDetailClien
             language={language}
             store={store}
             onUpdate={refresh}
+            onNavigateTab={(t) => setTab(t as TabKey)}
           />
         )}
       </section>
@@ -193,7 +194,7 @@ function NotFound({ language }: { language: 'fr' | 'en' }) {
 const L_FR = {
   back: 'Retour aux offres',
   brief: 'Brief',
-  assets: 'Assets',
+  assets: 'Contenus',
   calendar: 'Calendrier',
   analytics: 'Analytics',
   recos: 'Recommandations',
@@ -206,7 +207,7 @@ const L_FR = {
 const L_EN = {
   back: 'Back to offers',
   brief: 'Brief',
-  assets: 'Assets',
+  assets: 'Contents',
   calendar: 'Calendar',
   analytics: 'Analytics',
   recos: 'Recommendations',

@@ -248,10 +248,12 @@ export function createWorkspaceStore(): WorkspaceStore {
         id: newId('ast'),
         offerId: input.offerId,
         kind: input.kind as AssetKind,
+        title: input.title,
         body: input.body,
         dimensions,
         status: input.status,
         source: input.source ?? 'mock',
+        tags: input.tags,
         channel: input.channel,
         createdAt: nowIso(),
       };

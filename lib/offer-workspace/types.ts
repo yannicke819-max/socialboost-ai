@@ -188,6 +188,8 @@ export interface Asset {
   id: string;
   offerId: string;
   kind: AssetKind;
+  /** Short human label for cards (AI-009). Optional for backward compat. */
+  title?: string;
   /** Free text content for V1 (markdown allowed). Empty for image_asset etc. */
   body: string;
   /** Convenience cache; computed via KIND_TO_DIMENSIONS at insert time. */
