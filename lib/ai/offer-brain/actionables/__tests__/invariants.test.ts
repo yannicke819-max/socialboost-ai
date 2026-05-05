@@ -66,14 +66,14 @@ describe('checkAntiInvention', () => {
     const tainted = safeOutput();
     tainted.hooks[0]!.text = 'Triplez vos résultats x3 en 7 jours';
     const w = checkAntiInvention(tainted, baseInput);
-    assert.ok(w.some((m) => /unsupported_metric/.test(m)));
+    assert.ok(w.some((m) => /Métrique non vérifiable/.test(m)));
   });
 
   it('flags a percentage not present in input', () => {
     const tainted = safeOutput();
     tainted.value_proposition = 'Augmentez votre conversion de 47%';
     const w = checkAntiInvention(tainted, baseInput);
-    assert.ok(w.some((m) => /unsupported_metric/.test(m)));
+    assert.ok(w.some((m) => /Métrique non vérifiable/.test(m)));
   });
 
   it('does NOT flag a metric that came from input.proofPoints', () => {
@@ -81,21 +81,36 @@ describe('checkAntiInvention', () => {
     const out = safeOutput();
     out.proof_points = ['12 offres testées'];
     const w = checkAntiInvention(out, inputWithMetric);
-    assert.equal(w.filter((m) => /unsupported_metric/.test(m)).length, 0);
+    assert.equal(w.filter((m) => /Métrique non vérifiable/.test(m)).length, 0);
   });
 
   it('flags an invented testimonial pattern ("Marc D.")', () => {
     const tainted = safeOutput();
     tainted.hooks[0]!.text = '« Marc D. a doublé son CA »';
     const w = checkAntiInvention(tainted, baseInput);
-    assert.ok(w.some((m) => /unsupported_testimonial/.test(m)));
+    assert.ok(w.some((m) => /Témoignage à vérifier/.test(m)));
+  });
+
+  it('does NOT flag "Pour Indépendants" (preposition + capitalized noun, false positive)', () => {
+    const tainted = safeOutput();
+    tainted.landing_page_sections[0]!.body = 'Pour Indépendants. Cadre clair, étapes mesurables.';
+    const w = checkAntiInvention(tainted, baseInput);
+    assert.equal(w.filter((m) => /Témoignage à vérifier/.test(m)).length, 0);
+  });
+
+  it('does NOT flag "For Consultants" in EN (preposition + capitalized noun)', () => {
+    const enInput = { ...baseInput, language: 'en' as const };
+    const tainted = safeOutput();
+    tainted.landing_page_sections[0]!.body = 'For Consultants. Clear frame, measurable steps.';
+    const w = checkAntiInvention(tainted, enInput);
+    assert.equal(w.filter((m) => /unverified testimonial/i.test(m)).length, 0);
   });
 
   it('flags an absolute risk-free claim in FR not in input', () => {
     const tainted = safeOutput();
     tainted.value_proposition = 'Résultats garantis sans risque sur 30 jours.';
     const w = checkAntiInvention(tainted, baseInput);
-    assert.ok(w.some((m) => /absolute_claim/.test(m)));
+    assert.ok(w.some((m) => /Promesse absolue/.test(m)));
   });
 
   it('flags an absolute risk-free claim in EN not in input', () => {
@@ -103,7 +118,7 @@ describe('checkAntiInvention', () => {
     const tainted = safeOutput();
     tainted.value_proposition = 'Guaranteed risk-free results.';
     const w = checkAntiInvention(tainted, enInput);
-    assert.ok(w.some((m) => /absolute_claim/.test(m)));
+    assert.ok(w.some((m) => /Absolute claim/.test(m)));
   });
 });
 

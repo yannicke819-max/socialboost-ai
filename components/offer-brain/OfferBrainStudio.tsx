@@ -236,7 +236,7 @@ function Header({ language }: { language: 'fr' | 'en' }) {
           Offer Brain · v1
         </span>
       </div>
-      <h2 className="font-display text-2xl font-bold tracking-tight text-fg sm:text-3xl">
+      <h2 className="font-display text-3xl font-semibold italic leading-tight text-fg sm:text-4xl">
         {language === 'en'
           ? 'Turn a raw offer into actionable content.'
           : 'Transformez une offre brute en contenu exploitable.'}
