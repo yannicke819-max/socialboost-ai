@@ -40,6 +40,49 @@ function clamp(s: string, max: number): string {
   return s.slice(0, Math.max(0, max - 1)).replace(/[\s,;:.\-—]+$/g, '') + '…';
 }
 
+/**
+ * Strip trailing sentence punctuation so a string can be injected mid-sentence
+ * without producing double-period artifacts like "différenciante.. Suite".
+ * Preserves the value when it's already clean.
+ */
+function stripTrailing(s: string | undefined): string {
+  if (!s) return '';
+  return s.replace(/[\s.!?;,]+$/g, '');
+}
+
+/**
+ * French elision: returns "qu'" if the next word starts with a vowel/h-mute,
+ * else "que ". Used to avoid "Ce que Atelier" → "Ce qu'Atelier".
+ * Conservative — defaults to "que " when undecidable.
+ */
+function frQu(word: string): string {
+  if (!word) return 'que ';
+  // Strip diacritics for the leading-letter check (À, É, Î, etc.)
+  const first = word
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()[0];
+  if (!first) return 'que ';
+  // h-mute vs h-aspiré is dictionary-driven; not handled here. Vowels only.
+  if (/[aeiouy]/.test(first)) return "qu'";
+  return 'que ';
+}
+
+/**
+ * French preposition "de" with elision when followed by vowel/h-mute.
+ * "de Atelier" → "d'Atelier".
+ */
+function frDe(word: string): string {
+  if (!word) return 'de ';
+  const first = word
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()[0];
+  if (!first) return 'de ';
+  if (/[aeiouy]/.test(first)) return "d'";
+  return 'de ';
+}
+
 function dedupTrim(items: (string | undefined)[]): string[] {
   const out: string[] = [];
   const seen = new Set<string>();
@@ -169,15 +212,44 @@ function audienceLine(input: ActionablesV1Input, lang: Lang): string {
     : 'Audience to clarify — segment not specified in input.';
 }
 
+/** Lowercase only the first character of a string (preserves "B2B", "SaaS", etc.). */
+function lowerFirst(s: string): string {
+  if (!s) return s;
+  return s.charAt(0).toLowerCase() + s.slice(1);
+}
+
+/**
+ * Returns 'les ' / 'the ' before an audience descriptor unless the user
+ * already provided an article. Empty when audience starts with an article.
+ */
+function audienceArticle(audience: string, lang: Lang): string {
+  const lead = audience.trim().toLowerCase();
+  // FR articles + EN articles already in the audience string
+  if (
+    /^(?:le|la|les|l['’]|un|une|des|du|de\s|nos|notre|votre|mon|ma|mes|son|sa|ses)\s/.test(lead) ||
+    /^(?:the|a|an|our|your|my|its)\s/.test(lead)
+  ) {
+    return '';
+  }
+  return lang === 'fr' ? 'les ' : '';
+}
+
 function valueProposition(input: ActionablesV1Input, lang: Lang): string {
-  const audience = audienceLine(input, lang);
-  const head = clamp(input.offer.split(/(?<=[.!?])\s+/)[0] ?? input.offer, 200);
-  return clamp(
-    lang === 'fr'
-      ? `${input.businessName} aide ${audience.toLowerCase().startsWith('audience') ? 'son audience' : audience.toLowerCase()} à passer à un cadre où : ${head}`
-      : `${input.businessName} helps ${audience.toLowerCase().startsWith('audience') ? 'its audience' : audience.toLowerCase()} reach a state where: ${head}`,
-    500,
-  );
+  const head = clamp(stripTrailing(input.offer.split(/(?<=[.!?])\s+/)[0] ?? input.offer), 200);
+  const aud = input.targetAudience?.trim();
+
+  if (lang === 'fr') {
+    if (!aud) {
+      return clamp(`${input.businessName} aide son audience à atteindre : ${head}`, 500);
+    }
+    const article = audienceArticle(aud, 'fr');
+    const audDisplay = lowerFirst(aud);
+    return clamp(`${input.businessName} aide ${article}${audDisplay} à atteindre : ${head}`, 500);
+  }
+  if (!aud) {
+    return clamp(`${input.businessName} helps its audience reach: ${head}`, 500);
+  }
+  return clamp(`${input.businessName} helps ${lowerFirst(aud)} reach: ${head}`, 500);
 }
 
 // -----------------------------------------------------------------------------
@@ -190,13 +262,13 @@ function buildHooks(
   lang: Lang,
   tone: Tone,
 ): ActionablesOutput['hooks'] {
-  const audience = input.targetAudience?.trim() ?? (lang === 'fr' ? 'votre audience' : 'your audience');
+  const audience = stripTrailing(input.targetAudience) || (lang === 'fr' ? 'votre audience' : 'your audience');
   const offer = input.offer.split(/(?<=[.!?])\s+/)[0] ?? input.offer;
-  const offerShort = clamp(offer, 120);
+  const offerShort = clamp(stripTrailing(offer), 120);
   const business = input.businessName;
   const opening = TONE_OPENING[tone][lang];
 
-  const painPoint = pain[0] ?? (lang === 'fr' ? 'le frein actuel' : 'the current blocker');
+  const painPoint = stripTrailing(pain[0]) || (lang === 'fr' ? 'le frein actuel' : 'the current blocker');
 
   if (lang === 'fr') {
     return [
@@ -226,8 +298,8 @@ function buildAngles(
   lang: Lang,
   tone: Tone,
 ): ActionablesOutput['offer_angles'] {
-  const audience = input.targetAudience?.trim() ?? (lang === 'fr' ? "l'audience cible" : 'the target audience');
-  const painLeader = pain[0] ?? (lang === 'fr' ? 'le frein actuel' : 'the current blocker');
+  const audience = stripTrailing(input.targetAudience) || (lang === 'fr' ? "l'audience cible" : 'the target audience');
+  const painLeader = stripTrailing(pain[0]) || (lang === 'fr' ? 'le frein actuel' : 'the current blocker');
   const tv = TONE_VOICE[tone][lang];
 
   if (lang === 'fr') {
@@ -239,7 +311,7 @@ function buildAngles(
       },
       {
         name: 'Réduction de friction',
-        angle: `On enlève les obstacles qui ralentissent la décision : preuve, prix, prochaine étape.${tv.joiner}${tv.closing}`,
+        angle: `On enlève les obstacles qui ralentissent la décision : preuve, prix, prochaine étape${tv.joiner}${tv.closing}`,
         best_for: `${audience} avec du trafic mais peu de demandes qualifiées.`,
       },
       {
@@ -257,7 +329,7 @@ function buildAngles(
     },
     {
       name: 'Friction reduction',
-      angle: `Remove obstacles that slow the decision: proof, pricing, next step.${tv.joiner}${tv.closing}`,
+      angle: `Remove obstacles that slow the decision: proof, pricing, next step${tv.joiner}${tv.closing}`,
       best_for: `${audience} with traffic but few qualified inquiries.`,
     },
     {
@@ -277,7 +349,7 @@ function buildObjections(
   lang: Lang,
   tone: Tone,
 ): ActionablesOutput['objections'] {
-  const proof = input.proofPoints?.[0];
+  const proof = stripTrailing(input.proofPoints?.[0]);
   const closing = TONE_VOICE[tone][lang].closing;
 
   if (lang === 'fr') {
@@ -388,8 +460,8 @@ function buildSocialPosts(
   if (targets.length === 0) return [];
 
   const business = input.businessName;
-  const audience = input.targetAudience?.trim() ?? (lang === 'fr' ? 'votre audience' : 'your audience');
-  const offerShort = clamp(input.offer.split(/(?<=[.!?])\s+/)[0] ?? input.offer, 200);
+  const audience = stripTrailing(input.targetAudience) || (lang === 'fr' ? 'votre audience' : 'your audience');
+  const offerShort = clamp(stripTrailing(input.offer.split(/(?<=[.!?])\s+/)[0] ?? input.offer), 200);
   const ctaLow = ctas.find((c) => c.intent === 'awareness')!;
   const ctaHigh = ctas.find((c) => c.intent === 'decision')!;
   const closing = TONE_VOICE[tone][lang].closing;
@@ -412,7 +484,7 @@ function buildSocialPosts(
             hooks[0]!.text,
             '',
             `Pour ${audience}.`,
-            `Ce que ${business} propose :`,
+            `Ce ${frQu(business)}${business} propose :`,
             `${offerShort}`,
             '',
             closing,
@@ -438,9 +510,9 @@ function buildSocialPosts(
             '',
             `Bonjour,`,
             '',
-            `${hooks[0]!.text}.`,
+            `${stripTrailing(hooks[0]!.text)}.`,
             '',
-            `Ce que ${business} propose : ${offerShort}.`,
+            `Ce ${frQu(business)}${business} propose : ${stripTrailing(offerShort)}.`,
             '',
             `${closing}`,
             '',
@@ -451,9 +523,9 @@ function buildSocialPosts(
             '',
             `Hi,`,
             '',
-            `${hooks[0]!.text}.`,
+            `${stripTrailing(hooks[0]!.text)}.`,
             '',
-            `What ${business} offers: ${offerShort}.`,
+            `What ${business} offers: ${stripTrailing(offerShort)}.`,
             '',
             `${closing}`,
             '',
@@ -515,10 +587,10 @@ function buildLandingSections(
   tone: Tone,
 ): ActionablesOutput['landing_page_sections'] {
   const business = input.businessName;
-  const offerShort = clamp(input.offer.split(/(?<=[.!?])\s+/)[0] ?? input.offer, 240);
-  const audience = input.targetAudience?.trim() ?? (lang === 'fr' ? 'votre audience' : 'your audience');
-  const painLeader = pain[0] ?? (lang === 'fr' ? 'le frein actuel' : 'the current blocker');
-  const proof = input.proofPoints?.[0];
+  const offerShort = clamp(stripTrailing(input.offer.split(/(?<=[.!?])\s+/)[0] ?? input.offer), 240);
+  const audience = stripTrailing(input.targetAudience) || (lang === 'fr' ? 'votre audience' : 'your audience');
+  const painLeader = stripTrailing(pain[0]) || (lang === 'fr' ? 'le frein actuel' : 'the current blocker');
+  const proof = stripTrailing(input.proofPoints?.[0]);
   const ctaHigh = ctas.find((c) => c.intent === 'decision')!;
   const closing = TONE_VOICE[tone][lang].closing;
 
@@ -536,7 +608,7 @@ function buildLandingSections(
       },
       {
         section: 'solution',
-        headline: clamp(`Ce que ${business} change concrètement`, 200),
+        headline: clamp(`Ce ${frQu(business)}${business} change concrètement`, 200),
         body: clamp(`${offerShort} ${closing}`, 800),
       },
       {

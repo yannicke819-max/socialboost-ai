@@ -22,10 +22,30 @@ const NUMERIC_CLAIM = /(?:\bx\s?\d{1,3}\b|\b\d{1,4}\s?[%‰](?!\w)|\+\d{1,4}\b|\
 
 // Detects "Firstname S." or "Firstname Surname" patterns (with surname initial),
 // either inside quotes or anywhere in the text. Conservative — requires capitalized
-// first letters and an explicit dot or capitalized surname.
-// Capitalized first name + space + capital + (dot or surname). No trailing
-// word-boundary because the trailing dot is non-word.
+// first letters and an explicit dot or capitalized surname. We post-filter with
+// a stop list to avoid false positives where the first capitalized word is a
+// common preposition or determiner (e.g. "Pour Indépendants", "For Consultants").
 const FAKE_TESTIMONIAL = /\b[A-Z][a-zà-öø-ÿ]{1,}\s+[A-Z](?:\.|[a-zà-öø-ÿ]+)/g;
+
+// Common French/English words that start a sentence with a capital and are
+// followed by a capitalized noun. NOT testimonials — exclude.
+const TESTIMONIAL_STOP_WORDS = new Set([
+  // FR
+  'pour', 'pensé', 'conçu', 'fait', 'créé', 'destiné', 'adapté', 'taillé',
+  'avec', 'sans', 'chez', 'dans', 'sur', 'par', 'de', 'du', 'des', 'le',
+  'la', 'les', 'nos', 'notre', 'votre', 'votre', 'au', 'aux', 'ce', 'cette',
+  'avant', 'après', 'voici', 'voilà', 'résultat', 'référence', 'ancrage',
+  'preuves', 'preuve', 'sujet',
+  // EN
+  'for', 'built', 'designed', 'made', 'crafted', 'tailored', 'with',
+  'without', 'at', 'in', 'on', 'by', 'of', 'the', 'our', 'your', 'this',
+  'that', 'before', 'after', 'reference', 'subject', 'proof', 'observed',
+]);
+
+function isTestimonialFalsePositive(match: string): boolean {
+  const firstWord = match.split(/\s+/)[0]?.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '') ?? '';
+  return TESTIMONIAL_STOP_WORDS.has(firstWord);
+}
 
 const RISK_FREE_FR = /\b(?:garanti(?:e|s|es)?|sans risque|résultats? assurés?|100\s?%\s?garanti)\b/i;
 const RISK_FREE_EN = /\b(?:guaranteed|risk[\s-]?free|no[\s-]?risk|guaranteed results?)\b/i;
@@ -74,6 +94,8 @@ export function checkAntiInvention(
   const warnings: string[] = [];
   const { numbers: knownNumbers, rawText } = tokensFromInput(input);
 
+  const isEN = input.language === 'en';
+
   for (const text of collectStrings(output)) {
     // Numeric claims
     const numMatches = text.match(NUMERIC_CLAIM);
@@ -81,29 +103,41 @@ export function checkAntiInvention(
       for (const hit of numMatches) {
         const num = hit.match(/\d+(?:[.,]\d+)?/)?.[0]?.replace(',', '.') ?? '';
         if (num && !knownNumbers.has(num)) {
-          warnings.push(`unsupported_metric: "${hit.trim()}" not present in input`);
+          warnings.push(
+            isEN
+              ? `Unverified figure: "${hit.trim()}" — not found in your input.`
+              : `Métrique non vérifiable : « ${hit.trim()} » — absente du brief.`,
+          );
         }
       }
     }
 
-    // Fake testimonials
+    // Fake testimonials — filter out false positives starting with prepositions/determiners
     const fakeMatches = text.match(FAKE_TESTIMONIAL);
     if (fakeMatches) {
       for (const match of fakeMatches) {
-        if (!rawText.includes(match)) {
-          warnings.push(`unsupported_testimonial: ${match}`);
-        }
+        if (rawText.includes(match)) continue; // already in input
+        if (isTestimonialFalsePositive(match)) continue; // Pour X, For X, etc.
+        warnings.push(
+          isEN
+            ? `Possible unverified testimonial: "${match}" — confirm before publishing.`
+            : `Témoignage à vérifier : « ${match} » — à confirmer avant publication.`,
+        );
       }
     }
 
     // Risk-free claims
-    if (input.language === 'en') {
+    if (isEN) {
       if (RISK_FREE_EN.test(text) && !RISK_FREE_EN.test(rawText)) {
-        warnings.push('absolute_claim: "guaranteed/risk-free" not in input');
+        warnings.push(
+          'Absolute claim ("guaranteed" / "risk-free") detected — not present in your input.',
+        );
       }
     } else {
       if (RISK_FREE_FR.test(text) && !RISK_FREE_FR.test(rawText)) {
-        warnings.push('absolute_claim: "garanti/sans risque" not in input');
+        warnings.push(
+          'Promesse absolue (« garanti » / « sans risque ») détectée — absente du brief.',
+        );
       }
     }
   }
