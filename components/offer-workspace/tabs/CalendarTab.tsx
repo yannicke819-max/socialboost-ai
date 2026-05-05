@@ -108,7 +108,10 @@ export function CalendarTab({ offer, assets, slots, language, store, onUpdate }:
           <Button type="button" variant="outline" size="sm" onClick={seedThreeSlots}>
             <Plus size={12} /> {labels.seedThree}
           </Button>
-          <span className="rounded-full border border-amber-400/40 bg-amber-400/5 px-2 py-0.5 font-mono text-[10px] uppercase tracking-wider text-amber-400">
+          <span
+            className="cursor-help rounded-full border border-amber-400/40 bg-amber-400/5 px-2 py-0.5 font-mono text-[10px] uppercase tracking-wider text-amber-400"
+            title={labels.mockTooltip}
+          >
             {labels.mockBadge}
           </span>
         </div>
@@ -254,7 +257,12 @@ function SlotCard({
       <p className="mt-0.5 truncate">{slot.assetId ?? labels.slot}</p>
       {slot.status === 'planned' && (
         <div className="mt-1 flex items-center gap-1 text-[10px]">
-          <button type="button" onClick={onMarkSent} className="inline-flex items-center gap-0.5 rounded border border-border bg-bg px-1.5 py-0.5 hover:text-fg">
+          <button
+            type="button"
+            onClick={onMarkSent}
+            title={labels.markSentTooltip}
+            className="inline-flex items-center gap-0.5 rounded border border-border bg-bg px-1.5 py-0.5 hover:text-fg"
+          >
             <Send size={9} /> {labels.markSent}
           </button>
           <button type="button" onClick={onCancel} className="rounded border border-border bg-bg px-1.5 py-0.5 hover:text-fg">
@@ -279,7 +287,11 @@ const L_FR = {
   shiftPlus: 'Décaler +1 jour',
   delete: 'Supprimer',
   markSent: 'Envoyé (mock)',
+  markSentTooltip:
+    'Mock V1 — marque le créneau comme « envoyé » localement. Aucun post n\'est publié sur un réseau social.',
   cancel: 'Annuler',
+  mockTooltip:
+    "Mock V1 — Aucune publication réelle. Tout reste local (localStorage). Les connecteurs LinkedIn / Meta / email arriveront plus tard.",
 };
 const L_EN = {
   prev: 'Previous week',
@@ -294,5 +306,8 @@ const L_EN = {
   shiftPlus: 'Shift +1 day',
   delete: 'Delete',
   markSent: 'Sent (mock)',
+  markSentTooltip: 'Mock V1 — marks the slot as locally "sent". No real social-network post is published.',
   cancel: 'Cancel',
+  mockTooltip:
+    'Mock V1 — no real publishing. Everything stays local (localStorage). LinkedIn / Meta / email connectors will land later.',
 };

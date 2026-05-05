@@ -11,6 +11,8 @@ import { OfferKanban } from './OfferKanban';
 import { OfferTable } from './OfferTable';
 import { EmptyStateLoadExamples } from './EmptyStateLoadExamples';
 import { ExportImport } from './ExportImport';
+import { HowItWorksBanner } from './HowItWorksBanner';
+import { BestActionCard } from './BestActionCard';
 import { computeOfferKpis, filterOffers } from '@/lib/offer-workspace/kpis';
 import { DEMO_SEED } from '@/lib/offer-workspace/seed';
 import type { OfferStatus } from '@/lib/offer-workspace/types';
@@ -92,6 +94,8 @@ export function OffersWorkspaceClient({ language = 'fr' }: OffersWorkspaceClient
         />
       ) : (
         <>
+          <BestActionCard offers={offers} assets={assets} slots={slots} language={language} />
+          <HowItWorksBanner language={language} />
           <KpiBar kpis={kpis} language={language} />
           <OfferFilters value={filters} onChange={setFilters} language={language} />
           <div className="flex items-center justify-between gap-2">

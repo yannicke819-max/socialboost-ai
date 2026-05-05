@@ -174,15 +174,43 @@ function DimensionsRollup({
 }
 
 function StatusPill({ status, language }: { status: Asset['status']; language: 'fr' | 'en' }) {
-  const map: Record<Asset['status'], { fr: string; en: string; tone: string }> = {
-    draft: { fr: 'Brouillon', en: 'Draft', tone: 'text-fg-muted border-border' },
-    review_mock: { fr: 'En revue', en: 'In review', tone: 'text-amber-400 border-amber-400/40' },
-    approved: { fr: 'Approuvé', en: 'Approved', tone: 'text-emerald-400 border-emerald-400/40' },
-    archived: { fr: 'Archivé', en: 'Archived', tone: 'text-fg-subtle border-border' },
+  const map: Record<Asset['status'], { fr: string; en: string; tone: string; tipFr: string; tipEn: string }> = {
+    draft: {
+      fr: 'Brouillon',
+      en: 'Draft',
+      tone: 'text-fg-muted border-border',
+      tipFr: 'Brouillon — non encore validé. Modifie ou approuve avant publication.',
+      tipEn: 'Draft — not validated yet. Edit or approve before publishing.',
+    },
+    review_mock: {
+      fr: 'En revue',
+      en: 'In review',
+      tone: 'text-amber-400 border-amber-400/40',
+      tipFr: 'En revue (mock) — étape simulée. AI-008b ne branche aucun workflow d\'approbation collaborative.',
+      tipEn: 'In review (mock) — simulated step. AI-008b does not wire a collaborative approval workflow.',
+    },
+    approved: {
+      fr: 'Approuvé',
+      en: 'Approved',
+      tone: 'text-emerald-400 border-emerald-400/40',
+      tipFr: 'Approuvé — figé localement. Sera la base des futures variantes.',
+      tipEn: 'Approved — locally frozen. Will be the base for future variants.',
+    },
+    archived: {
+      fr: 'Archivé',
+      en: 'Archived',
+      tone: 'text-fg-subtle border-border',
+      tipFr: 'Archivé — gardé pour audit, exclu des recommandations actives.',
+      tipEn: 'Archived — kept for audit, excluded from active recommendations.',
+    },
   };
   const e = map[status];
+  const tip = language === 'en' ? e.tipEn : e.tipFr;
   return (
-    <span className={cn('rounded-full border px-2 py-0.5 font-mono text-[10px] uppercase tracking-wider', e.tone)}>
+    <span
+      className={cn('cursor-help rounded-full border px-2 py-0.5 font-mono text-[10px] uppercase tracking-wider', e.tone)}
+      title={tip}
+    >
       {language === 'en' ? e.en : e.fr}
     </span>
   );
