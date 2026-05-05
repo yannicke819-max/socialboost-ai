@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Wand2, type LucideIcon } from 'lucide-react';
+import { Wand2, FolderKanban, type LucideIcon } from 'lucide-react';
 import { Logo } from '@/components/Logo';
 import { cn } from '@/lib/utils';
 
@@ -11,6 +11,7 @@ type Item = { href: string; label: string; icon: LucideIcon };
 // Performance + Réglages réintroduits en S2/S3 quand pages réelles
 const ITEMS: Item[] = [
   { href: '/studio', label: 'Studio', icon: Wand2 },
+  { href: '/ai/offers', label: 'Offres', icon: FolderKanban },
 ];
 
 export function Sidebar() {

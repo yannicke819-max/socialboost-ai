@@ -6,6 +6,7 @@ import { GoalSelector } from './GoalSelector';
 import { BriefForm, type BriefFormState } from './BriefForm';
 import { BriefQualityMeter } from './BriefQualityMeter';
 import { ResultsView, type Actionables } from './ResultsView';
+import { SaveOfferButton } from '@/components/offer-workspace/SaveOfferButton';
 import {
   type Goal,
   type Tone,
@@ -210,14 +211,33 @@ export function OfferBrainStudio({ endpointEnabled }: OfferBrainStudioProps) {
       {isPending && <LoadingState language={language} />}
 
       {actionables && (
-        <ResultsView
-          actionables={actionables}
-          goal={goal}
-          language={language}
-          currentTone={form.tone}
-          onRegenerateWithTone={(t) => submit(t)}
-          loading={isPending}
-        />
+        <>
+          <div className="flex items-center justify-end">
+            <SaveOfferButton
+              brief={{
+                businessName: form.businessName,
+                offer: form.offer,
+                targetAudience: form.targetAudience.trim() || undefined,
+                tone: form.tone,
+                language: form.language,
+                platforms: form.platforms,
+                proofPoints: proofPointsArray,
+              }}
+              goal={goal}
+              actionables={actionables}
+              confidenceScore={actionables.confidence_score}
+              language={language}
+            />
+          </div>
+          <ResultsView
+            actionables={actionables}
+            goal={goal}
+            language={language}
+            currentTone={form.tone}
+            onRegenerateWithTone={(t) => submit(t)}
+            loading={isPending}
+          />
+        </>
       )}
     </div>
   );
