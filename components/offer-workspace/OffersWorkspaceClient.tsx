@@ -22,7 +22,7 @@ interface OffersWorkspaceClientProps {
 }
 
 export function OffersWorkspaceClient({ language = 'fr' }: OffersWorkspaceClientProps) {
-  const { hydrated, offers, refresh, store } = useWorkspaceStore();
+  const { hydrated, offers, assets, slots, refresh, store } = useWorkspaceStore();
   const [filters, setFilters] = useState<FiltersValue>(INITIAL_FILTERS);
   const [view, setView] = useState<ViewMode>('kanban');
 
@@ -114,7 +114,13 @@ export function OffersWorkspaceClient({ language = 'fr' }: OffersWorkspaceClient
             </div>
           </div>
           {view === 'kanban' ? (
-            <OfferKanban offers={filtered} language={language} onChangeStatus={handleStatusChange} />
+            <OfferKanban
+              offers={filtered}
+              language={language}
+              onChangeStatus={handleStatusChange}
+              assets={assets}
+              slots={slots}
+            />
           ) : (
             <OfferTable offers={filtered} language={language} />
           )}

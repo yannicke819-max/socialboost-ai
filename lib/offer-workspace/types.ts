@@ -21,6 +21,9 @@ export interface WorkspaceFile {
   exported_at?: string;
   offers: Offer[];
   assets: Asset[];
+  /** AI-008b additive — older imports without these arrays remain valid. */
+  calendar_slots?: CalendarSlot[];
+  recommendations?: Recommendation[];
 }
 
 // -----------------------------------------------------------------------------
@@ -178,6 +181,9 @@ export interface Offer {
 // Asset (per-offer creative item)
 // -----------------------------------------------------------------------------
 
+export const ASSET_STATUSES = ['draft', 'review_mock', 'approved', 'archived'] as const;
+export type AssetStatus = (typeof ASSET_STATUSES)[number];
+
 export interface Asset {
   id: string;
   offerId: string;
@@ -186,11 +192,68 @@ export interface Asset {
   body: string;
   /** Convenience cache; computed via KIND_TO_DIMENSIONS at insert time. */
   dimensions: Dimension[];
-  status: 'draft' | 'approved' | 'archived';
+  /**
+   * AI-008b extends the V1 'draft|approved|archived' set with 'review_mock'.
+   * Pre-008b assets reading 'draft' or 'approved' continue to validate.
+   */
+  status: AssetStatus;
   /** Always 'mock' at AI-008a. 'real' will be reserved for future real-model runs. */
   source: 'mock' | 'real';
   channel?: string;
+  /** Optional free tags (dimensions overlay, e.g. 'promise:transformation', 'channel:linkedin'). */
+  tags?: string[];
   createdAt: string;
+}
+
+// -----------------------------------------------------------------------------
+// Calendar slots (AI-008b — mock only, no real scheduling)
+// -----------------------------------------------------------------------------
+
+export const CALENDAR_SLOT_STATUSES = ['planned', 'sent_mock', 'cancelled'] as const;
+export type CalendarSlotStatus = (typeof CALENDAR_SLOT_STATUSES)[number];
+
+export interface CalendarSlot {
+  id: string;
+  offerId: string;
+  assetId?: string;
+  channel: string;
+  /** ISO 8601. AI-008b uses local date precision; granularity is per-day in V1. */
+  scheduledAt: string;
+  status: CalendarSlotStatus;
+  /** Optional dimension tags for cross-cutting filters. */
+  tags?: string[];
+  createdAt: string;
+}
+
+// -----------------------------------------------------------------------------
+// Recommendations (AI-008b — deterministic rules, no model call)
+// -----------------------------------------------------------------------------
+
+export const RECOMMENDATION_STATUSES = ['todo', 'applied_mock', 'dismissed'] as const;
+export type RecommendationStatus = (typeof RECOMMENDATION_STATUSES)[number];
+
+export const RECOMMENDATION_PRIORITIES = ['high', 'medium', 'low'] as const;
+export type RecommendationPriority = (typeof RECOMMENDATION_PRIORITIES)[number];
+
+/**
+ * Recommendations are derived from offer + assets + slots state by a pure
+ * rules engine (lib/offer-workspace/recommendations.ts). The engine yields a
+ * stable id per `(offerId, ruleId)` so the user can mark one as applied/dismissed
+ * and the status persists across regenerations.
+ */
+export interface Recommendation {
+  /** Stable id `${offerId}:${ruleId}`. */
+  id: string;
+  offerId: string;
+  ruleId: string;
+  priority: RecommendationPriority;
+  title: string;
+  description: string;
+  /** Optional CTA: link OR action label. */
+  cta?: { label: string; href?: string; action?: string };
+  status: RecommendationStatus;
+  /** ISO 8601 — when the user changed status. Optional in V1. */
+  updatedAt?: string;
 }
 
 // -----------------------------------------------------------------------------

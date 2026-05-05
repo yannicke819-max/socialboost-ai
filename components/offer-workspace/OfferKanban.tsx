@@ -1,15 +1,31 @@
 'use client';
 
 import { OfferCard } from './OfferCard';
-import { OFFER_STATUSES, STATUS_LABELS, type Offer, type OfferStatus } from '@/lib/offer-workspace/types';
+import {
+  OFFER_STATUSES,
+  STATUS_LABELS,
+  type Asset,
+  type CalendarSlot,
+  type Offer,
+  type OfferStatus,
+} from '@/lib/offer-workspace/types';
 
 interface OfferKanbanProps {
   offers: Offer[];
   language: 'fr' | 'en';
   onChangeStatus: (offerId: string, next: OfferStatus) => void;
+  /** Optional: provide assets/slots so each card can show the rich context. */
+  assets?: Asset[];
+  slots?: CalendarSlot[];
 }
 
-export function OfferKanban({ offers, language, onChangeStatus }: OfferKanbanProps) {
+export function OfferKanban({
+  offers,
+  language,
+  onChangeStatus,
+  assets,
+  slots,
+}: OfferKanbanProps) {
   return (
     <div className="grid grid-cols-1 gap-3 md:grid-cols-3 lg:grid-cols-5">
       {OFFER_STATUSES.map((status) => {
@@ -37,6 +53,8 @@ export function OfferKanban({ offers, language, onChangeStatus }: OfferKanbanPro
                   offer={o}
                   language={language}
                   onChangeStatus={onChangeStatus}
+                  assets={assets?.filter((a) => a.offerId === o.id)}
+                  slots={slots?.filter((s) => s.offerId === o.id)}
                 />
               ))}
             </div>
@@ -51,14 +69,22 @@ function KanbanItem({
   offer,
   language,
   onChangeStatus,
+  assets,
+  slots,
 }: {
   offer: Offer;
   language: 'fr' | 'en';
   onChangeStatus: (id: string, next: OfferStatus) => void;
+  assets?: Asset[];
+  slots?: CalendarSlot[];
 }) {
   return (
     <div className="space-y-2">
-      <OfferCard offer={offer} language={language} />
+      <OfferCard
+        offer={offer}
+        language={language}
+        context={assets || slots ? { assets: assets ?? [], slots: slots ?? [] } : undefined}
+      />
       <div className="flex items-center gap-1.5">
         <label className="font-mono text-[10px] uppercase tracking-wider text-fg-subtle">
           {language === 'en' ? 'Move' : 'Déplacer'}
