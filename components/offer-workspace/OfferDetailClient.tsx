@@ -10,6 +10,7 @@ import { AssetsTab } from './tabs/AssetsTab';
 import { CalendarTab } from './tabs/CalendarTab';
 import { AnalyticsTab } from './tabs/AnalyticsTab';
 import { RecommendationsTab } from './tabs/RecommendationsTab';
+import { OfferTimeline } from './OfferTimeline';
 import { QuickActions } from './QuickActions';
 import { STATUS_LABELS } from '@/lib/offer-workspace/types';
 
@@ -66,6 +67,15 @@ export function OfferDetailClient({ offerId, language = 'fr' }: OfferDetailClien
           store={store}
         />
       </header>
+
+      <OfferTimeline offer={offer} assets={offerAssets} slots={offerSlots} language={language} />
+
+      <p
+        className="rounded border border-amber-400/30 bg-amber-400/5 px-3 py-2 text-[11px] text-amber-400"
+        title={labels.mockTooltip}
+      >
+        {labels.mockNotice}
+      </p>
 
       <nav className="flex flex-wrap gap-1 border-b border-border" aria-label="Tabs">
         <Tab id="brief" current={tab} onSelect={setTab} icon={<Briefcase size={13} />}>
@@ -188,6 +198,10 @@ const L_FR = {
   analytics: 'Analytics',
   recos: 'Recommandations',
   score: 'Score',
+  mockNotice:
+    "Tout est mock V1 : aucun post n'est publié, aucune analytics n'est mesurée. Données locales (localStorage) pour permettre la démonstration.",
+  mockTooltip:
+    'Les statuts « sent_mock » / « scheduled_mock » indiquent une simulation locale. Aucune intégration LinkedIn / Meta / email n\'est branchée.',
 };
 const L_EN = {
   back: 'Back to offers',
@@ -197,4 +211,8 @@ const L_EN = {
   analytics: 'Analytics',
   recos: 'Recommendations',
   score: 'Score',
+  mockNotice:
+    'Everything is MOCK V1: no post is published, no real analytics is measured. Local data (localStorage) for demo purposes.',
+  mockTooltip:
+    'The "sent_mock" / "scheduled_mock" statuses indicate a local simulation. No LinkedIn / Meta / email integration is wired.',
 };

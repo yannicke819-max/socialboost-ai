@@ -57,7 +57,10 @@ export function AnalyticsTab({ offer, assets, language }: AnalyticsTabProps) {
             ))}
           </div>
         </div>
-        <span className="rounded-full border border-amber-400/40 bg-amber-400/5 px-2 py-0.5 font-mono text-[10px] uppercase tracking-wider text-amber-400">
+        <span
+          className="cursor-help rounded-full border border-amber-400/40 bg-amber-400/5 px-2 py-0.5 font-mono text-[10px] uppercase tracking-wider text-amber-400"
+          title={labels.disclaimer}
+        >
           {labels.mockBadge}
         </span>
       </header>
