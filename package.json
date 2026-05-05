@@ -8,7 +8,7 @@
     "start": "next start",
     "lint": "next lint",
     "typecheck": "tsc --noEmit",
-    "test": "node --test --import tsx 'lib/ai/**/__tests__/**/*.test.ts' 'evals/scripts/__tests__/**/*.test.ts'",
+    "test": "node --test --import tsx 'lib/ai/**/__tests__/**/*.test.ts' 'lib/offer-brain-ui/**/__tests__/**/*.test.ts' 'evals/scripts/__tests__/**/*.test.ts'",
     "eval:offer-brain": "tsx evals/scripts/offer-brain.ts",
     "eval:offer-brain:baseline": "tsx evals/scripts/offer-brain.ts --baseline",
     "eval:offer-brain:diff": "tsx evals/scripts/offer-brain.ts --diff",
