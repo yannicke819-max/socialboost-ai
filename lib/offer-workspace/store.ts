@@ -16,6 +16,10 @@ import {
   type AssetStatus,
   type CalendarSlot,
   type CalendarSlotStatus,
+  type FeedbackHistoryEntry,
+  type FeedbackPreference,
+  type FeedbackRecommendation,
+  type FeedbackRecommendationStatus,
   type Offer,
   type OfferStatus,
   type PlanSlot,
@@ -37,28 +41,24 @@ function isBrowser(): boolean {
   return typeof window !== 'undefined' && typeof window.localStorage !== 'undefined';
 }
 
+function emptyEnvelope(): WorkspaceFile {
+  return {
+    version: STORAGE_VERSION,
+    offers: [],
+    assets: [],
+    calendar_slots: [],
+    recommendations: [],
+    weekly_plans: [],
+    feedback_recommendations: [],
+    feedback_history: [],
+    feedback_preferences: [],
+  };
+}
+
 function readEnvelope(): WorkspaceFile {
-  if (!isBrowser()) {
-    return {
-      version: STORAGE_VERSION,
-      offers: [],
-      assets: [],
-      calendar_slots: [],
-      recommendations: [],
-      weekly_plans: [],
-    };
-  }
+  if (!isBrowser()) return emptyEnvelope();
   const raw = window.localStorage.getItem(STORAGE_KEY);
-  if (!raw) {
-    return {
-      version: STORAGE_VERSION,
-      offers: [],
-      assets: [],
-      calendar_slots: [],
-      recommendations: [],
-      weekly_plans: [],
-    };
-  }
+  if (!raw) return emptyEnvelope();
   let parsed: unknown;
   try {
     parsed = JSON.parse(raw);
@@ -80,6 +80,13 @@ function readEnvelope(): WorkspaceFile {
     calendar_slots: Array.isArray(env.calendar_slots) ? env.calendar_slots : [],
     recommendations: Array.isArray(env.recommendations) ? env.recommendations : [],
     weekly_plans: Array.isArray(env.weekly_plans) ? env.weekly_plans : [],
+    feedback_recommendations: Array.isArray(env.feedback_recommendations)
+      ? env.feedback_recommendations
+      : [],
+    feedback_history: Array.isArray(env.feedback_history) ? env.feedback_history : [],
+    feedback_preferences: Array.isArray(env.feedback_preferences)
+      ? env.feedback_preferences
+      : [],
   };
 }
 
@@ -137,6 +144,10 @@ export interface WorkspaceStore {
   listRecommendationsByOffer(offerId: string): Recommendation[];
   /** AI-010 — current weekly plan for an offer (latest weekStart wins). */
   getWeeklyPlanByOffer(offerId: string): WeeklyPlan | undefined;
+  /** AI-011 — feedback artifacts. */
+  listFeedbackRecommendations(planId: string): FeedbackRecommendation[];
+  listFeedbackHistory(offerId: string): FeedbackHistoryEntry[];
+  listFeedbackPreferences(offerId: string): FeedbackPreference[];
 
   // commands — offers
   createOffer(input: CreateOfferInput): Offer;
@@ -168,6 +179,15 @@ export interface WorkspaceStore {
   setPlanSlotStatus(planId: string, slotId: string, status: PlanSlotStatus): WeeklyPlan | undefined;
   removePlanSlot(planId: string, slotId: string): WeeklyPlan | undefined;
   deleteWeeklyPlan(planId: string): boolean;
+
+  // commands — editorial feedback loop (AI-011)
+  upsertFeedbackRecommendations(planId: string, recs: FeedbackRecommendation[]): void;
+  setFeedbackRecommendationStatus(
+    id: string,
+    status: FeedbackRecommendationStatus,
+  ): FeedbackRecommendation | undefined;
+  appendFeedbackHistoryEntry(entry: Omit<FeedbackHistoryEntry, 'id'>): FeedbackHistoryEntry;
+  setFeedbackPreference(input: Omit<FeedbackPreference, 'id' | 'createdAt'>): FeedbackPreference;
 
   // bulk
   replaceAll(env: WorkspaceFile): void;
@@ -202,6 +222,18 @@ export function createWorkspaceStore(): WorkspaceStore {
       return plans.sort((a, b) =>
         b.weekStart.localeCompare(a.weekStart) || b.createdAt.localeCompare(a.createdAt),
       )[0];
+    },
+
+    listFeedbackRecommendations(planId) {
+      return (list().feedback_recommendations ?? []).filter((r) => r.planId === planId);
+    },
+    listFeedbackHistory(offerId) {
+      return (list().feedback_history ?? [])
+        .filter((h) => h.offerId === offerId)
+        .sort((a, b) => b.date.localeCompare(a.date));
+    },
+    listFeedbackPreferences(offerId) {
+      return (list().feedback_preferences ?? []).filter((p) => p.offerId === offerId);
     },
 
     createOffer(input) {
@@ -278,7 +310,24 @@ export function createWorkspaceStore(): WorkspaceStore {
       const calendar_slots = (env.calendar_slots ?? []).filter((s) => s.offerId !== id);
       const recommendations = (env.recommendations ?? []).filter((r) => r.offerId !== id);
       const weekly_plans = (env.weekly_plans ?? []).filter((p) => p.offerId !== id);
-      writeEnvelope({ ...env, offers, assets, calendar_slots, recommendations, weekly_plans });
+      const feedback_recommendations = (env.feedback_recommendations ?? []).filter(
+        (r) => r.offerId !== id,
+      );
+      const feedback_history = (env.feedback_history ?? []).filter((h) => h.offerId !== id);
+      const feedback_preferences = (env.feedback_preferences ?? []).filter(
+        (p) => p.offerId !== id,
+      );
+      writeEnvelope({
+        ...env,
+        offers,
+        assets,
+        calendar_slots,
+        recommendations,
+        weekly_plans,
+        feedback_recommendations,
+        feedback_history,
+        feedback_preferences,
+      });
       return true;
     },
 
@@ -476,8 +525,72 @@ export function createWorkspaceStore(): WorkspaceStore {
       const before = (env.weekly_plans ?? []).length;
       const weekly_plans = (env.weekly_plans ?? []).filter((p) => p.id !== planId);
       if (weekly_plans.length === before) return false;
-      writeEnvelope({ ...env, weekly_plans });
+      const feedback_recommendations = (env.feedback_recommendations ?? []).filter(
+        (r) => r.planId !== planId,
+      );
+      writeEnvelope({ ...env, weekly_plans, feedback_recommendations });
       return true;
+    },
+
+    // -------------------------------------------------------------------------
+    // Editorial feedback loop (AI-011)
+    // -------------------------------------------------------------------------
+
+    upsertFeedbackRecommendations(planId, recs) {
+      const env = list();
+      // Preserve previous user statuses (applied_mock/dismissed) across re-derivation.
+      const existing = new Map(
+        (env.feedback_recommendations ?? [])
+          .filter((r) => r.planId === planId)
+          .map((r) => [r.id, r] as const),
+      );
+      const merged: FeedbackRecommendation[] = recs.map((r) => {
+        const prev = existing.get(r.id);
+        return prev ? { ...r, status: prev.status, updatedAt: prev.updatedAt } : r;
+      });
+      const others = (env.feedback_recommendations ?? []).filter((r) => r.planId !== planId);
+      writeEnvelope({ ...env, feedback_recommendations: [...others, ...merged] });
+    },
+
+    setFeedbackRecommendationStatus(id, status) {
+      const env = list();
+      let updated: FeedbackRecommendation | undefined;
+      const feedback_recommendations = (env.feedback_recommendations ?? []).map((r) => {
+        if (r.id !== id) return r;
+        updated = { ...r, status, updatedAt: nowIso() };
+        return updated;
+      });
+      if (!updated) return undefined;
+      writeEnvelope({ ...env, feedback_recommendations });
+      return updated;
+    },
+
+    appendFeedbackHistoryEntry(entry) {
+      const env = list();
+      const stored: FeedbackHistoryEntry = { ...entry, id: newId('fbh') };
+      // Keep the history bounded client-side (most recent 100 per offer).
+      const sameOffer = (env.feedback_history ?? []).filter((h) => h.offerId === entry.offerId);
+      const others = (env.feedback_history ?? []).filter((h) => h.offerId !== entry.offerId);
+      const trimmed = [stored, ...sameOffer].slice(0, 100);
+      writeEnvelope({ ...env, feedback_history: [...others, ...trimmed] });
+      return stored;
+    },
+
+    setFeedbackPreference(input) {
+      const env = list();
+      // One row per (offerId, key). Replace if exists.
+      const others = (env.feedback_preferences ?? []).filter(
+        (p) => !(p.offerId === input.offerId && p.key === input.key),
+      );
+      const stored: FeedbackPreference = {
+        id: newId('fbp'),
+        offerId: input.offerId,
+        key: input.key,
+        value: input.value,
+        createdAt: nowIso(),
+      };
+      writeEnvelope({ ...env, feedback_preferences: [...others, stored] });
+      return stored;
     },
 
     replaceAll(env) {
@@ -489,6 +602,13 @@ export function createWorkspaceStore(): WorkspaceStore {
         calendar_slots: Array.isArray(env.calendar_slots) ? env.calendar_slots : [],
         recommendations: Array.isArray(env.recommendations) ? env.recommendations : [],
         weekly_plans: Array.isArray(env.weekly_plans) ? env.weekly_plans : [],
+        feedback_recommendations: Array.isArray(env.feedback_recommendations)
+          ? env.feedback_recommendations
+          : [],
+        feedback_history: Array.isArray(env.feedback_history) ? env.feedback_history : [],
+        feedback_preferences: Array.isArray(env.feedback_preferences)
+          ? env.feedback_preferences
+          : [],
       };
       writeEnvelope(sanitized);
     },
@@ -499,14 +619,7 @@ export function createWorkspaceStore(): WorkspaceStore {
     },
 
     reset() {
-      writeEnvelope({
-        version: STORAGE_VERSION,
-        offers: [],
-        assets: [],
-        calendar_slots: [],
-        recommendations: [],
-        weekly_plans: [],
-      });
+      writeEnvelope(emptyEnvelope());
     },
   };
 }
