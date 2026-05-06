@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from 'react';
 import Link from 'next/link';
-import { ArrowLeft, Briefcase, Layers, Calendar, BarChart3, Sparkles, CalendarDays, TrendingUp } from 'lucide-react';
+import { ArrowLeft, Briefcase, Layers, Calendar, BarChart3, Sparkles, CalendarDays, TrendingUp, Megaphone } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useWorkspaceStore } from './useWorkspaceStore';
 import { BriefTab } from './tabs/BriefTab';
@@ -12,6 +12,7 @@ import { AnalyticsTab } from './tabs/AnalyticsTab';
 import { RecommendationsTab } from './tabs/RecommendationsTab';
 import { WeeklyPlanTab } from './tabs/WeeklyPlanTab';
 import { FeedbackTab } from './tabs/FeedbackTab';
+import { AdStudioTab } from './tabs/AdStudioTab';
 import { OfferTimeline } from './OfferTimeline';
 import { QuickActions } from './QuickActions';
 import { STATUS_LABELS } from '@/lib/offer-workspace/types';
@@ -21,7 +22,7 @@ interface OfferDetailClientProps {
   language?: 'fr' | 'en';
 }
 
-type TabKey = 'brief' | 'assets' | 'plan' | 'calendar' | 'analytics' | 'feedback' | 'recos';
+type TabKey = 'brief' | 'assets' | 'adstudio' | 'plan' | 'calendar' | 'analytics' | 'feedback' | 'recos';
 
 export function OfferDetailClient({ offerId, language = 'fr' }: OfferDetailClientProps) {
   const { hydrated, offers, assets, slots, refresh, store } = useWorkspaceStore();
@@ -86,6 +87,12 @@ export function OfferDetailClient({ offerId, language = 'fr' }: OfferDetailClien
         <Tab id="assets" current={tab} onSelect={setTab} icon={<Layers size={13} />}>
           {labels.assets} <span className="ml-1 text-[10px] text-fg-subtle">{offerAssets.length}</span>
         </Tab>
+        <Tab id="adstudio" current={tab} onSelect={setTab} icon={<Megaphone size={13} />}>
+          {labels.adstudio}
+          <span className="ml-1 rounded-full border border-amber-400/40 bg-amber-400/5 px-1.5 text-[9px] font-medium text-amber-400">
+            mock
+          </span>
+        </Tab>
         <Tab id="plan" current={tab} onSelect={setTab} icon={<CalendarDays size={13} />}>
           {labels.plan}
           <span className="ml-1 rounded-full border border-amber-400/40 bg-amber-400/5 px-1.5 text-[9px] font-medium text-amber-400">
@@ -121,6 +128,16 @@ export function OfferDetailClient({ offerId, language = 'fr' }: OfferDetailClien
         )}
         {tab === 'assets' && (
           <AssetsTab offer={offer} assets={offerAssets} language={language} onUpdate={() => refresh()} store={store} />
+        )}
+        {tab === 'adstudio' && (
+          <AdStudioTab
+            offer={offer}
+            assets={offerAssets}
+            language={language}
+            store={store}
+            onUpdate={refresh}
+            onNavigateTab={(t) => setTab(t as TabKey)}
+          />
         )}
         {tab === 'plan' && (
           <WeeklyPlanTab
@@ -229,6 +246,7 @@ const L_FR = {
   back: 'Retour aux offres',
   brief: 'Brief',
   assets: 'Contenus',
+  adstudio: 'Ad Studio',
   plan: 'Plan semaine',
   calendar: 'Calendrier',
   analytics: 'Analytics',
@@ -244,6 +262,7 @@ const L_EN = {
   back: 'Back to offers',
   brief: 'Brief',
   assets: 'Contents',
+  adstudio: 'Ad Studio',
   plan: 'Weekly plan',
   calendar: 'Calendar',
   analytics: 'Analytics',

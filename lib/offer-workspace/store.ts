@@ -11,6 +11,9 @@
 import {
   STORAGE_VERSION,
   WorkspaceStorageError,
+  type AdDiffusionSelection,
+  type AdStatus,
+  type AdUnit,
   type Asset,
   type AssetKind,
   type AssetStatus,
@@ -34,6 +37,7 @@ import {
   KIND_TO_DIMENSIONS,
 } from './types';
 import { mergeOfferBundle, mergeWorkspace, repairWorkspace } from './persistence';
+import { diffusionSelectionId } from './ad-studio';
 
 const STORAGE_KEY = 'socialboost.offer_workspace';
 
@@ -56,6 +60,8 @@ function emptyEnvelope(): WorkspaceFile {
     feedback_recommendations: [],
     feedback_history: [],
     feedback_preferences: [],
+    ad_units: [],
+    ad_diffusion_selections: [],
   };
 }
 
@@ -90,6 +96,10 @@ function readEnvelope(): WorkspaceFile {
     feedback_history: Array.isArray(env.feedback_history) ? env.feedback_history : [],
     feedback_preferences: Array.isArray(env.feedback_preferences)
       ? env.feedback_preferences
+      : [],
+    ad_units: Array.isArray(env.ad_units) ? env.ad_units : [],
+    ad_diffusion_selections: Array.isArray(env.ad_diffusion_selections)
+      ? env.ad_diffusion_selections
       : [],
   };
 }
@@ -159,6 +169,9 @@ export interface WorkspaceStore {
   listFeedbackPreferences(offerId: string): FeedbackPreference[];
   /** AI-012 — direct envelope read for backup/diagnostic. */
   getEnvelope(): WorkspaceFile;
+  /** AI-013 — ad studio queries. */
+  listAdUnits(offerId: string): AdUnit[];
+  listAdDiffusionSelections(offerId: string): AdDiffusionSelection[];
 
   // commands — offers
   createOffer(input: CreateOfferInput): Offer;
@@ -209,6 +222,11 @@ export interface WorkspaceStore {
   mergeIncoming(env: WorkspaceFile, mode?: WorkspaceMergeMode): WorkspaceFile;
   mergeIncomingOffer(bundle: OfferBundle): WorkspaceFile;
   repair(): RepairReport;
+
+  // AI-013 — ad studio commands
+  upsertAdUnits(offerId: string, units: AdUnit[]): void;
+  setAdStatus(adId: string, status: AdStatus): AdUnit | undefined;
+  setAdDiffusionSelection(offerId: string, adId: string, selected: boolean): void;
 }
 
 export function createWorkspaceStore(): WorkspaceStore {
@@ -254,6 +272,13 @@ export function createWorkspaceStore(): WorkspaceStore {
 
     getEnvelope() {
       return list();
+    },
+
+    listAdUnits(offerId) {
+      return (list().ad_units ?? []).filter((u) => u.offerId === offerId);
+    },
+    listAdDiffusionSelections(offerId) {
+      return (list().ad_diffusion_selections ?? []).filter((s) => s.offerId === offerId);
     },
 
     createOffer(input) {
@@ -337,6 +362,10 @@ export function createWorkspaceStore(): WorkspaceStore {
       const feedback_preferences = (env.feedback_preferences ?? []).filter(
         (p) => p.offerId !== id,
       );
+      const ad_units = (env.ad_units ?? []).filter((u) => u.offerId !== id);
+      const ad_diffusion_selections = (env.ad_diffusion_selections ?? []).filter(
+        (s) => s.offerId !== id,
+      );
       writeEnvelope({
         ...env,
         offers,
@@ -347,6 +376,8 @@ export function createWorkspaceStore(): WorkspaceStore {
         feedback_recommendations,
         feedback_history,
         feedback_preferences,
+        ad_units,
+        ad_diffusion_selections,
       });
       return true;
     },
@@ -629,6 +660,10 @@ export function createWorkspaceStore(): WorkspaceStore {
         feedback_preferences: Array.isArray(env.feedback_preferences)
           ? env.feedback_preferences
           : [],
+        ad_units: Array.isArray(env.ad_units) ? env.ad_units : [],
+        ad_diffusion_selections: Array.isArray(env.ad_diffusion_selections)
+          ? env.ad_diffusion_selections
+          : [],
       };
       writeEnvelope(sanitized);
     },
@@ -665,6 +700,59 @@ export function createWorkspaceStore(): WorkspaceStore {
       const { repaired, report } = repairWorkspace(current);
       writeEnvelope(repaired);
       return report;
+    },
+
+    // -------------------------------------------------------------------------
+    // AI-013 — ad studio
+    // -------------------------------------------------------------------------
+
+    upsertAdUnits(offerId, units) {
+      const env = list();
+      const existing = new Map(
+        (env.ad_units ?? [])
+          .filter((u) => u.offerId === offerId)
+          .map((u) => [u.id, u] as const),
+      );
+      // Preserve user statuses (ready/selected) across re-derivation.
+      const merged: AdUnit[] = units.map((u) => {
+        const prev = existing.get(u.id);
+        return prev ? { ...u, status: prev.status } : u;
+      });
+      const others = (env.ad_units ?? []).filter((u) => u.offerId !== offerId);
+      writeEnvelope({ ...env, ad_units: [...others, ...merged] });
+    },
+
+    setAdStatus(adId, status) {
+      const env = list();
+      let updated: AdUnit | undefined;
+      const ad_units = (env.ad_units ?? []).map((u) => {
+        if (u.id !== adId) return u;
+        updated = { ...u, status };
+        return updated;
+      });
+      if (!updated) return undefined;
+      writeEnvelope({ ...env, ad_units });
+      return updated;
+    },
+
+    setAdDiffusionSelection(offerId, adId, selected) {
+      const env = list();
+      const id = diffusionSelectionId(offerId, adId);
+      const others = (env.ad_diffusion_selections ?? []).filter((s) => s.id !== id);
+      if (!selected) {
+        writeEnvelope({ ...env, ad_diffusion_selections: others });
+        return;
+      }
+      const stored: AdDiffusionSelection = {
+        id,
+        offerId,
+        adId,
+        selectedAt: nowIso(),
+      };
+      writeEnvelope({
+        ...env,
+        ad_diffusion_selections: [...others, stored],
+      });
     },
   };
 }
