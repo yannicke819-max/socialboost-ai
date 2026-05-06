@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from 'react';
 import Link from 'next/link';
-import { ArrowLeft, Briefcase, Layers, Calendar, BarChart3, Sparkles, CalendarDays } from 'lucide-react';
+import { ArrowLeft, Briefcase, Layers, Calendar, BarChart3, Sparkles, CalendarDays, TrendingUp } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useWorkspaceStore } from './useWorkspaceStore';
 import { BriefTab } from './tabs/BriefTab';
@@ -11,6 +11,7 @@ import { CalendarTab } from './tabs/CalendarTab';
 import { AnalyticsTab } from './tabs/AnalyticsTab';
 import { RecommendationsTab } from './tabs/RecommendationsTab';
 import { WeeklyPlanTab } from './tabs/WeeklyPlanTab';
+import { FeedbackTab } from './tabs/FeedbackTab';
 import { OfferTimeline } from './OfferTimeline';
 import { QuickActions } from './QuickActions';
 import { STATUS_LABELS } from '@/lib/offer-workspace/types';
@@ -20,7 +21,7 @@ interface OfferDetailClientProps {
   language?: 'fr' | 'en';
 }
 
-type TabKey = 'brief' | 'assets' | 'plan' | 'calendar' | 'analytics' | 'recos';
+type TabKey = 'brief' | 'assets' | 'plan' | 'calendar' | 'analytics' | 'feedback' | 'recos';
 
 export function OfferDetailClient({ offerId, language = 'fr' }: OfferDetailClientProps) {
   const { hydrated, offers, assets, slots, refresh, store } = useWorkspaceStore();
@@ -103,6 +104,12 @@ export function OfferDetailClient({ offerId, language = 'fr' }: OfferDetailClien
             mock
           </span>
         </Tab>
+        <Tab id="feedback" current={tab} onSelect={setTab} icon={<TrendingUp size={13} />}>
+          {labels.feedback}
+          <span className="ml-1 rounded-full border border-amber-400/40 bg-amber-400/5 px-1.5 text-[9px] font-medium text-amber-400">
+            mock
+          </span>
+        </Tab>
         <Tab id="recos" current={tab} onSelect={setTab} icon={<Sparkles size={13} />}>
           {labels.recos}
         </Tab>
@@ -137,6 +144,16 @@ export function OfferDetailClient({ offerId, language = 'fr' }: OfferDetailClien
         )}
         {tab === 'analytics' && (
           <AnalyticsTab offer={offer} assets={offerAssets} language={language} />
+        )}
+        {tab === 'feedback' && (
+          <FeedbackTab
+            offer={offer}
+            assets={offerAssets}
+            language={language}
+            store={store}
+            onUpdate={refresh}
+            onNavigateTab={(t) => setTab(t as TabKey)}
+          />
         )}
         {tab === 'recos' && (
           <RecommendationsTab
@@ -215,6 +232,7 @@ const L_FR = {
   plan: 'Plan semaine',
   calendar: 'Calendrier',
   analytics: 'Analytics',
+  feedback: 'Feedback',
   recos: 'Recommandations',
   score: 'Score',
   mockNotice:
@@ -229,6 +247,7 @@ const L_EN = {
   plan: 'Weekly plan',
   calendar: 'Calendar',
   analytics: 'Analytics',
+  feedback: 'Feedback',
   recos: 'Recommendations',
   score: 'Score',
   mockNotice:

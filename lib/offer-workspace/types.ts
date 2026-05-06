@@ -26,6 +26,10 @@ export interface WorkspaceFile {
   recommendations?: Recommendation[];
   /** AI-010 additive — older imports without this array remain valid. */
   weekly_plans?: WeeklyPlan[];
+  /** AI-011 additive — older imports without these arrays remain valid. */
+  feedback_recommendations?: FeedbackRecommendation[];
+  feedback_history?: FeedbackHistoryEntry[];
+  feedback_preferences?: FeedbackPreference[];
 }
 
 // -----------------------------------------------------------------------------
@@ -343,6 +347,149 @@ export interface WeeklyPlan {
   slots: PlanSlot[];
   createdAt: string;
   updatedAt: string;
+}
+
+// -----------------------------------------------------------------------------
+// Editorial Feedback Loop (AI-011 — mock only, no real analytics)
+// -----------------------------------------------------------------------------
+
+export const FUNNEL_STAGES = [
+  'awareness',
+  'consideration',
+  'decision',
+  'retention',
+] as const;
+export type FunnelStage = (typeof FUNNEL_STAGES)[number];
+
+export const FUNNEL_STAGE_LABELS: Record<FunnelStage, { fr: string; en: string }> = {
+  awareness: { fr: 'Découverte', en: 'Awareness' },
+  consideration: { fr: 'Considération', en: 'Consideration' },
+  decision: { fr: 'Décision', en: 'Decision' },
+  retention: { fr: 'Rétention', en: 'Retention' },
+};
+
+export const INTENT_LEVELS = ['low', 'medium', 'high'] as const;
+export type IntentLevel = (typeof INTENT_LEVELS)[number];
+
+export const PRIMARY_KPIS = [
+  'reach',
+  'engagement',
+  'clicks',
+  'leads',
+  'trust',
+  'conversion',
+] as const;
+export type PrimaryKpi = (typeof PRIMARY_KPIS)[number];
+
+export const PRIMARY_KPI_LABELS: Record<PrimaryKpi, { fr: string; en: string }> = {
+  reach: { fr: 'Portée', en: 'Reach' },
+  engagement: { fr: 'Engagement', en: 'Engagement' },
+  clicks: { fr: 'Clics', en: 'Clicks' },
+  leads: { fr: 'Leads', en: 'Leads' },
+  trust: { fr: 'Confiance', en: 'Trust' },
+  conversion: { fr: 'Conversion', en: 'Conversion' },
+};
+
+export const EFFORT_LEVELS = ['low', 'medium', 'high'] as const;
+export type EffortLevel = (typeof EFFORT_LEVELS)[number];
+
+export const CONFIDENCE_LEVELS = ['low', 'medium', 'high'] as const;
+export type ConfidenceLevel = (typeof CONFIDENCE_LEVELS)[number];
+
+export const FEEDBACK_RECOMMENDATION_STATUSES = [
+  'todo',
+  'applied_mock',
+  'dismissed',
+] as const;
+export type FeedbackRecommendationStatus =
+  (typeof FEEDBACK_RECOMMENDATION_STATUSES)[number];
+
+/**
+ * Mock metrics for a single plan slot. Computed on the fly from a deterministic
+ * seeded PRNG; never persisted. The "_mock" suffix is intentional: these
+ * values are NOT real analytics.
+ */
+export interface SlotMetrics {
+  slotId: string;
+  impressions_mock: number;
+  engagement_mock: number;
+  clicks_mock: number;
+  leads_mock: number;
+  /** 0..100 — weighted blend that does not reward only reach. */
+  useful_score: number;
+  /** 0..100 — goal-aware score combining useful_score + audience_fit. */
+  global_score: number;
+  funnelStage: FunnelStage;
+  intentLevel: IntentLevel;
+  primaryKpi: PrimaryKpi;
+  /** 0..100 — coherence with target / pain / promise / proof / channel. */
+  audience_fit: number;
+}
+
+/**
+ * Recommendation derived by the feedback engine. Stored so the user's
+ * applied/dismissed status survives recomputation. Stable id `${planId}:${ruleId}`.
+ */
+export interface FeedbackRecommendation {
+  /** Stable id `${planId}:${ruleId}`. */
+  id: string;
+  offerId: string;
+  planId: string;
+  ruleId: string;
+  action: string;
+  why: string;
+  impact: string;
+  effort: EffortLevel;
+  confidence: ConfidenceLevel;
+  /** Optional anchors back to a slot or asset for display. */
+  linkedSlotId?: string;
+  linkedAssetId?: string;
+  status: FeedbackRecommendationStatus;
+  /** Optional preference key written when status='applied_mock'. */
+  preferenceKey?: string;
+  updatedAt?: string;
+}
+
+/**
+ * "Test à lancer la semaine prochaine" — a small A/B card surfaced on the
+ * feedback tab. Computed deterministically; not stored separately, recomputed
+ * each render to stay in sync with the underlying plan.
+ */
+export interface FeedbackTest {
+  hypothesis: string;
+  variantA: string;
+  variantB: string;
+  successMetric: PrimaryKpi;
+  durationDays: number;
+  decisionRule: string;
+}
+
+/**
+ * Local "Ce qu'on apprend" history entry. Append-only, capped client-side.
+ */
+export interface FeedbackHistoryEntry {
+  id: string;
+  offerId: string;
+  date: string;
+  recommendation: string;
+  cause: string;
+  actionApplied: string;
+  expectedResult: string;
+  status: 'applied_mock';
+}
+
+/**
+ * Local-only preference toggle that the next plan generator could consult
+ * later to bias its mix (e.g. "prefer more proof", "avoid 2 LinkedIn in a row").
+ * AI-011 stores them but does not yet read them in the plan-generator — that's
+ * intentional, AI-011.x or AI-010.x will wire the consumer side.
+ */
+export interface FeedbackPreference {
+  id: string;
+  offerId: string;
+  key: string;
+  value: string | number | boolean;
+  createdAt: string;
 }
 
 // -----------------------------------------------------------------------------
