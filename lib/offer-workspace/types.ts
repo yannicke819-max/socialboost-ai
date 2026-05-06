@@ -19,6 +19,8 @@ export const STORAGE_VERSION = 1;
 export interface WorkspaceFile {
   version: typeof STORAGE_VERSION;
   exported_at?: string;
+  /** AI-012 additive — last persisted write to localStorage. */
+  last_saved_at?: string;
   offers: Offer[];
   assets: Asset[];
   /** AI-008b additive — older imports without these arrays remain valid. */
@@ -490,6 +492,104 @@ export interface FeedbackPreference {
   key: string;
   value: string | number | boolean;
   createdAt: string;
+}
+
+// -----------------------------------------------------------------------------
+// Workspace Persistence & Export Hardening (AI-012)
+// -----------------------------------------------------------------------------
+
+/**
+ * Summary of the workspace state — counts + last-saved timestamp + flags.
+ * Pure derivation; never persisted.
+ */
+export interface WorkspaceSummary {
+  version: number;
+  offers: number;
+  assets: number;
+  calendar_slots: number;
+  recommendations: number;
+  weekly_plans: number;
+  feedback_recommendations: number;
+  feedback_history: number;
+  feedback_preferences: number;
+  /** ISO timestamp of last persisted write to localStorage; undefined on fresh state. */
+  last_saved_at?: string;
+  /** ISO timestamp written when an export envelope is generated. */
+  exported_at?: string;
+  /** Always true in V1 — surfaces "no real publishing / no real analytics". */
+  mock: true;
+}
+
+/**
+ * Single-offer export bundle. Contains the offer + every dependent record.
+ * Stable shape so future imports can round-trip independently of the full
+ * workspace.
+ */
+export interface OfferBundle {
+  bundle: 'offer';
+  version: typeof STORAGE_VERSION;
+  exported_at: string;
+  offer: Offer;
+  assets: Asset[];
+  calendar_slots: CalendarSlot[];
+  recommendations: Recommendation[];
+  weekly_plans: WeeklyPlan[];
+  feedback_recommendations: FeedbackRecommendation[];
+  feedback_history: FeedbackHistoryEntry[];
+  feedback_preferences: FeedbackPreference[];
+}
+
+/**
+ * Discriminated import error codes. The string keys are the *only* safe values
+ * to bubble to the UI — the surrounding message is FR/EN at render time.
+ */
+export type WorkspaceImportErrorCode =
+  | 'invalid_json'
+  | 'not_an_envelope'
+  | 'unsupported_version'
+  | 'wrong_bundle_kind'
+  | 'empty';
+
+export interface WorkspaceImportSuccess {
+  ok: true;
+  envelope: WorkspaceFile;
+  summary: WorkspaceSummary;
+}
+
+export interface OfferImportSuccess {
+  ok: true;
+  bundle: OfferBundle;
+}
+
+export interface ImportFailure {
+  ok: false;
+  code: WorkspaceImportErrorCode;
+}
+
+export type WorkspaceImportResult = WorkspaceImportSuccess | ImportFailure;
+export type OfferImportResult = OfferImportSuccess | ImportFailure;
+
+export type WorkspaceMergeMode = 'merge' | 'replace';
+
+/**
+ * Result of a `repairWorkspace` run. The repaired envelope is returned; the
+ * caller decides whether to write it back. `removed` carries the cleanup
+ * counts so the UI can display a transparent summary.
+ */
+export interface RepairReport {
+  removed: {
+    assets: number;
+    calendar_slots: number;
+    recommendations: number;
+    weekly_plans: number;
+    feedback_recommendations: number;
+    feedback_history: number;
+    feedback_preferences: number;
+    /** Plan slot rows whose linked asset is missing — stripped of their assetId. */
+    plan_slot_links: number;
+    /** Calendar slot rows whose linked asset is missing — stripped of their assetId. */
+    calendar_slot_links: number;
+  };
 }
 
 // -----------------------------------------------------------------------------

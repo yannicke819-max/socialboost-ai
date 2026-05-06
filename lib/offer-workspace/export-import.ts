@@ -11,8 +11,12 @@ import {
   WorkspaceStorageError,
   type Asset,
   type CalendarSlot,
+  type FeedbackHistoryEntry,
+  type FeedbackPreference,
+  type FeedbackRecommendation,
   type Offer,
   type Recommendation,
+  type WeeklyPlan,
   type WorkspaceFile,
 } from './types';
 
@@ -81,6 +85,66 @@ function isRecommendation(v: unknown): v is Recommendation {
   );
 }
 
+function isWeeklyPlan(v: unknown): v is WeeklyPlan {
+  if (typeof v !== 'object' || v === null) return false;
+  const p = v as Record<string, unknown>;
+  return (
+    typeof p.id === 'string' &&
+    typeof p.offerId === 'string' &&
+    typeof p.weekStart === 'string' &&
+    typeof p.goal === 'string' &&
+    Array.isArray(p.slots) &&
+    typeof p.createdAt === 'string' &&
+    typeof p.updatedAt === 'string'
+  );
+}
+
+function isFeedbackRecommendation(v: unknown): v is FeedbackRecommendation {
+  if (typeof v !== 'object' || v === null) return false;
+  const r = v as Record<string, unknown>;
+  return (
+    typeof r.id === 'string' &&
+    typeof r.offerId === 'string' &&
+    typeof r.planId === 'string' &&
+    typeof r.ruleId === 'string' &&
+    typeof r.action === 'string' &&
+    typeof r.why === 'string' &&
+    typeof r.impact === 'string' &&
+    typeof r.effort === 'string' &&
+    typeof r.confidence === 'string' &&
+    typeof r.status === 'string'
+  );
+}
+
+function isFeedbackHistoryEntry(v: unknown): v is FeedbackHistoryEntry {
+  if (typeof v !== 'object' || v === null) return false;
+  const h = v as Record<string, unknown>;
+  return (
+    typeof h.id === 'string' &&
+    typeof h.offerId === 'string' &&
+    typeof h.date === 'string' &&
+    typeof h.recommendation === 'string' &&
+    typeof h.cause === 'string' &&
+    typeof h.actionApplied === 'string' &&
+    typeof h.expectedResult === 'string' &&
+    typeof h.status === 'string'
+  );
+}
+
+function isFeedbackPreference(v: unknown): v is FeedbackPreference {
+  if (typeof v !== 'object' || v === null) return false;
+  const p = v as Record<string, unknown>;
+  return (
+    typeof p.id === 'string' &&
+    typeof p.offerId === 'string' &&
+    typeof p.key === 'string' &&
+    (typeof p.value === 'string' ||
+      typeof p.value === 'number' ||
+      typeof p.value === 'boolean') &&
+    typeof p.createdAt === 'string'
+  );
+}
+
 export function validateWorkspaceFile(value: unknown): WorkspaceFile {
   if (typeof value !== 'object' || value === null) {
     throw new WorkspaceStorageError('parse_error');
@@ -95,6 +159,18 @@ export function validateWorkspaceFile(value: unknown): WorkspaceFile {
   const recommendations = Array.isArray(v.recommendations)
     ? v.recommendations.filter(isRecommendation)
     : [];
+  const weekly_plans = Array.isArray(v.weekly_plans)
+    ? v.weekly_plans.filter(isWeeklyPlan)
+    : [];
+  const feedback_recommendations = Array.isArray(v.feedback_recommendations)
+    ? v.feedback_recommendations.filter(isFeedbackRecommendation)
+    : [];
+  const feedback_history = Array.isArray(v.feedback_history)
+    ? v.feedback_history.filter(isFeedbackHistoryEntry)
+    : [];
+  const feedback_preferences = Array.isArray(v.feedback_preferences)
+    ? v.feedback_preferences.filter(isFeedbackPreference)
+    : [];
   return {
     version: STORAGE_VERSION,
     exported_at: typeof v.exported_at === 'string' ? v.exported_at : undefined,
@@ -102,6 +178,10 @@ export function validateWorkspaceFile(value: unknown): WorkspaceFile {
     assets,
     calendar_slots,
     recommendations,
+    weekly_plans,
+    feedback_recommendations,
+    feedback_history,
+    feedback_preferences,
   };
 }
 

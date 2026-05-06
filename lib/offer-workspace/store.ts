@@ -21,15 +21,19 @@ import {
   type FeedbackRecommendation,
   type FeedbackRecommendationStatus,
   type Offer,
+  type OfferBundle,
   type OfferStatus,
   type PlanSlot,
   type PlanSlotStatus,
   type Recommendation,
   type RecommendationStatus,
+  type RepairReport,
   type WeeklyPlan,
   type WorkspaceFile,
+  type WorkspaceMergeMode,
   KIND_TO_DIMENSIONS,
 } from './types';
+import { mergeOfferBundle, mergeWorkspace, repairWorkspace } from './persistence';
 
 const STORAGE_KEY = 'socialboost.offer_workspace';
 
@@ -94,7 +98,12 @@ function writeEnvelope(env: WorkspaceFile): void {
   if (!isBrowser()) return;
   window.localStorage.setItem(
     STORAGE_KEY,
-    JSON.stringify({ ...env, version: STORAGE_VERSION }),
+    JSON.stringify({
+      ...env,
+      version: STORAGE_VERSION,
+      // AI-012: stamp every persisted write so the UI can show "last saved".
+      last_saved_at: new Date().toISOString(),
+    }),
   );
 }
 
@@ -148,6 +157,8 @@ export interface WorkspaceStore {
   listFeedbackRecommendations(planId: string): FeedbackRecommendation[];
   listFeedbackHistory(offerId: string): FeedbackHistoryEntry[];
   listFeedbackPreferences(offerId: string): FeedbackPreference[];
+  /** AI-012 — direct envelope read for backup/diagnostic. */
+  getEnvelope(): WorkspaceFile;
 
   // commands — offers
   createOffer(input: CreateOfferInput): Offer;
@@ -193,6 +204,11 @@ export interface WorkspaceStore {
   replaceAll(env: WorkspaceFile): void;
   exportAll(): WorkspaceFile;
   reset(): void;
+
+  // AI-012 — safe import (never silently overwrites)
+  mergeIncoming(env: WorkspaceFile, mode?: WorkspaceMergeMode): WorkspaceFile;
+  mergeIncomingOffer(bundle: OfferBundle): WorkspaceFile;
+  repair(): RepairReport;
 }
 
 export function createWorkspaceStore(): WorkspaceStore {
@@ -234,6 +250,10 @@ export function createWorkspaceStore(): WorkspaceStore {
     },
     listFeedbackPreferences(offerId) {
       return (list().feedback_preferences ?? []).filter((p) => p.offerId === offerId);
+    },
+
+    getEnvelope() {
+      return list();
     },
 
     createOffer(input) {
@@ -620,6 +640,31 @@ export function createWorkspaceStore(): WorkspaceStore {
 
     reset() {
       writeEnvelope(emptyEnvelope());
+    },
+
+    // -------------------------------------------------------------------------
+    // AI-012 — safe import / merge / repair
+    // -------------------------------------------------------------------------
+
+    mergeIncoming(env, mode = 'merge') {
+      const current = list();
+      const merged = mergeWorkspace(current, env, mode);
+      writeEnvelope(merged);
+      return merged;
+    },
+
+    mergeIncomingOffer(bundle) {
+      const current = list();
+      const merged = mergeOfferBundle(current, bundle);
+      writeEnvelope(merged);
+      return merged;
+    },
+
+    repair() {
+      const current = list();
+      const { repaired, report } = repairWorkspace(current);
+      writeEnvelope(repaired);
+      return report;
     },
   };
 }

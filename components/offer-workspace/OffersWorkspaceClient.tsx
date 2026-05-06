@@ -13,6 +13,7 @@ import { EmptyStateLoadExamples } from './EmptyStateLoadExamples';
 import { ExportImport } from './ExportImport';
 import { HowItWorksBanner } from './HowItWorksBanner';
 import { BestActionCard } from './BestActionCard';
+import { WorkspaceBackupPanel } from './WorkspaceBackupPanel';
 import { computeOfferKpis, filterOffers } from '@/lib/offer-workspace/kpis';
 import { DEMO_SEED } from '@/lib/offer-workspace/seed';
 import type { OfferStatus } from '@/lib/offer-workspace/types';
@@ -81,6 +82,10 @@ export function OffersWorkspaceClient({ language = 'fr' }: OffersWorkspaceClient
           }}
         />
       </header>
+
+      {hydrated && (
+        <WorkspaceBackupPanel store={store} refresh={refresh} language={language} />
+      )}
 
       {!hydrated ? (
         <SkeletonShell />
