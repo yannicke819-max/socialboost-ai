@@ -18,8 +18,11 @@ import {
   type CalendarSlotStatus,
   type Offer,
   type OfferStatus,
+  type PlanSlot,
+  type PlanSlotStatus,
   type Recommendation,
   type RecommendationStatus,
+  type WeeklyPlan,
   type WorkspaceFile,
   KIND_TO_DIMENSIONS,
 } from './types';
@@ -36,10 +39,26 @@ function isBrowser(): boolean {
 
 function readEnvelope(): WorkspaceFile {
   if (!isBrowser()) {
-    return { version: STORAGE_VERSION, offers: [], assets: [], calendar_slots: [], recommendations: [] };
+    return {
+      version: STORAGE_VERSION,
+      offers: [],
+      assets: [],
+      calendar_slots: [],
+      recommendations: [],
+      weekly_plans: [],
+    };
   }
   const raw = window.localStorage.getItem(STORAGE_KEY);
-  if (!raw) return { version: STORAGE_VERSION, offers: [], assets: [], calendar_slots: [], recommendations: [] };
+  if (!raw) {
+    return {
+      version: STORAGE_VERSION,
+      offers: [],
+      assets: [],
+      calendar_slots: [],
+      recommendations: [],
+      weekly_plans: [],
+    };
+  }
   let parsed: unknown;
   try {
     parsed = JSON.parse(raw);
@@ -60,6 +79,7 @@ function readEnvelope(): WorkspaceFile {
     assets: Array.isArray(env.assets) ? env.assets : [],
     calendar_slots: Array.isArray(env.calendar_slots) ? env.calendar_slots : [],
     recommendations: Array.isArray(env.recommendations) ? env.recommendations : [],
+    weekly_plans: Array.isArray(env.weekly_plans) ? env.weekly_plans : [],
   };
 }
 
@@ -115,6 +135,8 @@ export interface WorkspaceStore {
   listAssetsByOffer(offerId: string): Asset[];
   listSlotsByOffer(offerId: string): CalendarSlot[];
   listRecommendationsByOffer(offerId: string): Recommendation[];
+  /** AI-010 — current weekly plan for an offer (latest weekStart wins). */
+  getWeeklyPlanByOffer(offerId: string): WeeklyPlan | undefined;
 
   // commands — offers
   createOffer(input: CreateOfferInput): Offer;
@@ -137,6 +159,15 @@ export interface WorkspaceStore {
   // commands — recommendations (AI-008b)
   upsertRecommendations(offerId: string, recs: Recommendation[]): void;
   setRecommendationStatus(id: string, status: RecommendationStatus): Recommendation | undefined;
+
+  // commands — weekly plan (AI-010)
+  upsertWeeklyPlan(input: Omit<WeeklyPlan, 'id' | 'createdAt' | 'updatedAt' | 'slots'> & {
+    slots: Omit<PlanSlot, 'id'>[];
+  }): WeeklyPlan;
+  movePlanSlot(planId: string, slotId: string, dayIndex: number): WeeklyPlan | undefined;
+  setPlanSlotStatus(planId: string, slotId: string, status: PlanSlotStatus): WeeklyPlan | undefined;
+  removePlanSlot(planId: string, slotId: string): WeeklyPlan | undefined;
+  deleteWeeklyPlan(planId: string): boolean;
 
   // bulk
   replaceAll(env: WorkspaceFile): void;
@@ -162,6 +193,15 @@ export function createWorkspaceStore(): WorkspaceStore {
     },
     listRecommendationsByOffer(offerId) {
       return (list().recommendations ?? []).filter((r) => r.offerId === offerId);
+    },
+
+    getWeeklyPlanByOffer(offerId) {
+      const plans = (list().weekly_plans ?? []).filter((p) => p.offerId === offerId);
+      if (plans.length === 0) return undefined;
+      // Latest weekStart wins; ties broken by createdAt.
+      return plans.sort((a, b) =>
+        b.weekStart.localeCompare(a.weekStart) || b.createdAt.localeCompare(a.createdAt),
+      )[0];
     },
 
     createOffer(input) {
@@ -237,7 +277,8 @@ export function createWorkspaceStore(): WorkspaceStore {
       const assets = env.assets.filter((a) => a.offerId !== id);
       const calendar_slots = (env.calendar_slots ?? []).filter((s) => s.offerId !== id);
       const recommendations = (env.recommendations ?? []).filter((r) => r.offerId !== id);
-      writeEnvelope({ ...env, offers, assets, calendar_slots, recommendations });
+      const weekly_plans = (env.weekly_plans ?? []).filter((p) => p.offerId !== id);
+      writeEnvelope({ ...env, offers, assets, calendar_slots, recommendations, weekly_plans });
       return true;
     },
 
@@ -362,6 +403,83 @@ export function createWorkspaceStore(): WorkspaceStore {
       return updated;
     },
 
+    // -------------------------------------------------------------------------
+    // Weekly plan (AI-010) — one plan per (offer, weekStart). Re-upsert replaces.
+    // -------------------------------------------------------------------------
+
+    upsertWeeklyPlan(input) {
+      const env = list();
+      const now = nowIso();
+      const slots: PlanSlot[] = input.slots.map((s) => ({ ...s, id: newId('psl') }));
+      const existing = (env.weekly_plans ?? []).find(
+        (p) => p.offerId === input.offerId && p.weekStart === input.weekStart,
+      );
+      const plan: WeeklyPlan = {
+        id: existing?.id ?? newId('wpl'),
+        offerId: input.offerId,
+        weekStart: input.weekStart,
+        goal: input.goal,
+        slots,
+        createdAt: existing?.createdAt ?? now,
+        updatedAt: now,
+      };
+      const others = (env.weekly_plans ?? []).filter((p) => p.id !== plan.id);
+      writeEnvelope({ ...env, weekly_plans: [...others, plan] });
+      return plan;
+    },
+
+    movePlanSlot(planId, slotId, dayIndex) {
+      if (dayIndex < 0 || dayIndex > 6) return undefined;
+      const env = list();
+      let updated: WeeklyPlan | undefined;
+      const weekly_plans = (env.weekly_plans ?? []).map((p) => {
+        if (p.id !== planId) return p;
+        const slots = p.slots.map((s) => (s.id === slotId ? { ...s, dayIndex } : s));
+        updated = { ...p, slots, updatedAt: nowIso() };
+        return updated;
+      });
+      if (!updated) return undefined;
+      writeEnvelope({ ...env, weekly_plans });
+      return updated;
+    },
+
+    setPlanSlotStatus(planId, slotId, status) {
+      const env = list();
+      let updated: WeeklyPlan | undefined;
+      const weekly_plans = (env.weekly_plans ?? []).map((p) => {
+        if (p.id !== planId) return p;
+        const slots = p.slots.map((s) => (s.id === slotId ? { ...s, status } : s));
+        updated = { ...p, slots, updatedAt: nowIso() };
+        return updated;
+      });
+      if (!updated) return undefined;
+      writeEnvelope({ ...env, weekly_plans });
+      return updated;
+    },
+
+    removePlanSlot(planId, slotId) {
+      const env = list();
+      let updated: WeeklyPlan | undefined;
+      const weekly_plans = (env.weekly_plans ?? []).map((p) => {
+        if (p.id !== planId) return p;
+        const slots = p.slots.filter((s) => s.id !== slotId);
+        updated = { ...p, slots, updatedAt: nowIso() };
+        return updated;
+      });
+      if (!updated) return undefined;
+      writeEnvelope({ ...env, weekly_plans });
+      return updated;
+    },
+
+    deleteWeeklyPlan(planId) {
+      const env = list();
+      const before = (env.weekly_plans ?? []).length;
+      const weekly_plans = (env.weekly_plans ?? []).filter((p) => p.id !== planId);
+      if (weekly_plans.length === before) return false;
+      writeEnvelope({ ...env, weekly_plans });
+      return true;
+    },
+
     replaceAll(env) {
       const sanitized: WorkspaceFile = {
         version: STORAGE_VERSION,
@@ -370,6 +488,7 @@ export function createWorkspaceStore(): WorkspaceStore {
         assets: Array.isArray(env.assets) ? env.assets : [],
         calendar_slots: Array.isArray(env.calendar_slots) ? env.calendar_slots : [],
         recommendations: Array.isArray(env.recommendations) ? env.recommendations : [],
+        weekly_plans: Array.isArray(env.weekly_plans) ? env.weekly_plans : [],
       };
       writeEnvelope(sanitized);
     },
@@ -386,6 +505,7 @@ export function createWorkspaceStore(): WorkspaceStore {
         assets: [],
         calendar_slots: [],
         recommendations: [],
+        weekly_plans: [],
       });
     },
   };

@@ -24,6 +24,8 @@ export interface WorkspaceFile {
   /** AI-008b additive — older imports without these arrays remain valid. */
   calendar_slots?: CalendarSlot[];
   recommendations?: Recommendation[];
+  /** AI-010 additive — older imports without this array remain valid. */
+  weekly_plans?: WeeklyPlan[];
 }
 
 // -----------------------------------------------------------------------------
@@ -256,6 +258,91 @@ export interface Recommendation {
   status: RecommendationStatus;
   /** ISO 8601 — when the user changed status. Optional in V1. */
   updatedAt?: string;
+}
+
+// -----------------------------------------------------------------------------
+// Weekly Content Plan (AI-010 — mock only, no real publishing)
+// -----------------------------------------------------------------------------
+
+export const WEEKLY_PLAN_GOALS = [
+  'visibility',
+  'leads',
+  'trust',
+  'launch',
+  'reactivation',
+] as const;
+export type WeeklyPlanGoal = (typeof WEEKLY_PLAN_GOALS)[number];
+
+export const WEEKLY_PLAN_GOAL_LABELS: Record<WeeklyPlanGoal, { fr: string; en: string }> = {
+  visibility: { fr: 'Visibilité', en: 'Visibility' },
+  leads: { fr: 'Leads', en: 'Leads' },
+  trust: { fr: 'Confiance', en: 'Trust' },
+  launch: { fr: 'Lancement', en: 'Launch' },
+  reactivation: { fr: 'Réactivation', en: 'Reactivation' },
+};
+
+export const EDITORIAL_PILLARS = [
+  'education',
+  'proof',
+  'objection',
+  'behind_scenes',
+  'conversion',
+] as const;
+export type EditorialPillar = (typeof EDITORIAL_PILLARS)[number];
+
+export const EDITORIAL_PILLAR_LABELS: Record<EditorialPillar, { fr: string; en: string }> = {
+  education: { fr: 'Éducation', en: 'Education' },
+  proof: { fr: 'Preuve', en: 'Proof' },
+  objection: { fr: 'Objection', en: 'Objection' },
+  behind_scenes: { fr: 'Coulisses', en: 'Behind the scenes' },
+  conversion: { fr: 'Conversion', en: 'Conversion' },
+};
+
+export const PLAN_SLOT_STATUSES = ['draft', 'ready', 'scheduled'] as const;
+export type PlanSlotStatus = (typeof PLAN_SLOT_STATUSES)[number];
+
+export const PLAN_SLOT_STATUS_LABELS: Record<PlanSlotStatus, { fr: string; en: string }> = {
+  draft: { fr: 'Brouillon', en: 'Draft' },
+  ready: { fr: 'Prêt', en: 'Ready' },
+  scheduled: { fr: 'Planifié', en: 'Scheduled' },
+};
+
+/**
+ * A single slot in the weekly plan. dayIndex 0=Mon..6=Sun.
+ * `assetId` references an Asset; `free=true` marks a reserved slot for a
+ * spontaneous idea (no asset bound).
+ */
+export interface PlanSlot {
+  id: string;
+  dayIndex: number;
+  /** Suggested HH:MM (local). Display-only mock. */
+  suggestedTime: string;
+  channel: string;
+  /** Asset kind (echoes `Asset.kind` for filtering); empty when `free=true`. */
+  kind?: AssetKind;
+  pillar: EditorialPillar;
+  /** One-line editorial intent shown on the card. */
+  objective: string;
+  /** Short hook/title surfaced on the card. */
+  hook: string;
+  assetId?: string;
+  status: PlanSlotStatus;
+  free?: boolean;
+}
+
+/**
+ * One plan per offer per week. V1 keeps a single "current" plan per offer
+ * (latest weekStart wins). Future sprints may keep history.
+ */
+export interface WeeklyPlan {
+  id: string;
+  offerId: string;
+  /** ISO Y-M-D of the Monday of the planned week (UTC). */
+  weekStart: string;
+  goal: WeeklyPlanGoal;
+  slots: PlanSlot[];
+  createdAt: string;
+  updatedAt: string;
 }
 
 // -----------------------------------------------------------------------------
