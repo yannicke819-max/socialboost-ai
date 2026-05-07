@@ -568,6 +568,7 @@ function ChecklistView({
     { key: 'explicit_benefit', label: labels.checkBenefit },
     { key: 'proof_or_credibility', label: labels.checkProof },
     { key: 'format_fits_channel', label: labels.checkFit },
+    { key: 'language_consistency', label: labels.checkLanguage },
     { key: 'no_mock_leak_in_public_copy', label: labels.checkNoLeak },
   ];
   return (
@@ -744,6 +745,7 @@ const L_FR = {
   checkBenefit: 'Bénéfice explicite',
   checkProof: 'Preuve ou crédibilité présente',
   checkFit: 'Format adapté au canal',
+  checkLanguage: 'Texte cohérent dans une seule langue',
   checkNoLeak: 'Aucune mention « mock » dans le texte public',
 
   linkedInPreview: 'Aperçu post LinkedIn',
@@ -807,6 +809,7 @@ const L_EN: typeof L_FR = {
   checkBenefit: 'Explicit benefit',
   checkProof: 'Proof or credibility present',
   checkFit: 'Format fits the channel',
+  checkLanguage: 'Copy consistent in a single language',
   checkNoLeak: 'No "mock" leak in the public copy',
 
   linkedInPreview: 'LinkedIn post preview',

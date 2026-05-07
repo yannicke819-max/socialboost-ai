@@ -5,6 +5,7 @@ import {
   adToCleanText,
   adToDiffusionBrief,
   buildAdGallery,
+  checkLanguageConsistency,
   computeChecklist,
   computeReadyScore,
   diffusionSelectionId,
@@ -266,6 +267,196 @@ describe('diffusionSelectionId', () => {
   it('combines offer + ad ids deterministically', () => {
     assert.equal(diffusionSelectionId('ofr_a', 'ofr_a:product_promo_vertical'),
       'ofr_a:ofr_a:product_promo_vertical');
+  });
+});
+
+describe('AI-013 — language hardening (BLOCKER fix)', () => {
+  // Reproduce the original BLOCKER: an offer whose brief was written in EN
+  // (offer/targetAudience), but rendered through a chrome `language: 'fr'`
+  // prop must still produce a fully French public copy — no English shell
+  // fragments leaking from `brief.offer` or `brief.targetAudience`.
+  const englishBriefOffer = makeOffer({
+    id: 'ofr_blocker',
+    name: 'Nova Studio',
+    language: 'fr',
+    brief: {
+      businessName: 'Nova Studio',
+      offer: 'A 4-week program helping consultants articulate their offer and ship a simple sales page.',
+      targetAudience: 'consultants who sell services',
+      tone: 'professional',
+      language: 'fr',
+      platforms: ['linkedin', 'email'],
+      proofPoints: ['Méthode testée sur 12 offres de consultants'],
+    },
+  });
+
+  it('engine output language follows offer.brief.language, not the chrome prop', () => {
+    const gallery = buildAdGallery({
+      offer: englishBriefOffer,
+      assets: fullPool(),
+      // Even if chrome says 'en', the brief says 'fr' → output must be French.
+      language: 'en',
+      derivedAt: NOW,
+    });
+    const linkedin = gallery.find((u) => u.templateId === 'launch_linkedin');
+    assert.ok(linkedin);
+    assert.match(linkedin!.copy, /Aujourd'hui|Nova Studio lance/);
+  });
+
+  it('FR ad copy never contains the English shell fragments from the BLOCKER', () => {
+    const gallery = buildAdGallery({
+      offer: englishBriefOffer,
+      assets: fullPool(),
+      derivedAt: NOW,
+    });
+    for (const u of gallery) {
+      // The two leak fragments reported in the BLOCKER review.
+      assert.equal(
+        /A 4-week program/i.test(`${u.hook}\n${u.copy}\n${u.cta}`),
+        false,
+        `ad ${u.id} still leaks "A 4-week program"`,
+      );
+      assert.equal(
+        /\bconsultants who sell services\b/i.test(`${u.hook}\n${u.copy}\n${u.cta}`),
+        false,
+        `ad ${u.id} still leaks the EN targetAudience`,
+      );
+    }
+  });
+
+  it('FR ads do not contain English clause openers (today / book a / tap the / your audience)', () => {
+    const gallery = buildAdGallery({
+      offer: englishBriefOffer,
+      assets: fullPool(),
+      derivedAt: NOW,
+    });
+    for (const u of gallery) {
+      const blob = `${u.hook}\n${u.copy}\n${u.cta}`.toLowerCase();
+      assert.equal(
+        /\btoday\b|\bbook a |\btap the |\byour audience\b|\bhere is\b/.test(blob),
+        false,
+        `ad ${u.id} leaks an English opener: ${u.hook}`,
+      );
+    }
+  });
+
+  it('EN ads do not contain French clause openers (aujourd\'hui / réserver / cliquer)', () => {
+    const enOffer = makeOffer({
+      id: 'ofr_en',
+      language: 'en',
+      brief: {
+        businessName: 'Nova Studio',
+        offer: 'Programme de 4 semaines.',
+        targetAudience: 'B2B consultants',
+        tone: 'professional',
+        language: 'en',
+        platforms: ['linkedin', 'email'],
+        proofPoints: ['Tested on 12 consultant offers'],
+      },
+    });
+    const gallery = buildAdGallery({ offer: enOffer, assets: [], derivedAt: NOW });
+    for (const u of gallery) {
+      const blob = `${u.hook}\n${u.copy}\n${u.cta}`.toLowerCase();
+      assert.equal(
+        /\baujourd'hui\b|\bréserver?\b|\bcliquer?\b|\bvoici\b/.test(blob),
+        false,
+        `ad ${u.id} leaks a French opener: ${u.hook}`,
+      );
+    }
+  });
+
+  it('checkLanguageConsistency flags a French shell with English openers', () => {
+    const txt = `Aujourd'hui, Nova Studio ships a new version. Book a 20-minute slot.`;
+    assert.equal(checkLanguageConsistency(txt, 'fr'), false);
+  });
+
+  it('checkLanguageConsistency flags an English shell with "réserver"', () => {
+    const txt = `Today, Nova Studio ships a new version. Réserver un appel.`;
+    assert.equal(checkLanguageConsistency(txt, 'en'), false);
+  });
+
+  it('checkLanguageConsistency passes a clean monolingual FR copy', () => {
+    const txt = `Aujourd'hui, Nova Studio lance une nouvelle version.\n\nRéserve un créneau de cadrage.`;
+    assert.equal(checkLanguageConsistency(txt, 'fr'), true);
+  });
+
+  it('language inconsistency caps the ready score at 50', () => {
+    const offer = englishBriefOffer;
+    const inconsistent = computeChecklist({
+      offer,
+      hook: `Aujourd'hui, Nova Studio ships a new version.`,
+      copy: `Today, here is what you get. Réserver un appel.`,
+      cta: `Book a slot.`,
+      format: 'linkedin',
+      channel: 'linkedin',
+      hasScenes: false,
+      language: 'fr',
+    });
+    assert.equal(inconsistent.language_consistency, false);
+    const score = computeReadyScore(inconsistent, 90);
+    assert.ok(score <= 50, `expected ≤50, got ${score}`);
+  });
+
+  it('clean exports (copy + diffusion brief) carry no cross-language leak when brief is in EN but UI says FR', () => {
+    const gallery = buildAdGallery({
+      offer: englishBriefOffer,
+      assets: fullPool(),
+      language: 'en', // chrome says EN but brief says FR
+      derivedAt: NOW,
+    });
+    for (const u of gallery) {
+      const text = adToCleanText(u, 'fr');
+      assert.equal(/A 4-week program/i.test(text), false);
+      assert.equal(/consultants who sell services/i.test(text), false);
+      const brief = adToDiffusionBrief(u, 'fr');
+      assert.equal(/A 4-week program/i.test(brief), false);
+      assert.equal(/consultants who sell services/i.test(brief), false);
+    }
+  });
+
+  it('every generated ad in the gallery passes language_consistency when offer + proofPoints are aligned', () => {
+    // Assets and proofPoints carry user-typed text whose language is not
+    // enforced by the engine. To assert the engine itself is monolingual we
+    // test with an empty asset pool AND a proofPoint written in the brief's
+    // language — that way every public string is in a single language.
+    const aligned = {
+      fr: {
+        offer: makeOffer({
+          id: 'ofr_fr',
+          language: 'fr',
+          brief: {
+            ...makeOffer().brief,
+            language: 'fr',
+            proofPoints: ['Méthode testée sur 12 offres de consultants'],
+          },
+        }),
+      },
+      en: {
+        offer: makeOffer({
+          id: 'ofr_en',
+          language: 'en',
+          brief: {
+            businessName: 'Nova Studio',
+            offer: 'A 4-week program.',
+            targetAudience: 'B2B consultants',
+            tone: 'professional',
+            language: 'en',
+            platforms: ['linkedin', 'email'],
+            proofPoints: ['Validated with 12 consultant offers'],
+          },
+        }),
+      },
+    };
+    for (const lang of ['fr', 'en'] as const) {
+      const gallery = buildAdGallery({ offer: aligned[lang].offer, assets: [], derivedAt: NOW });
+      for (const u of gallery) {
+        assert.equal(
+          u.checklist.language_consistency,
+          true,
+          `ad ${u.id} fails language_consistency for language=${lang}: ${u.hook} | ${u.copy}`,
+        );
+      }
+    }
   });
 });
 

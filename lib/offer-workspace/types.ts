@@ -550,8 +550,12 @@ export const AD_STATUS_LABELS: Record<AdStatus, { fr: string; en: string }> = {
 };
 
 /**
- * The 7 "Prêt à diffuser" check items. The booleans are computed from the
+ * The 8 "Prêt à diffuser" check items. The booleans are computed from the
  * underlying ad data + offer brief; no manual override at V1.
+ *
+ * `language_consistency` is the AI-013 hardening hook: when the brief language
+ * does not match the public copy (e.g. an English shell phrase in a French
+ * ad), the score is heavily penalized via `computeReadyScore`.
  */
 export interface AdReadyChecklist {
   hook_in_first_3s: boolean;
@@ -561,6 +565,7 @@ export interface AdReadyChecklist {
   proof_or_credibility: boolean;
   format_fits_channel: boolean;
   no_mock_leak_in_public_copy: boolean;
+  language_consistency: boolean;
 }
 
 /**
