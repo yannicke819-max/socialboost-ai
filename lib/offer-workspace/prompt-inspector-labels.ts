@@ -55,6 +55,17 @@ export interface PromptInspectorCopy {
   freeModeCopyGeneric: string;
   freeModeCopyClaude: string;
   freeModeCopyChatGpt: string;
+  /** AI-016B: paid-plan provider runner button + result panel. */
+  paidTestButton: string;
+  paidTestRunningLabel: string;
+  paidTestResultTitle: string;
+  paidTestResultDryRunFlagOff: string;
+  paidTestResultDryRunNoKey: string;
+  paidTestResultBlockedLabel: string;
+  paidTestResultValidationErrorsLabel: string;
+  paidTestResultOutputLabel: string;
+  paidTestResultDraftReminder: string;
+  paidTestDisabledForFreeTooltip: string;
 }
 
 export const PROMPT_INSPECTOR_FR: PromptInspectorCopy = {
@@ -121,6 +132,20 @@ export const PROMPT_INSPECTOR_FR: PromptInspectorCopy = {
   freeModeCopyGeneric: 'Copier le brief IA',
   freeModeCopyClaude: 'Copier format Claude',
   freeModeCopyChatGpt: 'Copier format ChatGPT',
+  paidTestButton: 'Tester le brief IA',
+  paidTestRunningLabel: 'Test en cours…',
+  paidTestResultTitle: 'Résultat du test',
+  paidTestResultDryRunFlagOff:
+    "Provider IA désactivé sur cet environnement. Aucun appel réel n'a été effectué.",
+  paidTestResultDryRunNoKey:
+    'Aucune clé API configurée pour cet environnement. Test en mode démonstration.',
+  paidTestResultBlockedLabel: 'Bloqué',
+  paidTestResultValidationErrorsLabel: 'Erreurs de validation',
+  paidTestResultOutputLabel: 'Sortie (brouillon, à relire)',
+  paidTestResultDraftReminder:
+    "Cette sortie est un brouillon. Aucune annonce n'est créée ou publiée automatiquement. Relis avant de l'utiliser.",
+  paidTestDisabledForFreeTooltip:
+    'Le test provider IA est réservé aux plans payants. Le brief reste copiable en Free.',
 };
 
 export const PROMPT_INSPECTOR_EN: PromptInspectorCopy = {
@@ -186,6 +211,19 @@ export const PROMPT_INSPECTOR_EN: PromptInspectorCopy = {
   freeModeCopyGeneric: 'Copy AI brief',
   freeModeCopyClaude: 'Copy Claude format',
   freeModeCopyChatGpt: 'Copy ChatGPT format',
+  paidTestButton: 'Test AI brief',
+  paidTestRunningLabel: 'Testing…',
+  paidTestResultTitle: 'Test result',
+  paidTestResultDryRunFlagOff:
+    'AI provider is disabled on this environment. No real call was made.',
+  paidTestResultDryRunNoKey: 'No API key configured for this environment. Demo-only test.',
+  paidTestResultBlockedLabel: 'Blocked',
+  paidTestResultValidationErrorsLabel: 'Validation errors',
+  paidTestResultOutputLabel: 'Output (draft, please review)',
+  paidTestResultDraftReminder:
+    'This output is a draft. No ad is created or published automatically. Review before using it.',
+  paidTestDisabledForFreeTooltip:
+    'The AI provider test is reserved for paid plans. The brief stays copyable on Free.',
 };
 
 /** Microcopy for the AdStudio explainer line. */
