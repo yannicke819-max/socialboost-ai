@@ -36,6 +36,10 @@ import {
   reconcileAdUnits,
 } from '@/lib/offer-workspace/ad-studio';
 import { buildSingleVariant } from '@/lib/offer-workspace/pack-generator';
+import {
+  AD_STUDIO_BRIEF_HINT_EN,
+  AD_STUDIO_BRIEF_HINT_FR,
+} from '@/lib/offer-workspace/prompt-inspector-labels';
 
 interface AdStudioTabProps {
   offer: Offer;
@@ -265,6 +269,10 @@ export function AdStudioTab({
           {labels.topGuideTitle}
         </p>
         <p className="mt-1 text-sm text-fg-muted">{labels.topGuideBody}</p>
+        {/* AI-015 brief hint */}
+        <p className="mt-2 text-[12px] text-fg-subtle">
+          {language === 'en' ? AD_STUDIO_BRIEF_HINT_EN : AD_STUDIO_BRIEF_HINT_FR}
+        </p>
       </section>
 
       {/* Format filter — Expert mode only */}
