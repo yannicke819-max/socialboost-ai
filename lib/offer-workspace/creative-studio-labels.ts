@@ -51,6 +51,31 @@ export interface CreativeStudioCopy {
   ctaVisualLabel: string;
   productionNotesLabel: string;
   onScreenSuggestionsLabel: string;
+
+  // AI-017E — Creative Quality Selector
+  selectorTitle: string;
+  selectorSubtitle: string;
+  selectorHelper: string;
+  selectorUseWhenLabel: string;
+  selectorRulesLabel: string;
+  selectorScoreHintsLabel: string;
+  selectorWarningBreakthrough: string;
+  selectorCurrentDirectionLabel: string;
+  selectorTaglines: Record<'safe' | 'social_proof' | 'performance' | 'breakthrough', string>;
+  selectorUseWhen: Record<
+    'safe' | 'social_proof' | 'performance' | 'breakthrough',
+    readonly string[]
+  >;
+  selectorScoreAxisLabels: Record<
+    'attention' | 'clarity' | 'credibility' | 'conversionIntent' | 'distinctiveness' | 'brandSafety',
+    string
+  >;
+  selectorScoreLevelLabels: Record<
+    'low' | 'medium' | 'high' | 'very_high' | 'needs_review',
+    string
+  >;
+  /** Used as the line prefixed to every copied prompt: `${prefix} : ${label} — ${tagline}`. */
+  copyPrefixLabel: string;
 }
 
 export const CREATIVE_STUDIO_FR: CreativeStudioCopy = {
@@ -99,6 +124,62 @@ export const CREATIVE_STUDIO_FR: CreativeStudioCopy = {
   ctaVisualLabel: 'CTA visuel',
   productionNotesLabel: 'Notes de production',
   onScreenSuggestionsLabel: 'Règles texte à l’écran',
+
+  selectorTitle: 'Choisis ton intention créative',
+  selectorSubtitle:
+    'Safe, Social Proof, Performance ou Breakthrough — selon ce que tu veux tester.',
+  selectorHelper:
+    "Ce choix guide les prompts. Aucun modèle image ou vidéo n'est lancé.",
+  selectorUseWhenLabel: "Quand l'utiliser",
+  selectorRulesLabel: 'Règles créatives',
+  selectorScoreHintsLabel: 'Signaux',
+  selectorWarningBreakthrough:
+    'À valider humainement avant toute future génération média.',
+  selectorCurrentDirectionLabel: 'Direction créative sélectionnée',
+  selectorTaglines: {
+    safe: 'Clair, propre, brand-safe',
+    social_proof: "Humain, crédible, preuve d'usage",
+    performance: 'Hook fort, objection, CTA',
+    breakthrough: 'Pattern interrupt, émotion, mémorisation',
+  },
+  selectorUseWhen: {
+    safe: [
+      'tu veux une création simple et rassurante',
+      'tu testes une offre encore fragile',
+      'ta marque doit rester prudente',
+    ],
+    social_proof: [
+      'tu veux rassurer',
+      "tu veux montrer l'usage réel",
+      'tu veux un style UGC / créateur / client',
+    ],
+    performance: [
+      'tu veux tester la conversion',
+      'tu as une offre claire',
+      'tu veux un angle direct-response',
+    ],
+    breakthrough: [
+      'tu veux stopper le scroll',
+      'tu veux un angle différenciant',
+      'tu acceptes une review humaine',
+    ],
+  },
+  selectorScoreAxisLabels: {
+    attention: 'Attention',
+    clarity: 'Clarté',
+    credibility: 'Crédibilité',
+    conversionIntent: 'Intention conversion',
+    distinctiveness: 'Distinctivité',
+    brandSafety: 'Sécurité marque',
+  },
+  selectorScoreLevelLabels: {
+    low: 'faible',
+    medium: 'moyen',
+    high: 'élevé',
+    very_high: 'très élevé',
+    needs_review: 'à valider',
+  },
+  copyPrefixLabel: 'Direction créative',
 };
 
 export const CREATIVE_STUDIO_EN: CreativeStudioCopy = {
@@ -147,4 +228,60 @@ export const CREATIVE_STUDIO_EN: CreativeStudioCopy = {
   ctaVisualLabel: 'Visual CTA',
   productionNotesLabel: 'Production notes',
   onScreenSuggestionsLabel: 'On-screen text rules',
+
+  selectorTitle: 'Pick your creative intent',
+  selectorSubtitle:
+    'Safe, Social Proof, Performance or Breakthrough — depending on what you want to test.',
+  selectorHelper:
+    'This choice guides the prompts. No image or video model is launched.',
+  selectorUseWhenLabel: 'When to use',
+  selectorRulesLabel: 'Creative rules',
+  selectorScoreHintsLabel: 'Signals',
+  selectorWarningBreakthrough:
+    'Requires human review before any future media generation.',
+  selectorCurrentDirectionLabel: 'Selected creative direction',
+  selectorTaglines: {
+    safe: 'Clear, clean, brand-safe',
+    social_proof: 'Human, credible, real usage',
+    performance: 'Strong hook, objection, CTA',
+    breakthrough: 'Pattern interrupt, emotion, memorability',
+  },
+  selectorUseWhen: {
+    safe: [
+      'you want a simple, reassuring creative',
+      'you are still testing a fragile offer',
+      'your brand has to stay cautious',
+    ],
+    social_proof: [
+      'you want to reassure',
+      'you want to show real usage',
+      'you want a UGC / creator / client style',
+    ],
+    performance: [
+      'you want to test conversion',
+      'you have a clear offer',
+      'you want a direct-response angle',
+    ],
+    breakthrough: [
+      'you want to stop the scroll',
+      'you want a differentiating angle',
+      'you accept a human review',
+    ],
+  },
+  selectorScoreAxisLabels: {
+    attention: 'Attention',
+    clarity: 'Clarity',
+    credibility: 'Credibility',
+    conversionIntent: 'Conversion intent',
+    distinctiveness: 'Distinctiveness',
+    brandSafety: 'Brand safety',
+  },
+  selectorScoreLevelLabels: {
+    low: 'low',
+    medium: 'medium',
+    high: 'high',
+    very_high: 'very high',
+    needs_review: 'needs review',
+  },
+  copyPrefixLabel: 'Creative direction',
 };
