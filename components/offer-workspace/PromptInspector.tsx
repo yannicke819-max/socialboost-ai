@@ -1,7 +1,17 @@
 'use client';
 
 import { useMemo, useState } from 'react';
-import { Brain, Check, ClipboardCopy, ChevronRight, Plus, X, ArrowRight } from 'lucide-react';
+import {
+  AlertTriangle,
+  ArrowRight,
+  Brain,
+  Check,
+  ChevronRight,
+  ClipboardCopy,
+  Play,
+  Plus,
+  X,
+} from 'lucide-react';
 import { cn } from '@/lib/utils';
 import {
   EXTERNAL_INSPIRATION_PLATFORMS,
@@ -31,6 +41,7 @@ import {
   buildFreePromptPack,
   type FreePromptFormat,
 } from '@/lib/offer-workspace/free-prompt-generator';
+import type { AiProviderRunResult } from '@/lib/offer-workspace/ai-provider-runner';
 import type { AdUnit, Asset, Offer } from '@/lib/offer-workspace/types';
 
 interface PromptInspectorProps {
@@ -139,6 +150,43 @@ export function PromptInspector({
     }
   };
 
+  // AI-016B: paid-plan provider runner. Free users NEVER see the active
+  // button — it is rendered as disabled and short-circuits client-side
+  // before any fetch. The Free hard rule is also enforced server-side by
+  // the gateway via decideAiExecution.
+  const [testRunning, setTestRunning] = useState(false);
+  const [testResult, setTestResult] = useState<AiProviderRunResult | null>(null);
+  const [testError, setTestError] = useState<string | null>(null);
+  const isFree = plan === 'free';
+
+  const handleTest = async () => {
+    if (isFree) return; // belt-and-suspenders client guard
+    setTestRunning(true);
+    setTestError(null);
+    setTestResult(null);
+    try {
+      const res = await fetch('/api/ai/run-prompt', {
+        method: 'POST',
+        cache: 'no-store',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({
+          promptVersion: prompt,
+          inspirations: inspirations.length > 0 ? inspirations : undefined,
+          offer: { brief: { language: offer.brief.language } },
+          plan,
+          remainingCredits,
+          action: costAction,
+        }),
+      });
+      const json = (await res.json()) as AiProviderRunResult;
+      setTestResult(json);
+    } catch {
+      setTestError('network_error');
+    } finally {
+      setTestRunning(false);
+    }
+  };
+
   return (
     <details className="rounded-md border border-border bg-bg-elevated/40">
       <summary className="cursor-pointer list-none rounded-md px-4 py-3 hover:bg-bg-elevated">
@@ -206,12 +254,37 @@ export function PromptInspector({
           >
             <ClipboardCopy size={12} /> {labels.copyButton}
           </button>
+          {/* AI-016B: paid-plan provider runner. Free → disabled visually
+              + early return in handleTest. Server-side, the gateway also
+              refuses any Free call via decideAiExecution. */}
+          <button
+            type="button"
+            onClick={handleTest}
+            disabled={isFree || testRunning}
+            title={isFree ? labels.paidTestDisabledForFreeTooltip : undefined}
+            aria-disabled={isFree || testRunning}
+            className={cn(
+              'inline-flex items-center gap-1.5 rounded-md border px-3 py-1.5 font-mono text-[11px] uppercase tracking-wider transition focus-visible:ring-2 focus-visible:ring-brand',
+              isFree
+                ? 'cursor-not-allowed border-border bg-bg-elevated text-fg-subtle opacity-60'
+                : testRunning
+                  ? 'border-emerald-400/40 bg-emerald-400/5 text-emerald-400 opacity-60'
+                  : 'border-emerald-400/40 bg-emerald-400/5 text-emerald-400 hover:border-emerald-400 hover:text-emerald-300',
+            )}
+          >
+            <Play size={12} />{' '}
+            {testRunning ? labels.paidTestRunningLabel : labels.paidTestButton}
+          </button>
           {notice && (
             <span className="inline-flex items-center gap-1 rounded-md border border-emerald-400/40 bg-emerald-400/5 px-2 py-0.5 font-mono text-[10px] uppercase tracking-wider text-emerald-400">
               <Check size={10} /> {notice}
             </span>
           )}
         </div>
+
+        {(testResult || testError) && (
+          <PaidTestResultPanel result={testResult} error={testError} language={language} />
+        )}
 
         <Section title={labels.taskLabel} mono>
           {prompt.task} {prompt.channel ? `· ${prompt.channel}` : ''}
@@ -358,6 +431,74 @@ function FreeModeBlock({
       <p className="mt-2 inline-flex items-center gap-1 font-mono text-[10px] uppercase tracking-wider text-fg-subtle">
         <ArrowRight size={10} /> {labels.freeModeUpgradeCta}
       </p>
+    </section>
+  );
+}
+
+function PaidTestResultPanel({
+  result,
+  error,
+  language,
+}: {
+  result: AiProviderRunResult | null;
+  error: string | null;
+  language: 'fr' | 'en';
+}) {
+  const labels = language === 'en' ? PROMPT_INSPECTOR_EN : PROMPT_INSPECTOR_FR;
+  if (error) {
+    return (
+      <section className="rounded-md border border-amber-400/40 bg-amber-400/5 p-3">
+        <p className="inline-flex items-center gap-1 font-mono text-[10px] uppercase tracking-wider text-amber-400">
+          <AlertTriangle size={11} /> {error}
+        </p>
+      </section>
+    );
+  }
+  if (!result) return null;
+  const isDryRun = result.meta.dryRun;
+  const dryRunMsg = isDryRun
+    ? result.meta.flagEnabled
+      ? labels.paidTestResultDryRunNoKey
+      : labels.paidTestResultDryRunFlagOff
+    : null;
+  return (
+    <section className="rounded-md border border-brand/30 bg-brand/5 p-3">
+      <p className="font-mono text-[11px] uppercase tracking-wider text-brand">
+        {labels.paidTestResultTitle}
+      </p>
+      {dryRunMsg && (
+        <p className="mt-1 inline-flex items-center gap-1 rounded border border-amber-400/40 bg-amber-400/5 px-2 py-0.5 font-mono text-[10px] uppercase tracking-wider text-amber-400">
+          {dryRunMsg}
+        </p>
+      )}
+      <ul className="mt-2 grid gap-0.5 font-mono text-[10px] text-fg-muted sm:grid-cols-2">
+        <li>provider: <span className="text-fg">{result.provider}</span></li>
+        <li>model: <span className="text-fg">{result.model}</span></li>
+        {result.meta.decisionReason && (
+          <li className="sm:col-span-2">
+            decision: <span className="text-fg">{result.meta.decisionReason}</span>
+          </li>
+        )}
+        {result.blockedReason && (
+          <li className="text-amber-400 sm:col-span-2">
+            {labels.paidTestResultBlockedLabel}: {result.blockedReason}
+          </li>
+        )}
+        {result.validationErrors && result.validationErrors.length > 0 && (
+          <li className="text-amber-400 sm:col-span-2">
+            {labels.paidTestResultValidationErrorsLabel}: {result.validationErrors.join(', ')}
+          </li>
+        )}
+      </ul>
+      {result.outputText && (
+        <div className="mt-2">
+          <p className="font-mono text-[10px] uppercase tracking-wider text-fg-subtle">
+            {labels.paidTestResultOutputLabel}
+          </p>
+          <Pre>{result.outputText}</Pre>
+        </div>
+      )}
+      <p className="mt-2 text-[12px] text-fg-muted">{labels.paidTestResultDraftReminder}</p>
     </section>
   );
 }
