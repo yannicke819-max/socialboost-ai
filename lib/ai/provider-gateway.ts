@@ -1,30 +1,40 @@
 /**
- * AI Provider Gateway — server-only (AI-016B rebase on AI-016A guardrails).
+ * AI Provider Gateway — server-only (AI-016C wires the OpenAI adapter
+ * on top of the AI-016B + AI-016A guardrails).
  *
- * The ONLY place that reads `process.env.SOCIALBOOST_AI_PROVIDER_ENABLED`
- * and the API keys, and the ONLY place that does a real `fetch` to a
- * provider. Imported by the API route handler at app/api/ai/run-prompt.
+ * The ONLY place that:
+ *   - reads the AI provider env vars (`SOCIALBOOST_AI_PROVIDER_ENABLED`,
+ *     `SOCIALBOOST_AI_PROVIDER`, `SOCIALBOOST_AI_DEFAULT_MODEL`,
+ *     `SOCIALBOOST_OPENAI_API_KEY`),
+ *   - calls a real provider (via the OpenAI adapter for AI-016C; the
+ *     legacy Anthropic stub remains inert and untouched).
  *
- * Hard rules (AI-016B):
- *   - Server-only. Never imported from a client component.
- *   - Step 1: pre-flight (pure).
- *   - **Step 2: ALWAYS run `decideAiExecution` BEFORE the env flag is
- *     consulted as a final authorization.** If the entitlements layer
- *     refuses (Free, insufficient credits, premium not allowed, opus,
- *     etc.), the gateway returns immediately without ever touching the
- *     network.
- *   - Step 3: `SOCIALBOOST_AI_PROVIDER_ENABLED` is an additional gate ON
- *     TOP of the entitlements decision — it can never be a bypass. If
- *     the entitlements decision said no, the env flag is ignored.
- *   - Step 4: API key check. If missing → dry_run, no network.
- *   - Step 5: real fetch.
- *   - Step 6: post-flight (pure).
+ * Imported by the API route handler at `app/api/ai/run-prompt`. Never
+ * imported from a client component.
+ *
+ * Hard rules (AI-016A + AI-016B + AI-016C):
+ *   1. preflight (pure)
+ *   2. estimate credits (pure)
+ *   3. decideAiExecution (pure) — runs BEFORE any env flag is consulted
+ *   4. if !providerCallAllowed or !adminCostAllowed → dry_run/blocked
+ *   5. read providerFlagEnabled
+ *   6. if flag OFF → blocked `provider_disabled`
+ *   7. read API key
+ *   8. if key absent → blocked `provider_missing_key`
+ *   9. create adapter + call provider
+ *  10. postflight (pure) — re-scan output
+ *  11. return normalized result
  *
  * Free hard rule consequence:
  *   `decideAiExecution({ plan: 'free', ... })` returns
- *   `providerCallAllowed: false` regardless of `providerFlagEnabled`.
- *   Therefore step 2 always returns a dry_run for Free, and steps 3-6
- *   are never executed. Free → 0 fetch, 0 admin cost. Tests pin this.
+ *   `providerCallAllowed: false` regardless of `providerFlagEnabled` or any
+ *   user-provided key. Therefore step 4 always returns a dry-run for Free,
+ *   and steps 5-9 are never executed. Free → 0 fetch, 0 admin cost.
+ *
+ * Logging policy:
+ *   - Never log the prompt body, the API key, full provider responses, or
+ *     raw token strings. Logs surface `requestId`, provider name, http
+ *     status / error code only.
  *
  * No new dependency. Uses native `fetch`.
  */
@@ -44,9 +54,15 @@ import {
   estimateAiActionCost,
   type SocialBoostAction,
 } from '@/lib/offer-workspace/ai-cost-model';
+import {
+  createOpenAiProviderAdapter,
+  OpenAiAdapterError,
+  type AiProviderRawResult,
+  type OpenAiProviderAdapterOptions,
+} from '@/lib/ai/openai-provider-adapter';
 
 // -----------------------------------------------------------------------------
-// Flag + key resolution
+// Env resolution — gateway is the only module allowed to read process.env.
 // -----------------------------------------------------------------------------
 
 /** True only when the env flag is exactly 'true'. */
@@ -54,48 +70,61 @@ export function isProviderEnabled(): boolean {
   return process.env.SOCIALBOOST_AI_PROVIDER_ENABLED === 'true';
 }
 
-interface ResolvedProvider {
-  provider: AiProviderName;
-  apiKey: string;
-  model: string;
-  endpoint: string;
+/** Configured provider name, defaults to 'openai' for AI-016C. */
+function resolveProviderFromEnv(prefer?: AiProviderName): AiProviderName {
+  if (prefer && prefer !== 'mock') return prefer;
+  const v = process.env.SOCIALBOOST_AI_PROVIDER;
+  if (v === 'openai' || v === 'anthropic') return v;
+  return 'openai';
 }
 
-/**
- * Pick the first provider with a configured API key. Returns null when
- * none is configured. We never throw on missing keys — the caller falls
- * back to a dry-run.
- */
-function resolveProvider(prefer?: AiProviderName, override?: string): ResolvedProvider | null {
-  const anthropicKey = process.env.ANTHROPIC_API_KEY;
-  const openaiKey = process.env.OPENAI_API_KEY;
-  const order: AiProviderName[] = prefer && prefer !== 'mock'
-    ? [prefer, 'anthropic', 'openai']
-    : ['anthropic', 'openai'];
-  for (const p of order) {
-    if (p === 'anthropic' && anthropicKey) {
-      return {
-        provider: 'anthropic',
-        apiKey: anthropicKey,
-        model: override ?? 'claude-sonnet-4-6',
-        endpoint: 'https://api.anthropic.com/v1/messages',
-      };
-    }
-    if (p === 'openai' && openaiKey) {
-      return {
-        provider: 'openai',
-        apiKey: openaiKey,
-        model: override ?? 'gpt-4o-mini',
-        endpoint: 'https://api.openai.com/v1/chat/completions',
-      };
-    }
-  }
-  return null;
+/** Configured default model, defaults to 'gpt-4.1-mini' for AI-016C. */
+function resolveModelFromEnv(provider: AiProviderName, override?: string): string {
+  if (typeof override === 'string' && override.length > 0) return override;
+  const v = process.env.SOCIALBOOST_AI_DEFAULT_MODEL;
+  if (typeof v === 'string' && v.length > 0) return v;
+  return provider === 'anthropic' ? 'claude-sonnet-4-6' : 'gpt-4.1-mini';
+}
+
+function resolveOpenAiKey(): string | null {
+  const k = process.env.SOCIALBOOST_OPENAI_API_KEY;
+  return typeof k === 'string' && k.length > 0 ? k : null;
+}
+
+function resolveAnthropicKey(): string | null {
+  const k = process.env.ANTHROPIC_API_KEY;
+  return typeof k === 'string' && k.length > 0 ? k : null;
 }
 
 // -----------------------------------------------------------------------------
-// Public entry — STRICT order: preflight → decideAiExecution → env flag → key → fetch → postflight.
+// Public entry — STRICT order: preflight → entitlements → flag → key → fetch → postflight.
 // -----------------------------------------------------------------------------
+
+export interface RunAiProviderDeps {
+  /** Override for testing — defaults to `() => isProviderEnabled()`. */
+  flagReader?: () => boolean;
+  /** Override for testing — defaults to env-derived provider. */
+  providerResolver?: (prefer?: AiProviderName) => AiProviderName;
+  /** Override for testing — defaults to env-derived model. */
+  modelResolver?: (provider: AiProviderName, override?: string) => string;
+  /** Override for testing — defaults to `process.env.SOCIALBOOST_OPENAI_API_KEY`. */
+  openaiKeyReader?: () => string | null;
+  /** Override for testing — defaults to the real adapter factory. */
+  openaiAdapterFactory?: typeof createOpenAiProviderAdapter;
+  /**
+   * Override for testing the legacy Anthropic stub. Returns the raw text only.
+   * Defaults to a noop that throws `provider_call_failed`.
+   */
+  anthropicCaller?: (
+    input: AiProviderRunInput,
+    apiKey: string,
+    model: string,
+  ) => Promise<AiProviderRawResult>;
+  /** Override for testing — defaults to `(...args) => console.warn(...args)`. */
+  warn?: (msg: string) => void;
+  /** Override for testing — defaults to ISO `new Date().toISOString()`. */
+  isoNow?: () => string;
+}
 
 /**
  * Run a PromptVersion through the configured provider, with full pre-flight
@@ -104,11 +133,24 @@ function resolveProvider(prefer?: AiProviderName, override?: string): ResolvedPr
  */
 export async function runAiProvider(
   input: AiProviderRunInput,
+  deps: RunAiProviderDeps = {},
 ): Promise<AiProviderRunResult> {
-  const flagEnabled = isProviderEnabled();
+  const flagReader = deps.flagReader ?? isProviderEnabled;
+  const providerResolver = deps.providerResolver ?? resolveProviderFromEnv;
+  const modelResolver = deps.modelResolver ?? resolveModelFromEnv;
+  const openaiKeyReader = deps.openaiKeyReader ?? resolveOpenAiKey;
+  const adapterFactory = deps.openaiAdapterFactory ?? createOpenAiProviderAdapter;
+  const warn = deps.warn ?? ((msg: string) => {
+    // eslint-disable-next-line no-console
+    console.warn(msg);
+  });
+  const isoNow = deps.isoNow ?? (() => new Date().toISOString());
+
+  const flagEnabled = flagReader();
   const plan = input.plan ?? 'free';
   const remainingCredits = input.remainingCredits ?? 0;
-  const action: SocialBoostAction = (input.action ?? mapTaskToAction(input.promptVersion.task));
+  const action: SocialBoostAction =
+    input.action ?? mapTaskToAction(input.promptVersion.task);
 
   // -------------------------------------------------------------------------
   // Step 1 — Pre-flight (pure). No env. No network.
@@ -119,9 +161,9 @@ export async function runAiProvider(
   }
 
   // -------------------------------------------------------------------------
-  // Step 2 — AI-016A entitlements decision (pure). Runs BEFORE the env flag
-  // is consulted as a final authorization. If the decision says no, the
-  // gateway returns immediately without ever touching the network — even if
+  // Step 2 + 3 — AI-016A entitlements decision (pure). Runs BEFORE the env
+  // flag is consulted as a final authorization. If the decision says no, the
+  // gateway returns immediately without touching the network — even if
   // SOCIALBOOST_AI_PROVIDER_ENABLED=true. This is the Free hard rule's
   // structural enforcement point.
   // -------------------------------------------------------------------------
@@ -142,18 +184,12 @@ export async function runAiProvider(
   });
 
   if (!decision.providerCallAllowed || !decision.adminCostAllowed) {
-    // Free, insufficient credits, premium-not-allowed, expert-never-auto, etc.
-    // ALL go through this path. No network. No admin cost.
     if (decision.allowed) {
-      // Allowed in dry-run / byok shape — return a dry-run result that the UI
-      // can render alongside the Free Prompt Pack. The decisionReason
-      // surfaces *why* we are in dry-run.
       return buildDryRunResult(input, {
         flagEnabled,
         decisionReason: decision.reason,
       });
     }
-    // Hard block: insufficient credits, opus, premium-not-allowed, etc.
     return buildBlockedResult(
       input,
       decision.reason ?? 'entitlements_blocked',
@@ -163,72 +199,99 @@ export async function runAiProvider(
   }
 
   // -------------------------------------------------------------------------
-  // Step 3 — Env flag is now consulted as an ADDITIONAL gate. Even when the
+  // Step 4 — Env flag is now consulted as an ADDITIONAL gate. Even when the
   // entitlements layer says yes, the env flag must also be on for a real
-  // call. If off, dry-run.
+  // call. AI-016C: when off, return blocked `provider_disabled` so paid
+  // plans see a clear error rather than a silent dry-run.
   // -------------------------------------------------------------------------
   if (!flagEnabled) {
-    return buildDryRunResult(input, {
-      flagEnabled: false,
-      decisionReason: decision.reason,
-    });
+    return buildBlockedResult(input, 'provider_disabled', false, decision.reason);
   }
 
   // -------------------------------------------------------------------------
-  // Step 4 — API key check. No throw on missing.
+  // Step 5 — Resolve provider + model from env (or input override).
   // -------------------------------------------------------------------------
-  const resolved = resolveProvider(input.provider, input.model);
-  if (!resolved) {
-    return buildDryRunResult(input, {
-      flagEnabled: true,
-      decisionReason: decision.reason,
-    });
+  const provider = providerResolver(input.provider);
+  const model = modelResolver(provider, input.model);
+
+  // -------------------------------------------------------------------------
+  // Step 6 — API key check. AI-016C: when key absent, return blocked
+  // `provider_missing_key` for paid plans (was dry-run in AI-016B).
+  // -------------------------------------------------------------------------
+  let apiKey: string | null = null;
+  if (provider === 'openai') {
+    apiKey = openaiKeyReader();
+  } else if (provider === 'anthropic') {
+    apiKey = resolveAnthropicKey();
+  }
+  if (!apiKey) {
+    return buildBlockedResult(input, 'provider_missing_key', true, decision.reason);
   }
 
   // -------------------------------------------------------------------------
-  // Step 5 — Real call. Native fetch, AbortController timeout, redacted logs.
+  // Step 7 — Real call via adapter.
   // -------------------------------------------------------------------------
   const requestId = buildRequestId(input);
-  const startedAt = new Date().toISOString();
-  let outputText = '';
-  let inputTokens: number | undefined;
-  let outputTokens: number | undefined;
-
+  const startedAt = isoNow();
+  let raw: AiProviderRawResult;
   try {
-    const text = await callProvider(input, resolved);
-    outputText = text.outputText;
-    inputTokens = text.inputTokens;
-    outputTokens = text.outputTokens;
+    if (provider === 'openai') {
+      const adapterOpts: OpenAiProviderAdapterOptions = {
+        apiKey,
+        model,
+        timeoutMs: input.timeoutMs,
+      };
+      const adapter = adapterFactory(adapterOpts);
+      raw = await adapter.runOpenAiPrompt({
+        systemPrompt: input.promptVersion.systemPrompt,
+        userPrompt: input.promptVersion.userPrompt,
+        maxOutputTokens: input.maxTokens ?? 1024,
+        temperature: input.temperature ?? 0.4,
+      });
+    } else if (provider === 'anthropic' && deps.anthropicCaller) {
+      raw = await deps.anthropicCaller(input, apiKey, model);
+    } else {
+      // AI-016C only wires OpenAI. Anthropic stays unwired.
+      return buildBlockedResult(
+        input,
+        'provider_not_supported',
+        true,
+        decision.reason,
+      );
+    }
   } catch (err) {
-    // Logs redacted: requestId + name only, never the prompt body.
-    // eslint-disable-next-line no-console
-    console.warn(
-      `[ai-gateway] ${requestId} provider=${resolved.provider} error=${err instanceof Error ? err.name : 'unknown'}`,
-    );
-    return buildBlockedResult(input, 'provider_call_failed', true, decision.reason);
+    const code = err instanceof OpenAiAdapterError ? err.code : 'provider_call_failed';
+    const httpTag =
+      err instanceof OpenAiAdapterError && typeof err.httpStatus === 'number'
+        ? `_${err.httpStatus}`
+        : '';
+    warn(`[ai-gateway] ${requestId} provider=${provider} error=${code}${httpTag}`);
+    return buildBlockedResult(input, code, true, decision.reason);
   }
 
-  const finishedAt = new Date().toISOString();
+  const finishedAt = isoNow();
 
   // -------------------------------------------------------------------------
-  // Step 6 — Post-flight (pure).
+  // Step 8 — Post-flight (pure). Re-scan the model output.
   // -------------------------------------------------------------------------
   const post = postflightCheck({
     promptVersion: input.promptVersion,
-    outputText,
+    outputText: raw.outputText,
     inspirations: input.inspirations,
   });
 
   return {
-    ok: !post.blockedReason && !(post.validationErrors && post.validationErrors.length > 0),
-    provider: resolved.provider,
-    model: resolved.model,
+    ok:
+      !post.blockedReason &&
+      !(post.validationErrors && post.validationErrors.length > 0),
+    provider: raw.provider,
+    model: raw.model,
     task: input.promptVersion.task,
-    outputText,
+    outputText: raw.outputText,
     outputJson: post.outputJson,
     validationErrors: post.validationErrors,
     blockedReason: post.blockedReason,
-    usage: { inputTokens, outputTokens },
+    usage: { inputTokens: raw.inputTokens, outputTokens: raw.outputTokens },
     meta: {
       requestId,
       promptVersionId: input.promptVersion.id,
@@ -264,131 +327,4 @@ function mapTaskToAction(task: string): SocialBoostAction {
   return knownActions.includes(task as SocialBoostAction)
     ? (task as SocialBoostAction)
     : 'user_advice';
-}
-
-// -----------------------------------------------------------------------------
-// Provider call (native fetch).
-// -----------------------------------------------------------------------------
-
-interface ProviderCallOutput {
-  outputText: string;
-  inputTokens?: number;
-  outputTokens?: number;
-}
-
-async function callProvider(
-  input: AiProviderRunInput,
-  resolved: ResolvedProvider,
-): Promise<ProviderCallOutput> {
-  const timeoutMs = input.timeoutMs && input.timeoutMs > 0 ? input.timeoutMs : 30_000;
-  const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), timeoutMs);
-
-  try {
-    if (resolved.provider === 'anthropic') {
-      return await callAnthropic(input, resolved, controller.signal);
-    }
-    if (resolved.provider === 'openai') {
-      return await callOpenAi(input, resolved, controller.signal);
-    }
-    return { outputText: '' };
-  } finally {
-    clearTimeout(timer);
-  }
-}
-
-async function callAnthropic(
-  input: AiProviderRunInput,
-  resolved: ResolvedProvider,
-  signal: AbortSignal,
-): Promise<ProviderCallOutput> {
-  const body = {
-    model: resolved.model,
-    max_tokens: input.maxTokens ?? 1024,
-    temperature: input.temperature ?? 0.4,
-    system: [
-      {
-        type: 'text',
-        text: input.promptVersion.systemPrompt,
-        cache_control: { type: 'ephemeral' },
-      },
-    ],
-    messages: [
-      {
-        role: 'user',
-        content: input.promptVersion.userPrompt,
-      },
-    ],
-  };
-
-  const res = await fetch(resolved.endpoint, {
-    method: 'POST',
-    cache: 'no-store',
-    signal,
-    headers: {
-      'content-type': 'application/json',
-      'x-api-key': resolved.apiKey,
-      'anthropic-version': '2023-06-01',
-    },
-    body: JSON.stringify(body),
-  });
-
-  if (!res.ok) {
-    throw new Error(`anthropic_http_${res.status}`);
-  }
-  const json = (await res.json()) as {
-    content?: { type: string; text?: string }[];
-    usage?: { input_tokens?: number; output_tokens?: number };
-  };
-  const outputText = (json.content ?? [])
-    .filter((c) => c.type === 'text' && typeof c.text === 'string')
-    .map((c) => c.text as string)
-    .join('\n')
-    .trim();
-  return {
-    outputText,
-    inputTokens: json.usage?.input_tokens,
-    outputTokens: json.usage?.output_tokens,
-  };
-}
-
-async function callOpenAi(
-  input: AiProviderRunInput,
-  resolved: ResolvedProvider,
-  signal: AbortSignal,
-): Promise<ProviderCallOutput> {
-  const body = {
-    model: resolved.model,
-    temperature: input.temperature ?? 0.4,
-    max_tokens: input.maxTokens ?? 1024,
-    messages: [
-      { role: 'system', content: input.promptVersion.systemPrompt },
-      { role: 'user', content: input.promptVersion.userPrompt },
-    ],
-    response_format:
-      input.promptVersion.outputFormat === 'json' ? { type: 'json_object' } : undefined,
-  };
-  const res = await fetch(resolved.endpoint, {
-    method: 'POST',
-    cache: 'no-store',
-    signal,
-    headers: {
-      'content-type': 'application/json',
-      authorization: `Bearer ${resolved.apiKey}`,
-    },
-    body: JSON.stringify(body),
-  });
-  if (!res.ok) {
-    throw new Error(`openai_http_${res.status}`);
-  }
-  const json = (await res.json()) as {
-    choices?: { message?: { content?: string } }[];
-    usage?: { prompt_tokens?: number; completion_tokens?: number };
-  };
-  const outputText = (json.choices?.[0]?.message?.content ?? '').trim();
-  return {
-    outputText,
-    inputTokens: json.usage?.prompt_tokens,
-    outputTokens: json.usage?.completion_tokens,
-  };
 }
