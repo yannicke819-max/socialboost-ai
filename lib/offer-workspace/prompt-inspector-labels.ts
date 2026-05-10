@@ -42,6 +42,13 @@ export interface PromptInspectorCopy {
   inspirationsSignalsPh: string;
   inspirationsNotesLabel: string;
   inspirationsNotesPh: string;
+  /** AI-016A Free-mode block. */
+  freeModeBadge: string;
+  freeModeTitle: string;
+  freeModeBody: string;
+  freeModeUpgradeCta: string;
+  freeModeEstimateLabel: string;
+  freeModeRecommendedModelLabel: string;
 }
 
 export const PROMPT_INSPECTOR_FR: PromptInspectorCopy = {
@@ -94,6 +101,13 @@ export const PROMPT_INSPECTOR_FR: PromptInspectorCopy = {
     'beaucoup de commentaires\npublicité active depuis longtemps\nformat récurrent chez plusieurs concurrents',
   inspirationsNotesLabel: 'Notes (optionnel)',
   inspirationsNotesPh: 'Pourquoi tu trouves cet exemple intéressant ?',
+  freeModeBadge: 'Mode gratuit',
+  freeModeTitle: 'Le brief IA est prêt',
+  freeModeBody:
+    "Mode gratuit : SocialBoost prépare le brief IA, sans lancer de modèle payant. Copie-le pour l'utiliser dans ton outil habituel.",
+  freeModeUpgradeCta: 'Passer en Starter pour générer automatiquement',
+  freeModeEstimateLabel: 'Estimation',
+  freeModeRecommendedModelLabel: 'Modèle recommandé',
 };
 
 export const PROMPT_INSPECTOR_EN: PromptInspectorCopy = {
@@ -146,6 +160,13 @@ export const PROMPT_INSPECTOR_EN: PromptInspectorCopy = {
     'lots of comments\nrunning for months\nrecurring format across competitors',
   inspirationsNotesLabel: 'Notes (optional)',
   inspirationsNotesPh: 'Why do you find this example interesting?',
+  freeModeBadge: 'Free mode',
+  freeModeTitle: 'AI brief is ready',
+  freeModeBody:
+    'Free mode: SocialBoost prepares the AI brief without firing a paid model. Copy it to use in your usual tool.',
+  freeModeUpgradeCta: 'Upgrade to Starter to generate automatically',
+  freeModeEstimateLabel: 'Estimate',
+  freeModeRecommendedModelLabel: 'Recommended model',
 };
 
 /** Microcopy for the AdStudio explainer line. */

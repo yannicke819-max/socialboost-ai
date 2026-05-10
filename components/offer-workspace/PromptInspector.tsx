@@ -1,7 +1,7 @@
 'use client';
 
 import { useMemo, useState } from 'react';
-import { Brain, Check, ClipboardCopy, ChevronRight, Plus, X } from 'lucide-react';
+import { Brain, Check, ClipboardCopy, ChevronRight, Plus, X, ArrowRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import {
   EXTERNAL_INSPIRATION_PLATFORMS,
@@ -20,6 +20,13 @@ import {
   PROMPT_INSPECTOR_EN,
   PROMPT_INSPECTOR_FR,
 } from '@/lib/offer-workspace/prompt-inspector-labels';
+import {
+  estimateAiActionCost,
+  selectRecommendedModel,
+  type SocialBoostAction,
+  type SocialBoostPlan,
+} from '@/lib/offer-workspace/ai-cost-model';
+import { decideAiExecution } from '@/lib/offer-workspace/ai-entitlements';
 import type { AdUnit, Asset, Offer } from '@/lib/offer-workspace/types';
 
 interface PromptInspectorProps {
@@ -30,6 +37,10 @@ interface PromptInspectorProps {
   defaultChannel?: PromptChannel;
   selectedAssets?: Asset[];
   adUnit?: AdUnit;
+  /** AI-016A — current plan. Defaults to 'free' (safest). */
+  plan?: SocialBoostPlan;
+  /** AI-016A — for non-free plans only. Defaults to 0 on free. */
+  remainingCredits?: number;
 }
 
 /**
@@ -44,12 +55,57 @@ export function PromptInspector({
   defaultChannel,
   selectedAssets,
   adUnit,
+  plan = 'free',
+  remainingCredits = 0,
 }: PromptInspectorProps) {
   const labels = language === 'en' ? PROMPT_INSPECTOR_EN : PROMPT_INSPECTOR_FR;
   const [task, setTask] = useState<PromptTask>(defaultTask);
   const [channel, setChannel] = useState<PromptChannel | ''>(defaultChannel ?? '');
   const [notice, setNotice] = useState<string | null>(null);
   const [inspirations, setInspirations] = useState<ExternalInspirationInput[]>([]);
+
+  // AI-016A: pure-derived cost + entitlements decision. No fetch, no env.
+  const costAction: SocialBoostAction =
+    task === 'offer_diagnosis' ||
+    task === 'external_inspiration_analysis' ||
+    task === 'angle_discovery' ||
+    task === 'post_ideas' ||
+    task === 'ad_generation' ||
+    task === 'ad_critique' ||
+    task === 'ad_improvement' ||
+    task === 'weekly_plan' ||
+    task === 'user_advice'
+      ? task
+      : 'user_advice';
+  const recommended = useMemo(
+    () =>
+      selectRecommendedModel({
+        action: costAction,
+        plan,
+        qualityMode: 'balanced',
+      }),
+    [costAction, plan],
+  );
+  const estimate = useMemo(
+    () =>
+      estimateAiActionCost({
+        action: costAction,
+        provider: recommended.provider,
+        model: recommended.model,
+      }),
+    [costAction, recommended.provider, recommended.model],
+  );
+  const decision = useMemo(
+    () =>
+      decideAiExecution({
+        plan,
+        remainingCredits,
+        action: costAction,
+        requestedProvider: recommended.provider,
+        requestedModel: recommended.model,
+      }),
+    [plan, remainingCredits, costAction, recommended.provider, recommended.model],
+  );
 
   const prompt = useMemo(
     () =>
@@ -92,6 +148,14 @@ export function PromptInspector({
 
       <div className="space-y-4 border-t border-border px-4 py-4">
         <p className="text-[12px] text-fg-muted">{labels.helperLine}</p>
+
+        {decision.mode === 'dry_run' && plan === 'free' && (
+          <FreeModeBlock
+            language={language}
+            estimatedCredits={estimate.estimatedCredits}
+            recommendedModel={`${recommended.provider}:${recommended.model}`}
+          />
+        )}
 
         <div className="grid gap-2 sm:grid-cols-2">
           <label className="space-y-1">
@@ -210,6 +274,34 @@ function Section({
       <div className={cn(mono ? 'font-mono text-[11px] text-fg' : 'text-sm text-fg-muted')}>
         {children}
       </div>
+    </section>
+  );
+}
+
+function FreeModeBlock({
+  language,
+  estimatedCredits,
+  recommendedModel,
+}: {
+  language: 'fr' | 'en';
+  estimatedCredits: number;
+  recommendedModel: string;
+}) {
+  const labels = language === 'en' ? PROMPT_INSPECTOR_EN : PROMPT_INSPECTOR_FR;
+  return (
+    <section className="rounded-md border border-amber-400/30 bg-amber-400/5 p-3">
+      <span className="font-mono text-[10px] uppercase tracking-wider text-amber-400">
+        {labels.freeModeBadge}
+      </span>
+      <p className="mt-1 font-display text-sm font-semibold text-fg">{labels.freeModeTitle}</p>
+      <p className="mt-1 text-[12px] text-fg-muted">{labels.freeModeBody}</p>
+      <ul className="mt-2 grid gap-0.5 font-mono text-[10px] text-fg-subtle sm:grid-cols-2">
+        <li>{labels.freeModeEstimateLabel}: <span className="text-fg-muted">{estimatedCredits}</span></li>
+        <li>{labels.freeModeRecommendedModelLabel}: <span className="text-fg-muted">{recommendedModel}</span></li>
+      </ul>
+      <p className="mt-2 inline-flex items-center gap-1 font-mono text-[10px] uppercase tracking-wider text-fg-subtle">
+        <ArrowRight size={10} /> {labels.freeModeUpgradeCta}
+      </p>
     </section>
   );
 }
