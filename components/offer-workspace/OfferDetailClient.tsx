@@ -33,11 +33,20 @@ import {
 interface OfferDetailClientProps {
   offerId: string;
   language?: 'fr' | 'en';
+  /** AI-016D — passed by the Server Component that reads env. */
+  providerEnabled?: boolean;
+  /** AI-016D — true on non-Production environments only. */
+  simulatedPlanAllowed?: boolean;
 }
 
 type TabKey = 'brief' | 'assets' | 'adstudio' | 'plan' | 'calendar' | 'analytics' | 'feedback' | 'recos';
 
-export function OfferDetailClient({ offerId, language = 'fr' }: OfferDetailClientProps) {
+export function OfferDetailClient({
+  offerId,
+  language = 'fr',
+  providerEnabled = false,
+  simulatedPlanAllowed = false,
+}: OfferDetailClientProps) {
   const { hydrated, offers, assets, slots, refresh, store } = useWorkspaceStore();
   const offer = useMemo(() => offers.find((o) => o.id === offerId), [offers, offerId]);
   const offerAssets = useMemo(() => assets.filter((a) => a.offerId === offerId), [assets, offerId]);
@@ -247,6 +256,8 @@ export function OfferDetailClient({ offerId, language = 'fr' }: OfferDetailClien
                     : 'user_advice'
         }
         selectedAssets={offerAssets.filter((a) => a.status === 'approved').slice(0, 6)}
+        providerEnabled={providerEnabled}
+        simulatedPlanAllowed={simulatedPlanAllowed}
       />
     </div>
   );

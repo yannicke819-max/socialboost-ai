@@ -66,6 +66,18 @@ export interface PromptInspectorCopy {
   paidTestResultOutputLabel: string;
   paidTestResultDraftReminder: string;
   paidTestDisabledForFreeTooltip: string;
+  /** AI-016D: smoke-test three-state explainers + enriched result panel. */
+  smokeFreeStateExplain: string;
+  smokePaidDisabledExplain: string;
+  smokePaidEnabledCta: string;
+  smokeSimulatedPlanLabel: string;
+  smokeSimulatedPlanHint: string;
+  smokeSimulatedPlanReset: string;
+  resultPanelEstimatedCreditsLabel: string;
+  resultPanelStatusLabel: string;
+  resultPanelStatusOk: string;
+  resultPanelStatusBlocked: string;
+  resultPanelStatusDryRun: string;
 }
 
 export const PROMPT_INSPECTOR_FR: PromptInspectorCopy = {
@@ -146,6 +158,18 @@ export const PROMPT_INSPECTOR_FR: PromptInspectorCopy = {
     "Cette sortie est un brouillon. Aucune annonce n'est créée ou publiée automatiquement. Relis avant de l'utiliser.",
   paidTestDisabledForFreeTooltip:
     'Le test provider IA est réservé aux plans payants. Le brief reste copiable en Free.',
+  smokeFreeStateExplain: 'Mode gratuit : copie le brief IA, aucun modèle lancé.',
+  smokePaidDisabledExplain: 'Génération IA indisponible sur cet environnement.',
+  smokePaidEnabledCta: 'Générer un test IA',
+  smokeSimulatedPlanLabel: 'Plan simulé (Preview)',
+  smokeSimulatedPlanHint:
+    'Disponible uniquement sur Preview. Aucun appel Stripe, aucune facturation.',
+  smokeSimulatedPlanReset: 'Réinitialiser',
+  resultPanelEstimatedCreditsLabel: 'Crédits estimés',
+  resultPanelStatusLabel: 'Statut',
+  resultPanelStatusOk: 'OK',
+  resultPanelStatusBlocked: 'Bloqué',
+  resultPanelStatusDryRun: 'Démonstration (dry-run)',
 };
 
 export const PROMPT_INSPECTOR_EN: PromptInspectorCopy = {
@@ -224,6 +248,17 @@ export const PROMPT_INSPECTOR_EN: PromptInspectorCopy = {
     'This output is a draft. No ad is created or published automatically. Review before using it.',
   paidTestDisabledForFreeTooltip:
     'The AI provider test is reserved for paid plans. The brief stays copyable on Free.',
+  smokeFreeStateExplain: 'Free mode: copy the AI brief, no model is launched.',
+  smokePaidDisabledExplain: 'AI generation is unavailable on this environment.',
+  smokePaidEnabledCta: 'Run an AI test',
+  smokeSimulatedPlanLabel: 'Simulated plan (Preview)',
+  smokeSimulatedPlanHint: 'Preview only. No Stripe call, no billing.',
+  smokeSimulatedPlanReset: 'Reset',
+  resultPanelEstimatedCreditsLabel: 'Estimated credits',
+  resultPanelStatusLabel: 'Status',
+  resultPanelStatusOk: 'OK',
+  resultPanelStatusBlocked: 'Blocked',
+  resultPanelStatusDryRun: 'Demo (dry-run)',
 };
 
 /** Microcopy for the AdStudio explainer line. */
