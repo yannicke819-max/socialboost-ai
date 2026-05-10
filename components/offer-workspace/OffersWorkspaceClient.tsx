@@ -1,7 +1,8 @@
 'use client';
 
 import { useMemo, useState } from 'react';
-import { LayoutGrid, Rows3 } from 'lucide-react';
+import Link from 'next/link';
+import { LayoutGrid, Rows3, Sparkles } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/Button';
 import { useWorkspaceStore } from './useWorkspaceStore';
@@ -73,14 +74,22 @@ export function OffersWorkspaceClient({ language = 'fr' }: OffersWorkspaceClient
           </h1>
           <p className="mt-1 max-w-2xl text-sm text-fg-muted">{labels.subtitle}</p>
         </div>
-        <ExportImport
-          language={language}
-          onExport={() => store.exportAll()}
-          onImport={(file) => {
-            store.replaceAll(file);
-            refresh();
-          }}
-        />
+        <div className="flex flex-wrap items-center gap-2">
+          <Link
+            href="/ai/onboarding"
+            className="inline-flex items-center gap-1.5 rounded-md border border-brand/60 bg-brand/15 px-3 py-1.5 font-mono text-[11px] uppercase tracking-wider text-fg transition hover:border-brand hover:bg-brand/25 focus-visible:ring-2 focus-visible:ring-brand"
+          >
+            <Sparkles size={12} /> {labels.heroCta}
+          </Link>
+          <ExportImport
+            language={language}
+            onExport={() => store.exportAll()}
+            onImport={(file) => {
+              store.replaceAll(file);
+              refresh();
+            }}
+          />
+        </div>
       </header>
 
       {hydrated && (
@@ -90,13 +99,16 @@ export function OffersWorkspaceClient({ language = 'fr' }: OffersWorkspaceClient
       {!hydrated ? (
         <SkeletonShell />
       ) : showEmpty ? (
-        <EmptyStateLoadExamples
-          language={language}
-          onLoad={loadDemoSeed}
-          onImport={() => {
-            // The ExportImport above is already in the header. Nothing else.
-          }}
-        />
+        <>
+          <OnboardingEmptyState language={language} />
+          <EmptyStateLoadExamples
+            language={language}
+            onLoad={loadDemoSeed}
+            onImport={() => {
+              // The ExportImport above is already in the header. Nothing else.
+            }}
+          />
+        </>
       ) : (
         <>
           <BestActionCard offers={offers} assets={assets} slots={slots} language={language} />
@@ -165,6 +177,29 @@ function ViewToggle({
   );
 }
 
+function OnboardingEmptyState({ language }: { language: 'fr' | 'en' }) {
+  const labels = language === 'en' ? L_EN : L_FR;
+  return (
+    <section className="rounded-md border border-brand/40 bg-brand/5 p-5 sm:p-6">
+      <p className="font-mono text-[11px] uppercase tracking-wider text-brand">
+        {labels.onboardingEyebrow}
+      </p>
+      <h2 className="mt-1 font-display text-2xl font-semibold italic leading-tight text-fg">
+        {labels.onboardingTitle}
+      </h2>
+      <p className="mt-1 max-w-xl text-sm text-fg-muted">{labels.onboardingBody}</p>
+      <div className="mt-4 flex flex-wrap items-center gap-2">
+        <Link
+          href="/ai/onboarding"
+          className="inline-flex items-center gap-1.5 rounded-md border border-brand/60 bg-brand/15 px-4 py-2 font-mono text-[11px] uppercase tracking-wider text-fg transition hover:border-brand hover:bg-brand/25 focus-visible:ring-2 focus-visible:ring-brand"
+        >
+          <Sparkles size={12} /> {labels.onboardingCta}
+        </Link>
+      </div>
+    </section>
+  );
+}
+
 function SkeletonShell() {
   return (
     <div className="space-y-3">
@@ -188,10 +223,22 @@ const L_FR = {
   subtitle:
     "Crée, suit et active tes offres. Le dashboard mesure la performance par offre, promesse, preuve, angle, objection, CTA, asset et canal.",
   shown: 'visibles',
+  heroCta: 'Créer ma première annonce',
+  onboardingEyebrow: 'Démarrer',
+  onboardingTitle: 'Crée ta première annonce en 3 minutes',
+  onboardingBody:
+    "Réponds à 4 questions simples. On génère ensuite tes premières annonces prêtes à prévisualiser dans Ad Studio. Aucune publication réelle.",
+  onboardingCta: 'Commencer',
 };
 const L_EN = {
   title: 'Your offers, one frame.',
   subtitle:
     'Create, track and ship your offers. The dashboard measures performance across offer, promise, proof, angle, objection, CTA, asset and channel.',
   shown: 'shown',
+  heroCta: 'Create my first ad',
+  onboardingEyebrow: 'Start here',
+  onboardingTitle: 'Create your first ad in 3 minutes',
+  onboardingBody:
+    'Answer 4 simple questions. We then generate your first ads ready to preview inside Ad Studio. No real publishing.',
+  onboardingCta: 'Start',
 };

@@ -1,7 +1,8 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
+import { useSearchParams } from 'next/navigation';
 import { ArrowLeft, Briefcase, Layers, Calendar, BarChart3, Sparkles, CalendarDays, TrendingUp, Megaphone } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useWorkspaceStore } from './useWorkspaceStore';
@@ -16,6 +17,7 @@ import { AdStudioTab } from './tabs/AdStudioTab';
 import { OfferTimeline } from './OfferTimeline';
 import { QuickActions } from './QuickActions';
 import { STATUS_LABELS } from '@/lib/offer-workspace/types';
+import { buildAdGallery } from '@/lib/offer-workspace/ad-studio';
 
 interface OfferDetailClientProps {
   offerId: string;
@@ -29,7 +31,20 @@ export function OfferDetailClient({ offerId, language = 'fr' }: OfferDetailClien
   const offer = useMemo(() => offers.find((o) => o.id === offerId), [offers, offerId]);
   const offerAssets = useMemo(() => assets.filter((a) => a.offerId === offerId), [assets, offerId]);
   const offerSlots = useMemo(() => slots.filter((s) => s.offerId === offerId), [slots, offerId]);
+  const params = useSearchParams();
   const [tab, setTab] = useState<TabKey>('brief');
+
+  // AI-014: pick up `?tab=<key>` on mount so deep-links from the onboarding
+  // wizard (e.g. /ai/offers/<id>?tab=adstudio) land on the right tab.
+  useEffect(() => {
+    const t = params.get('tab');
+    const valid: TabKey[] = ['brief', 'assets', 'adstudio', 'plan', 'calendar', 'analytics', 'feedback', 'recos'];
+    if (t && (valid as string[]).includes(t)) {
+      setTab(t as TabKey);
+    }
+    // Only honour on mount; user clicks override afterwards.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   if (!hydrated) {
     return <div className="h-40 animate-pulse rounded-md bg-bg-elevated/60" />;
@@ -79,6 +94,27 @@ export function OfferDetailClient({ offerId, language = 'fr' }: OfferDetailClien
       >
         {labels.mockNotice}
       </p>
+
+      {hydrated && store.listAdUnits(offer.id).length === 0 && offerAssets.length > 0 && tab !== 'adstudio' && (
+        <div className="flex flex-wrap items-center justify-between gap-2 rounded-md border border-brand/40 bg-brand/5 p-3">
+          <p className="text-sm text-fg">
+            <Megaphone size={14} className="mr-1.5 inline text-brand" />
+            {labels.noAdsBanner}
+          </p>
+          <button
+            type="button"
+            onClick={() => {
+              const ads = buildAdGallery({ offer, assets: offerAssets });
+              store.upsertAdUnits(offer.id, ads);
+              refresh();
+              setTab('adstudio');
+            }}
+            className="inline-flex items-center gap-1.5 rounded-md border border-brand/60 bg-brand/15 px-3 py-1.5 font-mono text-[11px] uppercase tracking-wider text-fg transition hover:border-brand hover:bg-brand/25 focus-visible:ring-2 focus-visible:ring-brand"
+          >
+            <Sparkles size={12} /> {labels.noAdsCta}
+          </button>
+        </div>
+      )}
 
       <nav className="flex flex-wrap gap-1 border-b border-border" aria-label="Tabs">
         <Tab id="brief" current={tab} onSelect={setTab} icon={<Briefcase size={13} />}>
@@ -257,6 +293,8 @@ const L_FR = {
     "Tout est mock V1 : aucun post n'est publié, aucune analytics n'est mesurée. Données locales (localStorage) pour permettre la démonstration.",
   mockTooltip:
     'Les statuts « sent_mock » / « scheduled_mock » indiquent une simulation locale. Aucune intégration LinkedIn / Meta / email n\'est branchée.',
+  noAdsBanner: 'Aucune annonce générée pour cette offre.',
+  noAdsCta: 'Générer mes annonces',
 };
 const L_EN = {
   back: 'Back to offers',
@@ -273,4 +311,6 @@ const L_EN = {
     'Everything is MOCK V1: no post is published, no real analytics is measured. Local data (localStorage) for demo purposes.',
   mockTooltip:
     'The "sent_mock" / "scheduled_mock" statuses indicate a local simulation. No LinkedIn / Meta / email integration is wired.',
+  noAdsBanner: 'No ads generated yet for this offer.',
+  noAdsCta: 'Generate my ads',
 };
