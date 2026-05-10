@@ -16,6 +16,7 @@ import { FeedbackTab } from './tabs/FeedbackTab';
 import { AdStudioTab } from './tabs/AdStudioTab';
 import { OfferTimeline } from './OfferTimeline';
 import { QuickActions } from './QuickActions';
+import { PromptInspector } from './PromptInspector';
 import { STATUS_LABELS } from '@/lib/offer-workspace/types';
 import { buildAdGallery } from '@/lib/offer-workspace/ad-studio';
 import {
@@ -226,6 +227,27 @@ export function OfferDetailClient({ offerId, language = 'fr' }: OfferDetailClien
           />
         )}
       </section>
+
+      {/* AI-015: discrete "Voir le brief IA" inspector — closed by default,
+          available for transparency / advanced users only. */}
+      <PromptInspector
+        offer={offer}
+        language={language}
+        defaultTask={
+          tab === 'adstudio'
+            ? 'ad_generation'
+            : tab === 'assets'
+              ? 'post_ideas'
+              : tab === 'plan'
+                ? 'weekly_plan'
+                : tab === 'feedback'
+                  ? 'ad_critique'
+                  : tab === 'brief'
+                    ? 'offer_diagnosis'
+                    : 'user_advice'
+        }
+        selectedAssets={offerAssets.filter((a) => a.status === 'approved').slice(0, 6)}
+      />
     </div>
   );
 }
