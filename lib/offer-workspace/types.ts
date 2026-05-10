@@ -32,6 +32,9 @@ export interface WorkspaceFile {
   feedback_recommendations?: FeedbackRecommendation[];
   feedback_history?: FeedbackHistoryEntry[];
   feedback_preferences?: FeedbackPreference[];
+  /** AI-013 additive — older imports without these arrays remain valid. */
+  ad_units?: AdUnit[];
+  ad_diffusion_selections?: AdDiffusionSelection[];
 }
 
 // -----------------------------------------------------------------------------
@@ -495,6 +498,148 @@ export interface FeedbackPreference {
 }
 
 // -----------------------------------------------------------------------------
+// Final Ad Studio (AI-013 — mock only, no real publishing, no rendered video)
+// -----------------------------------------------------------------------------
+
+export const AD_TYPES = [
+  'product_promo_video',
+  'saas_demo_video',
+  'ugc_testimonial',
+  'before_after',
+  'launch_announcement',
+  'objection_breaker',
+  'linkedin_carousel',
+  'static_meta',
+  'tiktok_reels_short',
+  'youtube_short_ad',
+] as const;
+export type AdType = (typeof AD_TYPES)[number];
+
+export const AD_TYPE_LABELS: Record<AdType, { fr: string; en: string }> = {
+  product_promo_video: { fr: 'Promo produit', en: 'Product promo' },
+  saas_demo_video: { fr: 'Démo SaaS', en: 'SaaS demo' },
+  ugc_testimonial: { fr: 'UGC témoignage', en: 'UGC testimonial' },
+  before_after: { fr: 'Avant / après', en: 'Before / after' },
+  launch_announcement: { fr: 'Lancement', en: 'Launch' },
+  objection_breaker: { fr: 'Lève-objection', en: 'Objection breaker' },
+  linkedin_carousel: { fr: 'Carousel LinkedIn', en: 'LinkedIn carousel' },
+  static_meta: { fr: 'Annonce statique', en: 'Static ad' },
+  tiktok_reels_short: { fr: 'TikTok / Reels', en: 'TikTok / Reels' },
+  youtube_short_ad: { fr: 'YouTube Short', en: 'YouTube Short' },
+};
+
+export const AD_FORMATS = ['9:16', '1:1', '16:9', 'linkedin', 'carousel', 'email'] as const;
+export type AdFormat = (typeof AD_FORMATS)[number];
+
+export const AD_FORMAT_LABELS: Record<AdFormat, { fr: string; en: string }> = {
+  '9:16': { fr: 'Vertical 9:16', en: 'Vertical 9:16' },
+  '1:1': { fr: 'Carré 1:1', en: 'Square 1:1' },
+  '16:9': { fr: 'Paysage 16:9', en: 'Landscape 16:9' },
+  linkedin: { fr: 'Post LinkedIn', en: 'LinkedIn post' },
+  carousel: { fr: 'Carousel', en: 'Carousel' },
+  email: { fr: 'Email promo', en: 'Email promo' },
+};
+
+export const AD_STATUSES = ['draft', 'ready', 'selected'] as const;
+export type AdStatus = (typeof AD_STATUSES)[number];
+
+export const AD_STATUS_LABELS: Record<AdStatus, { fr: string; en: string }> = {
+  draft: { fr: 'Brouillon', en: 'Draft' },
+  ready: { fr: 'Prête', en: 'Ready' },
+  selected: { fr: 'Sélectionnée', en: 'Selected' },
+};
+
+/**
+ * The 8 "Prêt à diffuser" check items. The booleans are computed from the
+ * underlying ad data + offer brief; no manual override at V1.
+ *
+ * `language_consistency` is the AI-013 hardening hook: when the brief language
+ * does not match the public copy (e.g. an English shell phrase in a French
+ * ad), the score is heavily penalized via `computeReadyScore`.
+ */
+export interface AdReadyChecklist {
+  hook_in_first_3s: boolean;
+  legible_without_sound: boolean;
+  single_clear_cta: boolean;
+  explicit_benefit: boolean;
+  proof_or_credibility: boolean;
+  format_fits_channel: boolean;
+  no_mock_leak_in_public_copy: boolean;
+  language_consistency: boolean;
+}
+
+/**
+ * Single video scene used by the "Voir script vidéo" viewer. Times are
+ * inclusive seconds; visual/voice/onScreen are display-only mock strings.
+ */
+export interface VideoScene {
+  startSec: number;
+  endSec: number;
+  visual: string;
+  voice: string;
+  onScreen: string;
+  intent: string;
+}
+
+/**
+ * A single carousel slide for `format='carousel'` ads. Display-only.
+ */
+export interface CarouselSlide {
+  index: number;
+  headline: string;
+  body: string;
+}
+
+/**
+ * Final ad unit. Stored locally so user status (ready/selected) survives
+ * recomputation. Stable id `${offerId}:${templateId}`.
+ */
+export interface AdUnit {
+  id: string;
+  offerId: string;
+  /** Stable template id (engine rule key). Lets re-derivation preserve user state. */
+  templateId: string;
+  type: AdType;
+  format: AdFormat;
+  channel: string;
+  name: string;
+  objective: string;
+  /** Public-facing fields — these are what the end user would publish. */
+  hook: string;
+  copy: string;
+  cta: string;
+  /** Optional structured assets per format. */
+  scenes?: VideoScene[];
+  slides?: CarouselSlide[];
+  /** Email-only meta. */
+  emailSubject?: string;
+  emailPreheader?: string;
+  /** Source asset that seeded the ad, if any. Never mutated by the engine. */
+  sourceAssetId?: string;
+  status: AdStatus;
+  /** 0..100 — derived from checklist + audience fit. */
+  ready_score: number;
+  /** 0..100 — reused from feedback engine. */
+  audience_fit?: number;
+  checklist: AdReadyChecklist;
+  /** Light tag list ('format:9:16', 'channel:tiktok', 'pillar:proof'…). */
+  tags?: string[];
+  /** ISO when the engine produced this version of the unit. */
+  derivedAt: string;
+}
+
+/**
+ * Local-only flag: an ad selected for "diffusion mock". One row per (offer, ad).
+ * Replace-on-conflict; deletion = unselect.
+ */
+export interface AdDiffusionSelection {
+  id: string;
+  offerId: string;
+  adId: string;
+  selectedAt: string;
+}
+
+// -----------------------------------------------------------------------------
 // Workspace Persistence & Export Hardening (AI-012)
 // -----------------------------------------------------------------------------
 
@@ -512,6 +657,9 @@ export interface WorkspaceSummary {
   feedback_recommendations: number;
   feedback_history: number;
   feedback_preferences: number;
+  /** AI-013 — counts for ad studio collections. */
+  ad_units: number;
+  ad_diffusion_selections: number;
   /** ISO timestamp of last persisted write to localStorage; undefined on fresh state. */
   last_saved_at?: string;
   /** ISO timestamp written when an export envelope is generated. */
@@ -537,6 +685,9 @@ export interface OfferBundle {
   feedback_recommendations: FeedbackRecommendation[];
   feedback_history: FeedbackHistoryEntry[];
   feedback_preferences: FeedbackPreference[];
+  /** AI-013 — optional. Older bundles without these fields remain valid. */
+  ad_units?: AdUnit[];
+  ad_diffusion_selections?: AdDiffusionSelection[];
 }
 
 /**
@@ -589,6 +740,10 @@ export interface RepairReport {
     plan_slot_links: number;
     /** Calendar slot rows whose linked asset is missing — stripped of their assetId. */
     calendar_slot_links: number;
+    /** AI-013 — orphan ad units / selections / dangling source asset refs. */
+    ad_units: number;
+    ad_diffusion_selections: number;
+    ad_unit_links: number;
   };
 }
 

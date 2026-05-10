@@ -9,6 +9,8 @@
 import {
   STORAGE_VERSION,
   WorkspaceStorageError,
+  type AdDiffusionSelection,
+  type AdUnit,
   type Asset,
   type CalendarSlot,
   type FeedbackHistoryEntry,
@@ -145,6 +147,38 @@ function isFeedbackPreference(v: unknown): v is FeedbackPreference {
   );
 }
 
+function isAdUnit(v: unknown): v is AdUnit {
+  if (typeof v !== 'object' || v === null) return false;
+  const a = v as Record<string, unknown>;
+  return (
+    typeof a.id === 'string' &&
+    typeof a.offerId === 'string' &&
+    typeof a.templateId === 'string' &&
+    typeof a.type === 'string' &&
+    typeof a.format === 'string' &&
+    typeof a.channel === 'string' &&
+    typeof a.name === 'string' &&
+    typeof a.hook === 'string' &&
+    typeof a.copy === 'string' &&
+    typeof a.cta === 'string' &&
+    typeof a.status === 'string' &&
+    typeof a.ready_score === 'number' &&
+    typeof a.checklist === 'object' &&
+    typeof a.derivedAt === 'string'
+  );
+}
+
+function isAdDiffusionSelection(v: unknown): v is AdDiffusionSelection {
+  if (typeof v !== 'object' || v === null) return false;
+  const s = v as Record<string, unknown>;
+  return (
+    typeof s.id === 'string' &&
+    typeof s.offerId === 'string' &&
+    typeof s.adId === 'string' &&
+    typeof s.selectedAt === 'string'
+  );
+}
+
 export function validateWorkspaceFile(value: unknown): WorkspaceFile {
   if (typeof value !== 'object' || value === null) {
     throw new WorkspaceStorageError('parse_error');
@@ -171,6 +205,10 @@ export function validateWorkspaceFile(value: unknown): WorkspaceFile {
   const feedback_preferences = Array.isArray(v.feedback_preferences)
     ? v.feedback_preferences.filter(isFeedbackPreference)
     : [];
+  const ad_units = Array.isArray(v.ad_units) ? v.ad_units.filter(isAdUnit) : [];
+  const ad_diffusion_selections = Array.isArray(v.ad_diffusion_selections)
+    ? v.ad_diffusion_selections.filter(isAdDiffusionSelection)
+    : [];
   return {
     version: STORAGE_VERSION,
     exported_at: typeof v.exported_at === 'string' ? v.exported_at : undefined,
@@ -182,6 +220,8 @@ export function validateWorkspaceFile(value: unknown): WorkspaceFile {
     feedback_recommendations,
     feedback_history,
     feedback_preferences,
+    ad_units,
+    ad_diffusion_selections,
   };
 }
 

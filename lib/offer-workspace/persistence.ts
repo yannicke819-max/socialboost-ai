@@ -14,6 +14,8 @@
 
 import { STORAGE_VERSION } from './types';
 import type {
+  AdDiffusionSelection,
+  AdUnit,
   Asset,
   CalendarSlot,
   FeedbackHistoryEntry,
@@ -47,6 +49,8 @@ export function summarizeWorkspace(env: WorkspaceFile): WorkspaceSummary {
     feedback_recommendations: (env.feedback_recommendations ?? []).length,
     feedback_history: (env.feedback_history ?? []).length,
     feedback_preferences: (env.feedback_preferences ?? []).length,
+    ad_units: (env.ad_units ?? []).length,
+    ad_diffusion_selections: (env.ad_diffusion_selections ?? []).length,
     last_saved_at: env.last_saved_at,
     exported_at: env.exported_at,
     mock: true,
@@ -82,6 +86,8 @@ export function diagnosticString(
   lines.push(`feedback_recommendations: ${s.feedback_recommendations}`);
   lines.push(`feedback_history: ${s.feedback_history}`);
   lines.push(`feedback_preferences: ${s.feedback_preferences}`);
+  lines.push(`ad_units: ${s.ad_units}`);
+  lines.push(`ad_diffusion_selections: ${s.ad_diffusion_selections}`);
   lines.push('');
   lines.push(isEn ? '## Flags' : '## Drapeaux');
   lines.push('mock: true');
@@ -167,9 +173,20 @@ export function serializeOffer(
   const feedback_preferences = (env.feedback_preferences ?? []).filter(
     (p) => p.offerId === offerId,
   );
-  // Strip orphan asset references from slots so the bundle is self-consistent.
+  const ad_units = (env.ad_units ?? []).filter((u) => u.offerId === offerId);
+  const adIds = new Set(ad_units.map((u) => u.id));
+  const ad_diffusion_selections = (env.ad_diffusion_selections ?? []).filter(
+    (s) => s.offerId === offerId && adIds.has(s.adId),
+  );
+  // Strip orphan asset references from slots and ad units so the bundle is
+  // self-consistent.
   const cleanCalendarSlots = calendar_slots.map((s) =>
     s.assetId && !assetIds.has(s.assetId) ? { ...s, assetId: undefined } : s,
+  );
+  const cleanAdUnits = ad_units.map((u) =>
+    u.sourceAssetId && !assetIds.has(u.sourceAssetId)
+      ? { ...u, sourceAssetId: undefined }
+      : u,
   );
   const bundle: OfferBundle = {
     bundle: 'offer',
@@ -183,6 +200,8 @@ export function serializeOffer(
     feedback_recommendations,
     feedback_history,
     feedback_preferences,
+    ad_units: cleanAdUnits,
+    ad_diffusion_selections,
   };
   return JSON.stringify(bundle, null, 2);
 }
@@ -222,6 +241,8 @@ export function parseOfferImport(rawText: string): OfferImportResult {
     feedback_recommendations: arrOf<FeedbackRecommendation>(o.feedback_recommendations),
     feedback_history: arrOf<FeedbackHistoryEntry>(o.feedback_history),
     feedback_preferences: arrOf<FeedbackPreference>(o.feedback_preferences),
+    ad_units: arrOf<AdUnit>(o.ad_units),
+    ad_diffusion_selections: arrOf<AdDiffusionSelection>(o.ad_diffusion_selections),
   };
   return { ok: true, bundle };
 }
@@ -257,6 +278,8 @@ export function mergeWorkspace(
     feedback_recommendations: mergeById(env.feedback_recommendations!, inc.feedback_recommendations!),
     feedback_history: mergeById(env.feedback_history!, inc.feedback_history!),
     feedback_preferences: mergeById(env.feedback_preferences!, inc.feedback_preferences!),
+    ad_units: mergeById(env.ad_units!, inc.ad_units!),
+    ad_diffusion_selections: mergeById(env.ad_diffusion_selections!, inc.ad_diffusion_selections!),
   };
 }
 
@@ -278,6 +301,8 @@ export function mergeOfferBundle(
     feedback_recommendations: bundle.feedback_recommendations,
     feedback_history: bundle.feedback_history,
     feedback_preferences: bundle.feedback_preferences,
+    ad_units: bundle.ad_units ?? [],
+    ad_diffusion_selections: bundle.ad_diffusion_selections ?? [],
   };
   return mergeWorkspace(current, partial, 'merge');
 }
@@ -344,6 +369,25 @@ export function repairWorkspace(env: WorkspaceFile): {
     (s) => s.assetId && !assetIds.has(s.assetId) && offerIds.has(s.offerId),
   ).length;
 
+  // AI-013 — ad units cleanup.
+  const beforeAdUnits = (env.ad_units ?? []).length;
+  let adLinkRepairs = 0;
+  const ad_units: AdUnit[] = [];
+  for (const u of env.ad_units ?? []) {
+    if (!offerIds.has(u.offerId)) continue;
+    if (u.sourceAssetId && !assetIds.has(u.sourceAssetId)) {
+      adLinkRepairs += 1;
+      ad_units.push({ ...u, sourceAssetId: undefined });
+    } else {
+      ad_units.push(u);
+    }
+  }
+  const liveAdIds = new Set(ad_units.map((u) => u.id));
+  const beforeAdSel = (env.ad_diffusion_selections ?? []).length;
+  const ad_diffusion_selections = (env.ad_diffusion_selections ?? []).filter(
+    (s) => offerIds.has(s.offerId) && liveAdIds.has(s.adId),
+  );
+
   const repaired: WorkspaceFile = {
     version: STORAGE_VERSION,
     exported_at: env.exported_at,
@@ -356,6 +400,8 @@ export function repairWorkspace(env: WorkspaceFile): {
     feedback_recommendations,
     feedback_history,
     feedback_preferences,
+    ad_units,
+    ad_diffusion_selections,
   };
   const report: RepairReport = {
     removed: {
@@ -368,6 +414,9 @@ export function repairWorkspace(env: WorkspaceFile): {
       feedback_preferences: beforeFbPref - feedback_preferences.length,
       plan_slot_links: planSlotLinkRepairs,
       calendar_slot_links: calendarSlotLinkRepairs,
+      ad_units: beforeAdUnits - ad_units.length,
+      ad_diffusion_selections: beforeAdSel - ad_diffusion_selections.length,
+      ad_unit_links: adLinkRepairs,
     },
   };
   return { repaired, report };
@@ -390,6 +439,8 @@ function emptyArrays(env: WorkspaceFile): WorkspaceFile {
     feedback_recommendations: env.feedback_recommendations ?? [],
     feedback_history: env.feedback_history ?? [],
     feedback_preferences: env.feedback_preferences ?? [],
+    ad_units: env.ad_units ?? [],
+    ad_diffusion_selections: env.ad_diffusion_selections ?? [],
   };
 }
 
