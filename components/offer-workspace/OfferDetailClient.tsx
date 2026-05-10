@@ -1,7 +1,8 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
+import { useSearchParams } from 'next/navigation';
 import { ArrowLeft, Briefcase, Layers, Calendar, BarChart3, Sparkles, CalendarDays, TrendingUp, Megaphone } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useWorkspaceStore } from './useWorkspaceStore';
@@ -16,6 +17,17 @@ import { AdStudioTab } from './tabs/AdStudioTab';
 import { OfferTimeline } from './OfferTimeline';
 import { QuickActions } from './QuickActions';
 import { STATUS_LABELS } from '@/lib/offer-workspace/types';
+import { buildAdGallery } from '@/lib/offer-workspace/ad-studio';
+import {
+  GUIDE_LABELS_EN,
+  GUIDE_LABELS_FR,
+  MOCK_BANNER_EN,
+  MOCK_BANNER_FR,
+  TAB_LABELS_EN,
+  TAB_LABELS_FR,
+  resolveGuideState,
+  type GuideStateKey,
+} from '@/lib/offer-workspace/guide-labels';
 
 interface OfferDetailClientProps {
   offerId: string;
@@ -29,7 +41,20 @@ export function OfferDetailClient({ offerId, language = 'fr' }: OfferDetailClien
   const offer = useMemo(() => offers.find((o) => o.id === offerId), [offers, offerId]);
   const offerAssets = useMemo(() => assets.filter((a) => a.offerId === offerId), [assets, offerId]);
   const offerSlots = useMemo(() => slots.filter((s) => s.offerId === offerId), [slots, offerId]);
+  const params = useSearchParams();
   const [tab, setTab] = useState<TabKey>('brief');
+
+  // AI-014: pick up `?tab=<key>` on mount so deep-links from the onboarding
+  // wizard (e.g. /ai/offers/<id>?tab=adstudio) land on the right tab.
+  useEffect(() => {
+    const t = params.get('tab');
+    const valid: TabKey[] = ['brief', 'assets', 'adstudio', 'plan', 'calendar', 'analytics', 'feedback', 'recos'];
+    if (t && (valid as string[]).includes(t)) {
+      setTab(t as TabKey);
+    }
+    // Only honour on mount; user clicks override afterwards.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   if (!hydrated) {
     return <div className="h-40 animate-pulse rounded-md bg-bg-elevated/60" />;
@@ -40,6 +65,7 @@ export function OfferDetailClient({ offerId, language = 'fr' }: OfferDetailClien
   }
 
   const labels = language === 'en' ? L_EN : L_FR;
+  const tabs = language === 'en' ? TAB_LABELS_EN : TAB_LABELS_FR;
 
   return (
     <div className="space-y-5">
@@ -77,48 +103,64 @@ export function OfferDetailClient({ offerId, language = 'fr' }: OfferDetailClien
         className="rounded border border-amber-400/30 bg-amber-400/5 px-3 py-2 text-[11px] text-amber-400"
         title={labels.mockTooltip}
       >
-        {labels.mockNotice}
+        {language === 'en' ? MOCK_BANNER_EN : MOCK_BANNER_FR}
       </p>
+
+      {hydrated && (
+        <WhereAmIBanner
+          language={language}
+          approvedAssets={offerAssets.filter((a) => a.status === 'approved').length}
+          adUnits={store.listAdUnits(offer.id).length}
+          onPickIdeas={() => setTab('assets')}
+          onCreateAds={() => {
+            const ads = buildAdGallery({ offer, assets: offerAssets });
+            store.upsertAdUnits(offer.id, ads);
+            refresh();
+            setTab('adstudio');
+          }}
+          onSeeAds={() => setTab('adstudio')}
+        />
+      )}
 
       <nav className="flex flex-wrap gap-1 border-b border-border" aria-label="Tabs">
         <Tab id="brief" current={tab} onSelect={setTab} icon={<Briefcase size={13} />}>
-          {labels.brief}
+          {tabs.brief}
         </Tab>
         <Tab id="assets" current={tab} onSelect={setTab} icon={<Layers size={13} />}>
-          {labels.assets} <span className="ml-1 text-[10px] text-fg-subtle">{offerAssets.length}</span>
+          {tabs.assets} <span className="ml-1 text-[10px] text-fg-subtle">{offerAssets.length}</span>
         </Tab>
         <Tab id="adstudio" current={tab} onSelect={setTab} icon={<Megaphone size={13} />}>
-          {labels.adstudio}
+          {tabs.adstudio}
           <span className="ml-1 rounded-full border border-amber-400/40 bg-amber-400/5 px-1.5 text-[9px] font-medium text-amber-400">
             mock
           </span>
         </Tab>
         <Tab id="plan" current={tab} onSelect={setTab} icon={<CalendarDays size={13} />}>
-          {labels.plan}
+          {tabs.plan}
           <span className="ml-1 rounded-full border border-amber-400/40 bg-amber-400/5 px-1.5 text-[9px] font-medium text-amber-400">
             mock
           </span>
         </Tab>
         <Tab id="calendar" current={tab} onSelect={setTab} icon={<Calendar size={13} />}>
-          {labels.calendar}{' '}
+          {tabs.calendar}{' '}
           {offerSlots.length > 0 && (
             <span className="ml-1 text-[10px] text-fg-subtle">{offerSlots.length}</span>
           )}
         </Tab>
         <Tab id="analytics" current={tab} onSelect={setTab} icon={<BarChart3 size={13} />}>
-          {labels.analytics}
+          {tabs.analytics}
           <span className="ml-1 rounded-full border border-amber-400/40 bg-amber-400/5 px-1.5 text-[9px] font-medium text-amber-400">
             mock
           </span>
         </Tab>
         <Tab id="feedback" current={tab} onSelect={setTab} icon={<TrendingUp size={13} />}>
-          {labels.feedback}
+          {tabs.feedback}
           <span className="ml-1 rounded-full border border-amber-400/40 bg-amber-400/5 px-1.5 text-[9px] font-medium text-amber-400">
             mock
           </span>
         </Tab>
         <Tab id="recos" current={tab} onSelect={setTab} icon={<Sparkles size={13} />}>
-          {labels.recos}
+          {tabs.recos}
         </Tab>
       </nav>
 
@@ -188,6 +230,69 @@ export function OfferDetailClient({ offerId, language = 'fr' }: OfferDetailClien
   );
 }
 
+function WhereAmIBanner({
+  language,
+  approvedAssets,
+  adUnits,
+  onPickIdeas,
+  onCreateAds,
+  onSeeAds,
+}: {
+  language: 'fr' | 'en';
+  approvedAssets: number;
+  adUnits: number;
+  onPickIdeas: () => void;
+  onCreateAds: () => void;
+  onSeeAds: () => void;
+}) {
+  const guide = language === 'en' ? GUIDE_LABELS_EN : GUIDE_LABELS_FR;
+  const state: GuideStateKey = resolveGuideState(approvedAssets, adUnits);
+  const stateCopy = guide.states[state];
+  const onClick =
+    state === 'pickIdeas' ? onPickIdeas : state === 'createAds' ? onCreateAds : onSeeAds;
+  return (
+    <section className="rounded-md border border-brand/30 bg-brand/5 p-4">
+      <p className="font-mono text-[11px] uppercase tracking-wider text-brand">{guide.title}</p>
+      <ol className="mt-2 grid gap-1.5 text-[12px] text-fg-muted sm:grid-cols-3">
+        <Step n={1} label={guide.step1} done={approvedAssets >= 3} />
+        <Step n={2} label={guide.step2} done={adUnits > 0} />
+        <Step n={3} label={guide.step3} done={false} />
+      </ol>
+      <div className="mt-3 flex flex-wrap items-center justify-between gap-2">
+        <div className="min-w-0">
+          <p className="font-display text-sm font-semibold text-fg">{stateCopy.status}</p>
+          <p className="text-[12px] text-fg-muted">{stateCopy.help}</p>
+        </div>
+        <button
+          type="button"
+          onClick={onClick}
+          className="inline-flex items-center gap-1.5 rounded-md border border-brand/60 bg-brand/15 px-3 py-1.5 font-mono text-[11px] uppercase tracking-wider text-fg transition hover:border-brand hover:bg-brand/25 focus-visible:ring-2 focus-visible:ring-brand"
+        >
+          <Sparkles size={12} /> {stateCopy.cta}
+        </button>
+      </div>
+    </section>
+  );
+}
+
+function Step({ n, label, done }: { n: number; label: string; done: boolean }) {
+  return (
+    <li
+      className={cn(
+        'inline-flex items-center gap-1.5 rounded border px-2 py-1',
+        done
+          ? 'border-emerald-400/40 bg-emerald-400/5 text-emerald-300'
+          : 'border-border bg-bg text-fg-muted',
+      )}
+    >
+      <span className={cn('inline-flex h-4 w-4 items-center justify-center rounded-full border text-[9px] font-mono', done ? 'border-emerald-400/60 bg-emerald-400/10 text-emerald-300' : 'border-border text-fg-subtle')}>
+        {done ? '✓' : n}
+      </span>
+      {label}
+    </li>
+  );
+}
+
 function Tab({
   id,
   current,
@@ -244,33 +349,13 @@ function NotFound({ language }: { language: 'fr' | 'en' }) {
 
 const L_FR = {
   back: 'Retour aux offres',
-  brief: 'Brief',
-  assets: 'Contenus',
-  adstudio: 'Ad Studio',
-  plan: 'Plan semaine',
-  calendar: 'Calendrier',
-  analytics: 'Analytics',
-  feedback: 'Feedback',
-  recos: 'Recommandations',
   score: 'Score',
-  mockNotice:
-    "Tout est mock V1 : aucun post n'est publié, aucune analytics n'est mesurée. Données locales (localStorage) pour permettre la démonstration.",
   mockTooltip:
     'Les statuts « sent_mock » / « scheduled_mock » indiquent une simulation locale. Aucune intégration LinkedIn / Meta / email n\'est branchée.',
 };
 const L_EN = {
   back: 'Back to offers',
-  brief: 'Brief',
-  assets: 'Contents',
-  adstudio: 'Ad Studio',
-  plan: 'Weekly plan',
-  calendar: 'Calendar',
-  analytics: 'Analytics',
-  feedback: 'Feedback',
-  recos: 'Recommendations',
   score: 'Score',
-  mockNotice:
-    'Everything is MOCK V1: no post is published, no real analytics is measured. Local data (localStorage) for demo purposes.',
   mockTooltip:
     'The "sent_mock" / "scheduled_mock" statuses indicate a local simulation. No LinkedIn / Meta / email integration is wired.',
 };

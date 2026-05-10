@@ -547,7 +547,7 @@ const L_FR = {
   lowCtaApprove: 'Approuver plus de contenus',
   lowCtaMini: 'Créer un mini-plan',
   mockExplain:
-    "Mock V1 : aucun post n'est publié. Ce plan t'aide à organiser ta semaine avant publication réelle.",
+    "Mode démonstration : rien n'est publié automatiquement. Ce planning t'aide à organiser ta semaine avant publication réelle.",
   emptyDay: 'Repos',
   slotSuffix: 'créneau(x)',
   moveLeft: 'Déplacer au jour précédent',
@@ -584,7 +584,7 @@ const L_EN = {
   lowCtaApprove: 'Approve more contents',
   lowCtaMini: 'Create a mini-plan',
   mockExplain:
-    'Mock V1: nothing is published. This plan helps you organize your week before any real publishing.',
+    'Demo mode: nothing is published automatically. This plan helps you organize your week before any real publishing.',
   emptyDay: 'Rest',
   slotSuffix: 'slot(s)',
   moveLeft: 'Move to previous day',

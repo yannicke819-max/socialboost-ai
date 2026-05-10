@@ -739,7 +739,7 @@ const L_FR = {
   scoreEditorial: 'Rendement éditorial',
   scoreFit: 'Audience fit',
   mockExplain:
-    "Mock V1 : aucune analytics réelle n'est mesurée. Les scores servent à tester le workflow.",
+    "Mode démonstration : aucune analytics réelle n'est mesurée. Les scores servent à tester le parcours.",
   partialBadge: 'Feedback partiel',
   partialBody:
     'Ajoute plus de contenus prêts ou planifiés pour fiabiliser les recommandations.',
@@ -819,7 +819,7 @@ const L_EN: typeof L_FR = {
   scoreEditorial: 'Editorial performance',
   scoreFit: 'Audience fit',
   mockExplain:
-    'Mock V1: no real analytics is measured. Scores are here to test the workflow.',
+    'Demo mode: no real analytics is measured. Scores are here to test the journey.',
   partialBadge: 'Partial feedback',
   partialBody:
     'Add more ready or scheduled contents to make recommendations reliable.',
