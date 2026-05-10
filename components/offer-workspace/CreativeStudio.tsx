@@ -39,6 +39,14 @@ import {
   CREATIVE_STUDIO_FR,
   type CreativeStudioCopy,
 } from '@/lib/offer-workspace/creative-studio-labels';
+import {
+  CREATIVE_STRATEGIES,
+  type CreativeQualityTier,
+} from '@/lib/offer-workspace/creative-quality-tiers';
+import {
+  CreativeQualitySelector,
+  buildCreativeDirectionPrefix,
+} from './CreativeQualitySelector';
 import type { Offer } from '@/lib/offer-workspace/types';
 
 interface CreativeStudioProps {
@@ -59,6 +67,10 @@ export function CreativeStudio({
     language === 'en' ? CREATIVE_STUDIO_EN : CREATIVE_STUDIO_FR;
   const [tab, setTab] = useState<TabKey>('images');
   const [notice, setNotice] = useState<string | null>(null);
+  // AI-017E — Creative Quality Selector: drives the prompt-prefix on copy
+  // and the visible "Direction créative sélectionnée" annotation. Default
+  // is 'performance' per the AI-017E spec.
+  const [tier, setTier] = useState<CreativeQualityTier>('performance');
 
   const pack: CreativeBriefPack | null = useMemo(() => {
     if (!offer || !offer.brief || !offer.brief.businessName || !offer.brief.offer) {
@@ -68,9 +80,14 @@ export function CreativeStudio({
   }, [offer, task, language]);
 
   const handleCopy = async (text: string) => {
+    // AI-017E: prepend the selected creative direction so the copied
+    // prompt carries the strategic intent into any third-party media
+    // tool. Pure string composition, no fetch.
+    const prefix = buildCreativeDirectionPrefix(tier, language);
+    const composed = `${prefix}\n\n${text}`;
     try {
       if (typeof navigator !== 'undefined' && navigator.clipboard) {
-        await navigator.clipboard.writeText(text);
+        await navigator.clipboard.writeText(composed);
       }
       setNotice(labels.copiedToast);
       setTimeout(() => setNotice(null), 1800);
@@ -110,6 +127,22 @@ export function CreativeStudio({
       ) : (
         <div className="space-y-4 px-4 py-4">
           <PackHeader pack={pack} labels={labels} />
+
+          {/* AI-017E — Creative Quality Selector. Prompt-only intent
+              picker. Selection drives the prefix that handleCopy
+              prepends to every copied prompt. */}
+          <CreativeQualitySelector
+            language={language}
+            selected={tier}
+            onSelect={setTier}
+          />
+
+          <p
+            className="rounded border border-brand/40 bg-brand/5 px-2 py-1 font-mono text-[10px] uppercase tracking-wider text-brand"
+            data-testid="selected-direction"
+          >
+            {labels.selectorCurrentDirectionLabel}: {CREATIVE_STRATEGIES[tier].label}
+          </p>
 
           <nav
             className="flex flex-wrap gap-1 border-b border-border"
