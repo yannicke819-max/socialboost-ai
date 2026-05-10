@@ -23,6 +23,7 @@ import { CreatePackButton } from '../CreatePackButton';
 import { PackCoverageCard } from '../PackCoverage';
 import { buildSingleVariant, computePackCoverage } from '@/lib/offer-workspace/pack-generator';
 import { startOfWeekMonday } from '@/lib/offer-workspace/calendar';
+import { ASSETS_BANNER_EN, ASSETS_BANNER_FR } from '@/lib/offer-workspace/guide-labels';
 
 interface AssetsTabProps {
   offer: Offer;
@@ -74,10 +75,10 @@ function categoryOf(asset: Asset): Category[] {
 // -----------------------------------------------------------------------------
 
 const KIND_LABELS_FR: Record<AssetKind, string> = {
-  hook: 'Hook',
+  hook: "Phrase d'accroche",
   angle: 'Angle',
   objection: 'Objection',
-  cta: 'CTA',
+  cta: 'Action proposée',
   social_post: 'Post social',
   landing_section: 'Section landing',
   email: 'Email',
@@ -85,14 +86,14 @@ const KIND_LABELS_FR: Record<AssetKind, string> = {
   image_asset: 'Image',
   video_script: 'Script vidéo',
   video_storyboard: 'Storyboard',
-  thumbnail: 'Thumbnail',
+  thumbnail: 'Vignette',
   creative_brief: 'Brief créatif',
 };
 const KIND_LABELS_EN: Record<AssetKind, string> = {
-  hook: 'Hook',
+  hook: 'Hook line',
   angle: 'Angle',
   objection: 'Objection',
-  cta: 'CTA',
+  cta: 'Suggested action',
   social_post: 'Social post',
   landing_section: 'Landing section',
   email: 'Email',
@@ -212,8 +213,33 @@ export function AssetsTab({ offer, assets, language, onUpdate, store }: AssetsTa
   const stepRead = assets.length > 0;
   // "Planifier" step is the next action once 3 are approved, mirrors PackCoverage logic.
 
+  const guide = language === 'en' ? ASSETS_BANNER_EN : ASSETS_BANNER_FR;
+  const remaining = Math.max(0, approveTarget - approvedCount);
   return (
     <div className="space-y-5">
+      <section className="rounded-md border border-brand/30 bg-brand/5 p-4">
+        <p className="font-mono text-[11px] uppercase tracking-wider text-brand">
+          {guide.title}
+        </p>
+        <p className="mt-1 text-sm text-fg-muted">{guide.body}</p>
+        {remaining > 0 ? (
+          <p className="mt-2 inline-flex items-center gap-1.5 rounded border border-amber-400/40 bg-amber-400/5 px-2 py-1 font-mono text-[10px] uppercase tracking-wider text-amber-400">
+            <ChevronRight size={11} /> {guide.remaining(remaining)}
+          </p>
+        ) : (
+          <a
+            href="#"
+            onClick={(e) => {
+              e.preventDefault();
+              window.scrollTo({ top: 0, behavior: 'smooth' });
+            }}
+            className="mt-2 inline-flex items-center gap-1.5 rounded border border-emerald-400/40 bg-emerald-400/5 px-2 py-1 font-mono text-[10px] uppercase tracking-wider text-emerald-400"
+          >
+            <CheckCircle2 size={11} /> {guide.ctaSeeAds}
+          </a>
+        )}
+      </section>
+
       <HeroBlock
         language={language}
         approvedCount={approvedCount}
@@ -613,32 +639,32 @@ const L_FR = {
   firstBody:
     'En un clic, génère 24 contenus prêts à éditer (posts, emails, hooks, CTAs, scripts, prompts image, carousel, landing). Aucune publication, tu valides ce que tu veux garder.',
   mockExplain:
-    "Mock V1 : rien n'est publié, ce calendrier est une simulation locale. Tes contenus restent dans ton navigateur.",
+    "Mode démonstration : rien n'est publié automatiquement. Tes idées restent dans ton navigateur.",
   heroEyebrow: 'Pack créatif',
-  heroTitle: 'Votre pack créatif est prêt',
-  heroSubtitle: 'Choisissez 3 contenus à publier cette semaine.',
-  heroNextApprovePrefix: 'Approuver',
-  heroNextApproveSuffix: 'contenus',
-  heroNextSchedule: 'Planifier 3 créneaux',
-  step1: 'Lisez',
-  step2: 'Approuvez',
-  step3: 'Planifiez',
+  heroTitle: 'Tes idées sont prêtes',
+  heroSubtitle: 'Choisis 3 idées pour créer tes annonces.',
+  heroNextApprovePrefix: 'Choisir',
+  heroNextApproveSuffix: 'idées',
+  heroNextSchedule: 'Préparer la publication',
+  step1: 'Lire',
+  step2: 'Choisir',
+  step3: 'Publier',
   dimensions: 'Performance par dimension',
   advancedDetails: 'Détails avancés',
-  emptyCategory: 'Aucun contenu dans cette catégorie.',
-  copy: 'Copier',
+  emptyCategory: 'Aucune idée dans cette catégorie.',
+  copy: 'Copier le texte',
   review: 'Mettre en revue',
-  approve: 'Approuver',
-  approved: 'Approuvé',
-  unapprove: 'Remettre brouillon',
+  approve: 'Utiliser cette idée',
+  approved: 'Idée choisie',
+  unapprove: 'Remettre en idée',
   archive: 'Archiver',
-  regenerate: 'Variante',
-  schedule: 'Planifier',
-  scheduleTooltip: "Crée un créneau planned dans le calendrier mock. Aucun POST réseau, aucune publication réelle.",
+  regenerate: 'Créer une autre version',
+  schedule: 'Préparer la publication',
+  scheduleTooltip: "Ajoute cette idée au planning. Aucune publication réelle.",
   regenerateFromBrain: 'Régénérer depuis Offer Brain',
   copied: 'Copié',
-  variantCreated: 'Variante créée',
-  scheduled: 'Planifié (mock)',
+  variantCreated: 'Autre version créée',
+  scheduled: 'Préparée pour publication',
   created: 'Pack créé :',
 };
 const L_EN = {
@@ -654,23 +680,23 @@ const L_EN = {
   heroNextApproveSuffix: 'contents',
   heroNextSchedule: 'Schedule 3 slots',
   step1: 'Read',
-  step2: 'Approve',
-  step3: 'Schedule',
+  step2: 'Pick',
+  step3: 'Share',
   dimensions: 'Performance by dimension',
   advancedDetails: 'Advanced details',
-  emptyCategory: 'No content in this category.',
-  copy: 'Copy',
+  emptyCategory: 'No idea in this category.',
+  copy: 'Copy text',
   review: 'Send to review',
-  approve: 'Approve',
-  approved: 'Approved',
-  unapprove: 'Back to draft',
+  approve: 'Use this idea',
+  approved: 'Idea picked',
+  unapprove: 'Back to idea',
   archive: 'Archive',
-  regenerate: 'Variant',
-  schedule: 'Schedule',
-  scheduleTooltip: 'Creates a planned slot in the mock calendar. No network POST, no real publishing.',
+  regenerate: 'Create another version',
+  schedule: 'Prepare for sharing',
+  scheduleTooltip: 'Adds this idea to the schedule. No real publishing.',
   regenerateFromBrain: 'Regenerate from Offer Brain',
   copied: 'Copied',
-  variantCreated: 'Variant created',
-  scheduled: 'Scheduled (mock)',
+  variantCreated: 'Another version created',
+  scheduled: 'Prepared for sharing',
   created: 'Pack created:',
 };

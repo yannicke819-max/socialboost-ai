@@ -259,6 +259,14 @@ export function AdStudioTab({
         {labels.mockBanner}
       </p>
 
+      {/* AI-014 humanization: top guide above the gallery */}
+      <section className="rounded-md border border-emerald-400/40 bg-emerald-400/5 p-4">
+        <p className="font-mono text-[11px] uppercase tracking-wider text-emerald-400">
+          {labels.topGuideTitle}
+        </p>
+        <p className="mt-1 text-sm text-fg-muted">{labels.topGuideBody}</p>
+      </section>
+
       {/* Format filter — Expert mode only */}
       {mode === 'expert' && (
         <div className="flex flex-wrap items-center gap-2">
@@ -713,21 +721,21 @@ const L_FR = {
   modeSimple: 'Mode Simple',
   modeExpert: 'Mode Expert',
   mockBanner:
-    "Mock V1 : aucune annonce n'est publiée. Ces prévisualisations servent à préparer la diffusion.",
+    "Mode démonstration : rien n'est publié automatiquement. Tu pourras tout relire avant publication.",
   filterAll: 'Tous les formats',
 
-  cta: 'CTA',
+  cta: 'Action proposée',
   scoreReady: 'Prêt à diffuser',
   scoreFit: 'Audience fit',
 
   markReady: 'Marquer prête',
-  unmarkReady: 'Remettre brouillon',
-  selectDiffusion: 'Sélectionner pour diffusion mock',
+  unmarkReady: 'Remettre en idée',
+  selectDiffusion: 'Préparer la publication',
   unselectDiffusion: 'Retirer de la sélection',
-  copy: "Copier l'annonce",
-  variant: 'Créer variante',
+  copy: 'Copier le texte',
+  variant: 'Créer une autre version',
   viewScript: 'Voir script vidéo',
-  exportKit: 'Exporter le kit texte',
+  exportKit: 'Télécharger les textes',
 
   copied: 'Annonce copiée.',
   copyFailed: 'Copie indisponible.',
@@ -750,7 +758,7 @@ const L_FR = {
 
   linkedInPreview: 'Aperçu post LinkedIn',
   emailSubject: 'Objet',
-  emailPreheader: 'Préheader',
+  emailPreheader: 'Avant-propos',
 
   scriptTitle: 'Script vidéo scène par scène',
   sceneTime: 'Scène',
@@ -761,13 +769,20 @@ const L_FR = {
 
   emptyNoAssetsTitle: 'Crée d\'abord un pack créatif',
   emptyNoAssetsBody:
-    "Ad Studio s'appuie sur tes contenus. Génère un pack créatif depuis l'onglet Contenus, puis reviens ici pour découvrir tes annonces.",
-  emptyNoAssetsCta: 'Aller dans Contenus',
+    "Annonces s'appuie sur tes idées. Génère un pack créatif depuis l'onglet Idées, puis reviens ici pour découvrir tes annonces.",
+  emptyNoAssetsCta: 'Aller dans Idées',
 
-  emptyLowApprovedTitle: 'Prépare tes annonces',
+  emptyLowApprovedTitle: 'Choisis 3 idées pour créer tes annonces',
   emptyLowApprovedBody:
-    'Choisis quelques contenus à utiliser, puis SocialBoost préparera tes annonces. Tu en as déjà {n} — vise 3 pour un résultat plus solide.',
-  emptyLowApprovedCta: 'Choisir des contenus',
+    "SocialBoost a préparé des idées de textes, emails et messages. Choisis simplement les 3 idées que tu veux utiliser. Ensuite, on créera tes annonces prêtes à relire. Tu en as déjà {n}.",
+  emptyLowApprovedCta: 'Choisir mes 3 idées',
+
+  topGuideTitle: 'Tes annonces sont prêtes',
+  topGuideBody:
+    "Relis-les, choisis celle que tu préfères, puis copie le texte ou télécharge les textes. Rien n'est publié automatiquement.",
+  helpUseAd: 'Pour la garder dans tes annonces.',
+  helpCopyAd: 'Pour le coller ailleurs.',
+  helpVariantAd: 'Pour tester une autre formulation.',
 };
 
 const L_EN: typeof L_FR = {
@@ -777,21 +792,21 @@ const L_EN: typeof L_FR = {
     'Here is what your ads will look like before any real diffusion. Pick a few, polish them, copy them. No real publishing.',
   modeSimple: 'Simple mode',
   modeExpert: 'Expert mode',
-  mockBanner: 'Mock V1: nothing is published. These previews help you prepare the diffusion.',
+  mockBanner: 'Demo mode: nothing is published automatically. You can review everything before sharing.',
   filterAll: 'All formats',
 
-  cta: 'CTA',
+  cta: 'Suggested action',
   scoreReady: 'Ready to ship',
   scoreFit: 'Audience fit',
 
   markReady: 'Mark ready',
-  unmarkReady: 'Back to draft',
-  selectDiffusion: 'Select for mock diffusion',
+  unmarkReady: 'Back to idea',
+  selectDiffusion: 'Prepare for sharing',
   unselectDiffusion: 'Unselect',
-  copy: 'Copy ad',
-  variant: 'Create variant',
+  copy: 'Copy text',
+  variant: 'Create another version',
   viewScript: 'View video script',
-  exportKit: 'Export text kit',
+  exportKit: 'Download the texts',
 
   copied: 'Ad copied.',
   copyFailed: 'Clipboard unavailable.',
@@ -814,7 +829,7 @@ const L_EN: typeof L_FR = {
 
   linkedInPreview: 'LinkedIn post preview',
   emailSubject: 'Subject',
-  emailPreheader: 'Preheader',
+  emailPreheader: 'Intro line',
 
   scriptTitle: 'Scene-by-scene video script',
   sceneTime: 'Scene',
@@ -825,11 +840,18 @@ const L_EN: typeof L_FR = {
 
   emptyNoAssetsTitle: 'Create a creative pack first',
   emptyNoAssetsBody:
-    'Ad Studio reads your contents. Generate a creative pack from the Contents tab, then come back here to discover your ads.',
-  emptyNoAssetsCta: 'Go to Contents',
+    'Ad Studio reads your ideas. Generate a creative pack from the Ideas tab, then come back here to discover your ads.',
+  emptyNoAssetsCta: 'Go to Ideas',
 
-  emptyLowApprovedTitle: 'Prepare your ads',
+  emptyLowApprovedTitle: 'Pick 3 ideas to create your ads',
   emptyLowApprovedBody:
-    'Pick a few contents to use, then SocialBoost will prepare your ads. You already have {n} — aim for 3 for a sturdier result.',
-  emptyLowApprovedCta: 'Pick contents',
+    'SocialBoost has prepared text ideas, emails and messages. Just pick the 3 ideas you want to use. Then we will create your ads ready to review. You already have {n}.',
+  emptyLowApprovedCta: 'Pick my 3 ideas',
+
+  topGuideTitle: 'Your ads are ready',
+  topGuideBody:
+    'Review them, pick your favourite, then copy the text or download the texts. Nothing is published automatically.',
+  helpUseAd: 'To keep it in your ads.',
+  helpCopyAd: 'To paste it somewhere else.',
+  helpVariantAd: 'To test another wording.',
 };
