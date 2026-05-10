@@ -55,9 +55,9 @@ export const MATURITY_LEVELS = ['beginner', 'intermediate', 'advanced'] as const
 export type MaturityLevel = (typeof MATURITY_LEVELS)[number];
 
 export const MATURITY_LABELS: Record<MaturityLevel, { fr: string; en: string }> = {
-  beginner: { fr: 'Débutant', en: 'Beginner' },
-  intermediate: { fr: 'Intermédiaire', en: 'Intermediate' },
-  advanced: { fr: 'Avancé', en: 'Advanced' },
+  beginner: { fr: 'Il découvre', en: 'Just discovering' },
+  intermediate: { fr: 'Il compare', en: 'Comparing options' },
+  advanced: { fr: 'Il est prêt', en: 'Ready to act' },
 };
 
 /**
@@ -75,11 +75,11 @@ export const ONBOARDING_TONES = [
 export type OnboardingTone = (typeof ONBOARDING_TONES)[number];
 
 export const ONBOARDING_TONE_LABELS: Record<OnboardingTone, { fr: string; en: string }> = {
-  clear: { fr: 'Clair', en: 'Clear' },
-  premium: { fr: 'Premium', en: 'Premium' },
+  clear: { fr: 'Simple', en: 'Simple' },
+  premium: { fr: 'Haut de gamme', en: 'Premium' },
   direct: { fr: 'Direct', en: 'Direct' },
-  pedagogical: { fr: 'Pédagogique', en: 'Pedagogical' },
-  energetic: { fr: 'Énergique', en: 'Energetic' },
+  pedagogical: { fr: 'Explicatif', en: 'Explanatory' },
+  energetic: { fr: 'Dynamique', en: 'Energetic' },
 };
 
 const TONE_TO_OFFER_TONE: Record<OnboardingTone, OfferTone> = {

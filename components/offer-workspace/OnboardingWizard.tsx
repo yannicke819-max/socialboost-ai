@@ -29,6 +29,10 @@ import {
   type OnboardingDraft,
   type OnboardingErrorCode,
 } from '@/lib/offer-workspace/onboarding';
+import {
+  ONBOARDING_WIZARD_LABELS_EN,
+  ONBOARDING_WIZARD_LABELS_FR,
+} from '@/lib/offer-workspace/onboarding-labels';
 
 interface OnboardingWizardProps {
   language?: 'fr' | 'en';
@@ -37,7 +41,7 @@ interface OnboardingWizardProps {
 type Step = 1 | 2 | 3 | 4;
 
 export function OnboardingWizard({ language = 'fr' }: OnboardingWizardProps) {
-  const labels = language === 'en' ? L_EN : L_FR;
+  const labels = language === 'en' ? ONBOARDING_WIZARD_LABELS_EN : ONBOARDING_WIZARD_LABELS_FR;
   const router = useRouter();
   const params = useSearchParams();
   const { hydrated, offers, store, refresh } = useWorkspaceStore();
@@ -293,7 +297,7 @@ export function OnboardingWizard({ language = 'fr' }: OnboardingWizardProps) {
 // -----------------------------------------------------------------------------
 
 function ProgressBar({ step, language }: { step: Step; language: 'fr' | 'en' }) {
-  const labels = language === 'en' ? L_EN : L_FR;
+  const labels = language === 'en' ? ONBOARDING_WIZARD_LABELS_EN : ONBOARDING_WIZARD_LABELS_FR;
   const pct = (step / 4) * 100;
   return (
     <div>
@@ -321,7 +325,7 @@ interface StepProps {
 }
 
 function Step1({ draft, setField, errors, language }: StepProps) {
-  const labels = language === 'en' ? L_EN : L_FR;
+  const labels = language === 'en' ? ONBOARDING_WIZARD_LABELS_EN : ONBOARDING_WIZARD_LABELS_FR;
   return (
     <div className="space-y-4">
       <StepHeader title={labels.s1Title} hint={labels.s1Hint} />
@@ -353,7 +357,7 @@ function Step1({ draft, setField, errors, language }: StepProps) {
 }
 
 function Step2({ draft, setField, errors, language }: StepProps) {
-  const labels = language === 'en' ? L_EN : L_FR;
+  const labels = language === 'en' ? ONBOARDING_WIZARD_LABELS_EN : ONBOARDING_WIZARD_LABELS_FR;
   return (
     <div className="space-y-4">
       <StepHeader title={labels.s2Title} hint={labels.s2Hint} />
@@ -386,7 +390,7 @@ function Step2({ draft, setField, errors, language }: StepProps) {
 }
 
 function Step3({ draft, setField, errors, language }: StepProps) {
-  const labels = language === 'en' ? L_EN : L_FR;
+  const labels = language === 'en' ? ONBOARDING_WIZARD_LABELS_EN : ONBOARDING_WIZARD_LABELS_FR;
   return (
     <div className="space-y-4">
       <StepHeader title={labels.s3Title} hint={labels.s3Hint} />
@@ -422,7 +426,7 @@ function Step3({ draft, setField, errors, language }: StepProps) {
 }
 
 function Step4({ draft, setField, errors, language }: StepProps) {
-  const labels = language === 'en' ? L_EN : L_FR;
+  const labels = language === 'en' ? ONBOARDING_WIZARD_LABELS_EN : ONBOARDING_WIZARD_LABELS_FR;
   return (
     <div className="space-y-4">
       <StepHeader title={labels.s4Title} hint={labels.s4Hint} />
@@ -586,133 +590,3 @@ function ErrorLine({ text }: { text: string }) {
   );
 }
 
-// -----------------------------------------------------------------------------
-// Microcopy
-// -----------------------------------------------------------------------------
-
-const L_FR = {
-  eyebrow: 'Onboarding',
-  title: 'Crée ta première annonce',
-  improveTitle: 'Améliore ton offre existante',
-  subtitle:
-    "On va générer tes premières annonces à partir de ces réponses. Aucune publication réelle.",
-  introTitle: 'Crée ta première annonce',
-  introBody: "Tu as déjà une offre. On peut en créer une nouvelle ou améliorer une existante.",
-  choiceNew: 'Créer une nouvelle annonce',
-  choiceNewBody: 'Démarre depuis zéro avec un nouveau brief.',
-  choiceImprove: 'Améliorer une offre existante',
-  choiceImproveBody: 'Reprends une offre déjà saisie et régénère ses annonces.',
-  backToOffers: 'Retour aux offres',
-  useExample: "Utiliser l'exemple Nova Studio",
-  mockBanner:
-    "Mock V1 : aucune annonce n'est publiée. Ces prévisualisations servent à préparer la diffusion.",
-  stepLabel: 'Étape',
-  back: 'Retour',
-  continue: 'Continuer',
-  finalCta: 'Voir mes annonces',
-  busy: 'Génération…',
-  cancel: 'Annuler',
-
-  s1Title: 'Ce que tu vends',
-  s1Hint: "Donne un nom et explique en une phrase ce que tu vends.",
-  s1Name: "Nom de l'offre",
-  s1Type: 'Type',
-  s1OneLiner: "J'aide qui à obtenir quoi ?",
-  s1OneLinerPh:
-    "J'aide les indépendants B2B à clarifier leur offre et à publier une page de vente simple en 4 semaines.",
-
-  s2Title: 'Pour qui',
-  s2Hint: "Décris l'audience et son problème principal.",
-  s2Audience: 'Audience cible',
-  s2AudiencePh: 'indépendants B2B qui vendent des services',
-  s2Problem: 'Problème principal',
-  s2ProblemPh: "Leur offre n'est pas claire, ils perdent des prospects.",
-  s2Maturity: 'Niveau de maturité',
-
-  s3Title: 'Pourquoi croire',
-  s3Hint:
-    "Donne au moins une preuve OU un bénéfice principal. L'objection est facultative mais utile.",
-  s3Proof: 'Preuve ou crédibilité',
-  s3ProofPh: 'Méthode testée sur 12 offres de consultants',
-  s3Benefit: 'Bénéfice principal',
-  s3BenefitPh: 'Une seule offre claire et une page de vente prête en 4 semaines.',
-  s3Objection: 'Objection fréquente',
-  s3ObjectionPh: "Je n'ai pas le temps de refaire toute mon offre.",
-
-  s4Title: 'Action attendue',
-  s4Hint: 'Choisis le CTA principal, le ton et la langue.',
-  s4Cta: 'CTA principal',
-  s4CtaPh: 'Réserver un appel de cadrage de 20 minutes',
-  s4Tone: 'Ton souhaité',
-  s4Language: 'Langue de tes annonces',
-
-  errName: 'Ajoute un nom court.',
-  errOneLiner: 'Ajoute au moins une phrase.',
-  errAudience: "Ajoute une audience cible (au moins quelques mots).",
-  errProblem: 'Ajoute le problème principal.',
-  errProofOrBenefit: 'Ajoute au moins une preuve OU un bénéfice principal.',
-  errCta: 'Ajoute un CTA.',
-  errLanguage: 'Choisis une langue.',
-};
-
-const L_EN: typeof L_FR = {
-  eyebrow: 'Onboarding',
-  title: 'Create your first ad',
-  improveTitle: 'Improve your existing offer',
-  subtitle: 'We will generate your first ads from these answers. No real publishing.',
-  introTitle: 'Create your first ad',
-  introBody: 'You already have an offer. You can create a new one or improve an existing one.',
-  choiceNew: 'Create a new ad',
-  choiceNewBody: 'Start fresh with a new brief.',
-  choiceImprove: 'Improve an existing offer',
-  choiceImproveBody: 'Pick an existing offer and regenerate its ads.',
-  backToOffers: 'Back to offers',
-  useExample: 'Use the Nova Studio example',
-  mockBanner: 'Mock V1: nothing is published. These previews help you prepare the diffusion.',
-  stepLabel: 'Step',
-  back: 'Back',
-  continue: 'Continue',
-  finalCta: 'See my ads',
-  busy: 'Generating…',
-  cancel: 'Cancel',
-
-  s1Title: 'What you sell',
-  s1Hint: 'Give it a name and describe what you sell in one sentence.',
-  s1Name: 'Offer name',
-  s1Type: 'Type',
-  s1OneLiner: 'I help who get what?',
-  s1OneLinerPh:
-    'I help B2B consultants articulate their offer and ship a simple sales page in 4 weeks.',
-
-  s2Title: 'For whom',
-  s2Hint: 'Describe the audience and their main problem.',
-  s2Audience: 'Target audience',
-  s2AudiencePh: 'B2B consultants who sell services',
-  s2Problem: 'Main problem',
-  s2ProblemPh: 'Their offer is unclear, they lose prospects.',
-  s2Maturity: 'Maturity level',
-
-  s3Title: 'Why believe',
-  s3Hint: 'Give at least one proof OR one main benefit. The objection is optional but useful.',
-  s3Proof: 'Proof or credibility',
-  s3ProofPh: 'Tested with 12 consultant offers',
-  s3Benefit: 'Main benefit',
-  s3BenefitPh: 'One clear offer and a sales page ready in 4 weeks.',
-  s3Objection: 'Frequent objection',
-  s3ObjectionPh: "I don't have time to redo my whole offer.",
-
-  s4Title: 'Expected action',
-  s4Hint: 'Pick the main CTA, the tone and the language.',
-  s4Cta: 'Main CTA',
-  s4CtaPh: 'Book a 20-minute scoping call',
-  s4Tone: 'Desired tone',
-  s4Language: 'Language of your ads',
-
-  errName: 'Add a short name.',
-  errOneLiner: 'Add at least one sentence.',
-  errAudience: 'Add a target audience (at least a few words).',
-  errProblem: 'Add the main problem.',
-  errProofOrBenefit: 'Add at least one proof OR one main benefit.',
-  errCta: 'Add a CTA.',
-  errLanguage: 'Choose a language.',
-};

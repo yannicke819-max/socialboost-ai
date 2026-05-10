@@ -764,10 +764,10 @@ const L_FR = {
     "Ad Studio s'appuie sur tes contenus. Génère un pack créatif depuis l'onglet Contenus, puis reviens ici pour découvrir tes annonces.",
   emptyNoAssetsCta: 'Aller dans Contenus',
 
-  emptyLowApprovedTitle: 'Approuve 3 contenus pour des annonces solides',
+  emptyLowApprovedTitle: 'Prépare tes annonces',
   emptyLowApprovedBody:
-    "Tu as {n} contenu(s) approuvé(s). On a besoin d'au moins 3 contenus validés pour produire des annonces fiables. Approuve tes meilleurs hooks et preuves, puis reviens ici.",
-  emptyLowApprovedCta: 'Approuver des contenus',
+    'Choisis quelques contenus à utiliser, puis SocialBoost préparera tes annonces. Tu en as déjà {n} — vise 3 pour un résultat plus solide.',
+  emptyLowApprovedCta: 'Choisir des contenus',
 };
 
 const L_EN: typeof L_FR = {
@@ -828,8 +828,8 @@ const L_EN: typeof L_FR = {
     'Ad Studio reads your contents. Generate a creative pack from the Contents tab, then come back here to discover your ads.',
   emptyNoAssetsCta: 'Go to Contents',
 
-  emptyLowApprovedTitle: 'Approve 3 contents for solid ads',
+  emptyLowApprovedTitle: 'Prepare your ads',
   emptyLowApprovedBody:
-    'You have {n} approved content(s). We need at least 3 validated contents to produce reliable ads. Approve your best hooks and proofs, then come back here.',
-  emptyLowApprovedCta: 'Approve contents',
+    'Pick a few contents to use, then SocialBoost will prepare your ads. You already have {n} — aim for 3 for a sturdier result.',
+  emptyLowApprovedCta: 'Pick contents',
 };

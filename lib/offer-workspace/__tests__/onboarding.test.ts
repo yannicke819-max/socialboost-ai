@@ -17,7 +17,9 @@ g.window = { localStorage: new MemoryStorage() };
 
 import {
   EMPTY_DRAFT,
+  MATURITY_LABELS,
   NOVA_STUDIO_EXAMPLE,
+  ONBOARDING_TONE_LABELS,
   draftFromOffer,
   isDraftComplete,
   materializeFromOnboarding,
@@ -26,6 +28,10 @@ import {
   validateStep,
   type OnboardingDraft,
 } from '../onboarding';
+import {
+  ONBOARDING_WIZARD_LABELS_EN,
+  ONBOARDING_WIZARD_LABELS_FR,
+} from '../onboarding-labels';
 import { createWorkspaceStore } from '../store';
 import { parseWorkspaceImport, serializeWorkspace } from '../persistence';
 
@@ -228,6 +234,130 @@ describe('runOnboarding — validation guard', () => {
       () => runOnboarding(store, EMPTY_DRAFT),
       /onboarding_draft_incomplete/,
     );
+  });
+});
+
+describe('AI-014 humanization patch — wizard microcopy', () => {
+  // The wizard targets non-technical users. The FR copy must NOT contain the
+  // following technical / marketing-jargon phrases — they were the BLOCKER on
+  // PR #30 review.
+  const FORBIDDEN_FR = [
+    'CTA principal',
+    'Niveau de maturité',
+    'Pourquoi croire',
+    'Action attendue',
+    'Audience cible',
+    'Ton souhaité',
+    'Objection fréquente',
+    'Préheader',
+  ];
+
+  // Required user-friendly phrases.
+  const REQUIRED_FR = [
+    'Prochaine action à proposer',
+    'Où en est ton client ?',
+    "Style de l'annonce",
+    'Pourquoi te faire confiance ?',
+    'Que doit faire la personne ensuite ?',
+    'Pour qui ?',
+    'Qui veux-tu toucher ?',
+    'Quel problème veux-tu résoudre ?',
+    'Ce qui te rend crédible',
+    'Ce que ton client va gagner',
+    'Ce qui peut le freiner',
+    'Remplir avec un exemple',
+    'Langue des annonces',
+    'Aucune annonce ne sera publiée automatiquement',
+  ];
+
+  const REQUIRED_EN = [
+    'Next action to suggest',
+    'Where is your customer today?',
+    'Ad style',
+    'Why should people trust you?',
+    'What should they do next?',
+    'For whom?',
+    'Who do you want to reach?',
+    'What problem do you solve?',
+    'What makes you credible',
+    'What your customer gains',
+    'What might hold them back',
+    'Fill with an example',
+    'Ad language',
+    'No ad will be published automatically',
+  ];
+
+  it('FR wizard does not contain any technical/marketing phrase', () => {
+    const blob = JSON.stringify(ONBOARDING_WIZARD_LABELS_FR);
+    for (const phrase of FORBIDDEN_FR) {
+      assert.equal(
+        blob.includes(phrase),
+        false,
+        `FR wizard still contains forbidden technical phrase "${phrase}"`,
+      );
+    }
+  });
+
+  it('FR wizard contains every required human phrase', () => {
+    const blob = JSON.stringify(ONBOARDING_WIZARD_LABELS_FR);
+    for (const phrase of REQUIRED_FR) {
+      assert.equal(
+        blob.includes(phrase),
+        true,
+        `FR wizard is missing required human phrase "${phrase}"`,
+      );
+    }
+  });
+
+  it('EN wizard contains every required human phrase', () => {
+    const blob = JSON.stringify(ONBOARDING_WIZARD_LABELS_EN);
+    for (const phrase of REQUIRED_EN) {
+      assert.equal(
+        blob.includes(phrase),
+        true,
+        `EN wizard is missing required human phrase "${phrase}"`,
+      );
+    }
+  });
+
+  it('maturity labels are humanized (no "Débutant" / "Intermédiaire" / "Avancé")', () => {
+    assert.equal(MATURITY_LABELS.beginner.fr, 'Il découvre');
+    assert.equal(MATURITY_LABELS.intermediate.fr, 'Il compare');
+    assert.equal(MATURITY_LABELS.advanced.fr, 'Il est prêt');
+    assert.equal(MATURITY_LABELS.beginner.en, 'Just discovering');
+    assert.equal(MATURITY_LABELS.intermediate.en, 'Comparing options');
+    assert.equal(MATURITY_LABELS.advanced.en, 'Ready to act');
+  });
+
+  it('tone labels are humanized (no bare "Pédagogique"/"Énergique"/"Clair")', () => {
+    assert.equal(ONBOARDING_TONE_LABELS.clear.fr, 'Simple');
+    assert.equal(ONBOARDING_TONE_LABELS.premium.fr, 'Haut de gamme');
+    assert.equal(ONBOARDING_TONE_LABELS.pedagogical.fr, 'Explicatif');
+    assert.equal(ONBOARDING_TONE_LABELS.energetic.fr, 'Dynamique');
+    assert.equal(ONBOARDING_TONE_LABELS.clear.en, 'Simple');
+    assert.equal(ONBOARDING_TONE_LABELS.pedagogical.en, 'Explanatory');
+  });
+
+  it('mock banner in the wizard is reassuring (not the technical "Mock V1" line)', () => {
+    assert.match(
+      ONBOARDING_WIZARD_LABELS_FR.mockBanner,
+      /Aucune annonce ne sera publiée automatiquement/,
+    );
+    assert.equal(
+      /Mock V1/.test(ONBOARDING_WIZARD_LABELS_FR.mockBanner),
+      false,
+      'wizard banner should not expose the "Mock V1" technical label',
+    );
+  });
+
+  it('Nova Studio example still validates after the humanization (engine untouched)', () => {
+    // Spec rule: "Pas de refactor engine". Nova Studio must still complete the
+    // wizard exactly as before.
+    assert.deepEqual(validateAll(NOVA_STUDIO_EXAMPLE), {});
+    assert.equal(isDraftComplete(NOVA_STUDIO_EXAMPLE), true);
+    const store = createWorkspaceStore();
+    const result = runOnboarding(store, NOVA_STUDIO_EXAMPLE);
+    assert.ok(result.adCount > 0);
   });
 });
 
