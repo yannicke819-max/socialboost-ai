@@ -1,7 +1,7 @@
 'use client';
 
 import { useMemo, useState } from 'react';
-import { Brain, Check, ClipboardCopy, ChevronRight, Plus, X } from 'lucide-react';
+import { Brain, Check, ClipboardCopy, ChevronRight, Plus, X, Play, AlertTriangle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import {
   EXTERNAL_INSPIRATION_PLATFORMS,
@@ -16,6 +16,7 @@ import {
   type PromptChannel,
   type PromptTask,
 } from '@/lib/offer-workspace/prompt-orchestrator';
+import type { AiProviderRunResult } from '@/lib/offer-workspace/ai-provider-runner';
 import {
   PROMPT_INSPECTOR_EN,
   PROMPT_INSPECTOR_FR,
@@ -50,6 +51,9 @@ export function PromptInspector({
   const [channel, setChannel] = useState<PromptChannel | ''>(defaultChannel ?? '');
   const [notice, setNotice] = useState<string | null>(null);
   const [inspirations, setInspirations] = useState<ExternalInspirationInput[]>([]);
+  const [testRunning, setTestRunning] = useState(false);
+  const [testResult, setTestResult] = useState<AiProviderRunResult | null>(null);
+  const [testError, setTestError] = useState<string | null>(null);
 
   const prompt = useMemo(
     () =>
@@ -76,6 +80,30 @@ export function PromptInspector({
     } catch {
       setNotice(labels.copyFailedToast);
       setTimeout(() => setNotice(null), 1800);
+    }
+  };
+
+  const handleTest = async () => {
+    setTestRunning(true);
+    setTestError(null);
+    setTestResult(null);
+    try {
+      const res = await fetch('/api/ai/run-prompt', {
+        method: 'POST',
+        cache: 'no-store',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({
+          promptVersion: prompt,
+          inspirations: inspirations.length > 0 ? inspirations : undefined,
+          offer: { brief: { language: offer.brief.language } },
+        }),
+      });
+      const json = (await res.json()) as AiProviderRunResult;
+      setTestResult(json);
+    } catch {
+      setTestError('network_error');
+    } finally {
+      setTestRunning(false);
     }
   };
 
@@ -137,12 +165,27 @@ export function PromptInspector({
           >
             <ClipboardCopy size={12} /> {labels.copyButton}
           </button>
+          <button
+            type="button"
+            onClick={handleTest}
+            disabled={testRunning}
+            className={cn(
+              'inline-flex items-center gap-1.5 rounded-md border border-emerald-400/40 bg-emerald-400/5 px-3 py-1.5 font-mono text-[11px] uppercase tracking-wider text-emerald-400 transition hover:border-emerald-400 hover:text-emerald-300 focus-visible:ring-2 focus-visible:ring-brand',
+              testRunning && 'opacity-60',
+            )}
+          >
+            <Play size={12} /> {testRunning ? labels.testRunningLabel : labels.testButton}
+          </button>
           {notice && (
             <span className="inline-flex items-center gap-1 rounded-md border border-emerald-400/40 bg-emerald-400/5 px-2 py-0.5 font-mono text-[10px] uppercase tracking-wider text-emerald-400">
               <Check size={10} /> {notice}
             </span>
           )}
         </div>
+
+        {(testResult || testError) && (
+          <TestResultPanel result={testResult} error={testError} language={language} />
+        )}
 
         <Section title={labels.taskLabel} mono>
           {prompt.task} {prompt.channel ? `· ${prompt.channel}` : ''}
@@ -210,6 +253,71 @@ function Section({
       <div className={cn(mono ? 'font-mono text-[11px] text-fg' : 'text-sm text-fg-muted')}>
         {children}
       </div>
+    </section>
+  );
+}
+
+function TestResultPanel({
+  result,
+  error,
+  language,
+}: {
+  result: AiProviderRunResult | null;
+  error: string | null;
+  language: 'fr' | 'en';
+}) {
+  const labels = language === 'en' ? PROMPT_INSPECTOR_EN : PROMPT_INSPECTOR_FR;
+  if (error) {
+    return (
+      <section className="rounded-md border border-amber-400/40 bg-amber-400/5 p-3">
+        <p className="inline-flex items-center gap-1 font-mono text-[10px] uppercase tracking-wider text-amber-400">
+          <AlertTriangle size={11} /> {error}
+        </p>
+      </section>
+    );
+  }
+  if (!result) return null;
+
+  const isDryRun = result.meta.dryRun;
+  const dryRunMsg = isDryRun
+    ? result.meta.flagEnabled
+      ? labels.testResultDryRunNoKey
+      : labels.testResultDryRunFlagOff
+    : null;
+
+  return (
+    <section className="rounded-md border border-brand/30 bg-brand/5 p-3">
+      <p className="font-mono text-[11px] uppercase tracking-wider text-brand">
+        {labels.testResultTitle}
+      </p>
+      {dryRunMsg && (
+        <p className="mt-1 inline-flex items-center gap-1 rounded border border-amber-400/40 bg-amber-400/5 px-2 py-0.5 font-mono text-[10px] uppercase tracking-wider text-amber-400">
+          {dryRunMsg}
+        </p>
+      )}
+      <ul className="mt-2 grid gap-0.5 font-mono text-[10px] text-fg-muted sm:grid-cols-2">
+        <li>{labels.testResultProviderLabel}: <span className="text-fg">{result.provider}</span></li>
+        <li>{labels.testResultModelLabel}: <span className="text-fg">{result.model}</span></li>
+        {result.blockedReason && (
+          <li className="text-amber-400 sm:col-span-2">
+            {labels.testResultBlockedLabel}: {result.blockedReason}
+          </li>
+        )}
+        {result.validationErrors && result.validationErrors.length > 0 && (
+          <li className="text-amber-400 sm:col-span-2">
+            {labels.testResultValidationErrorsLabel}: {result.validationErrors.join(', ')}
+          </li>
+        )}
+      </ul>
+      {result.outputText && (
+        <div className="mt-2">
+          <p className="font-mono text-[10px] uppercase tracking-wider text-fg-subtle">
+            {labels.testResultOutputLabel}
+          </p>
+          <Pre>{result.outputText}</Pre>
+        </div>
+      )}
+      <p className="mt-2 text-[12px] text-fg-muted">{labels.testResultDraftReminder}</p>
     </section>
   );
 }

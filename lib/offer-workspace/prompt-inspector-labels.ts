@@ -42,6 +42,20 @@ export interface PromptInspectorCopy {
   inspirationsSignalsPh: string;
   inspirationsNotesLabel: string;
   inspirationsNotesPh: string;
+  /** AI-016 Provider Runner labels. */
+  testButton: string;
+  testRunningLabel: string;
+  testResultTitle: string;
+  testResultDryRunFlagOff: string;
+  testResultDryRunNoKey: string;
+  testResultProviderLabel: string;
+  testResultModelLabel: string;
+  testResultBlockedLabel: string;
+  testResultValidationErrorsLabel: string;
+  testResultOutputLabel: string;
+  testResultUsageLabel: string;
+  testResultMetaLabel: string;
+  testResultDraftReminder: string;
 }
 
 export const PROMPT_INSPECTOR_FR: PromptInspectorCopy = {
@@ -94,6 +108,22 @@ export const PROMPT_INSPECTOR_FR: PromptInspectorCopy = {
     'beaucoup de commentaires\npublicité active depuis longtemps\nformat récurrent chez plusieurs concurrents',
   inspirationsNotesLabel: 'Notes (optionnel)',
   inspirationsNotesPh: 'Pourquoi tu trouves cet exemple intéressant ?',
+  testButton: 'Tester le brief IA',
+  testRunningLabel: 'Test en cours…',
+  testResultTitle: 'Résultat du test',
+  testResultDryRunFlagOff:
+    "Provider IA désactivé. Le brief est prêt, mais aucun appel réel n'a été effectué.",
+  testResultDryRunNoKey:
+    "Aucune clé API configurée pour cet environnement. Test en mode démonstration uniquement.",
+  testResultProviderLabel: 'Provider',
+  testResultModelLabel: 'Modèle',
+  testResultBlockedLabel: 'Bloqué',
+  testResultValidationErrorsLabel: 'Erreurs de validation',
+  testResultOutputLabel: 'Sortie (brouillon, à relire)',
+  testResultUsageLabel: 'Usage',
+  testResultMetaLabel: 'Métadonnées',
+  testResultDraftReminder:
+    "Cette sortie est un brouillon. Aucune annonce n'est créée ou publiée automatiquement. Relis avant de l'utiliser.",
 };
 
 export const PROMPT_INSPECTOR_EN: PromptInspectorCopy = {
@@ -146,6 +176,22 @@ export const PROMPT_INSPECTOR_EN: PromptInspectorCopy = {
     'lots of comments\nrunning for months\nrecurring format across competitors',
   inspirationsNotesLabel: 'Notes (optional)',
   inspirationsNotesPh: 'Why do you find this example interesting?',
+  testButton: 'Test AI brief',
+  testRunningLabel: 'Testing…',
+  testResultTitle: 'Test result',
+  testResultDryRunFlagOff:
+    'AI provider is disabled. The brief is ready, but no real call was made.',
+  testResultDryRunNoKey:
+    'No API key configured for this environment. Demo-only test.',
+  testResultProviderLabel: 'Provider',
+  testResultModelLabel: 'Model',
+  testResultBlockedLabel: 'Blocked',
+  testResultValidationErrorsLabel: 'Validation errors',
+  testResultOutputLabel: 'Output (draft, please review)',
+  testResultUsageLabel: 'Usage',
+  testResultMetaLabel: 'Meta',
+  testResultDraftReminder:
+    'This output is a draft. No ad is created or published automatically. Review before using it.',
 };
 
 /** Microcopy for the AdStudio explainer line. */
