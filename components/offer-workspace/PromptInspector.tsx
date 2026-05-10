@@ -31,12 +31,14 @@ import {
   PROMPT_INSPECTOR_FR,
 } from '@/lib/offer-workspace/prompt-inspector-labels';
 import {
+  SOCIALBOOST_PLANS,
   estimateAiActionCost,
   selectRecommendedModel,
   type SocialBoostAction,
   type SocialBoostPlan,
 } from '@/lib/offer-workspace/ai-cost-model';
 import { decideAiExecution } from '@/lib/offer-workspace/ai-entitlements';
+import { resolveSmokeTestUiState } from '@/lib/offer-workspace/smoke-test-ui';
 import {
   buildFreePromptPack,
   type FreePromptFormat,
@@ -56,6 +58,20 @@ interface PromptInspectorProps {
   plan?: SocialBoostPlan;
   /** AI-016A — for non-free plans only. Defaults to 0 on free. */
   remainingCredits?: number;
+  /**
+   * AI-016D — non-secret boolean form of
+   * `process.env.SOCIALBOOST_AI_PROVIDER_ENABLED`. Read by a Server
+   * Component and passed down. Used only to render the right microcopy.
+   * The actual API key is NEVER exposed to the client.
+   */
+  providerEnabled?: boolean;
+  /**
+   * AI-016D — true on non-Production environments. When true, the
+   * inspector shows a small in-component plan switcher so a developer
+   * can simulate paid plans for the smoke test. Always false in
+   * Production.
+   */
+  simulatedPlanAllowed?: boolean;
 }
 
 /**
@@ -72,12 +88,19 @@ export function PromptInspector({
   adUnit,
   plan = 'free',
   remainingCredits = 0,
+  providerEnabled = false,
+  simulatedPlanAllowed = false,
 }: PromptInspectorProps) {
   const labels = language === 'en' ? PROMPT_INSPECTOR_EN : PROMPT_INSPECTOR_FR;
   const [task, setTask] = useState<PromptTask>(defaultTask);
   const [channel, setChannel] = useState<PromptChannel | ''>(defaultChannel ?? '');
   const [notice, setNotice] = useState<string | null>(null);
   const [inspirations, setInspirations] = useState<ExternalInspirationInput[]>([]);
+  // AI-016D: optional simulated plan, Preview-only. The real `plan` prop is
+  // never mutated; we keep an override and resolve the effective plan below.
+  const [simulatedPlan, setSimulatedPlan] = useState<SocialBoostPlan | null>(null);
+  const effectivePlan: SocialBoostPlan =
+    simulatedPlanAllowed && simulatedPlan !== null ? simulatedPlan : plan;
 
   // AI-016A: pure-derived cost + entitlements decision. No fetch, no env.
   const costAction: SocialBoostAction =
@@ -96,10 +119,10 @@ export function PromptInspector({
     () =>
       selectRecommendedModel({
         action: costAction,
-        plan,
+        plan: effectivePlan,
         qualityMode: 'balanced',
       }),
-    [costAction, plan],
+    [costAction, effectivePlan],
   );
   const estimate = useMemo(
     () =>
@@ -113,13 +136,13 @@ export function PromptInspector({
   const decision = useMemo(
     () =>
       decideAiExecution({
-        plan,
+        plan: effectivePlan,
         remainingCredits,
         action: costAction,
         requestedProvider: recommended.provider,
         requestedModel: recommended.model,
       }),
-    [plan, remainingCredits, costAction, recommended.provider, recommended.model],
+    [effectivePlan, remainingCredits, costAction, recommended.provider, recommended.model],
   );
 
   const prompt = useMemo(
@@ -157,10 +180,14 @@ export function PromptInspector({
   const [testRunning, setTestRunning] = useState(false);
   const [testResult, setTestResult] = useState<AiProviderRunResult | null>(null);
   const [testError, setTestError] = useState<string | null>(null);
-  const isFree = plan === 'free';
+  const isFree = effectivePlan === 'free';
+  const smokeUiState = resolveSmokeTestUiState({
+    plan: effectivePlan,
+    providerEnabled,
+  });
 
   const handleTest = async () => {
-    if (isFree) return; // belt-and-suspenders client guard
+    if (smokeUiState !== 'paid_enabled') return; // belt-and-suspenders client guard
     setTestRunning(true);
     setTestError(null);
     setTestResult(null);
@@ -173,7 +200,7 @@ export function PromptInspector({
           promptVersion: prompt,
           inspirations: inspirations.length > 0 ? inspirations : undefined,
           offer: { brief: { language: offer.brief.language } },
-          plan,
+          plan: effectivePlan,
           remainingCredits,
           action: costAction,
         }),
@@ -201,12 +228,22 @@ export function PromptInspector({
       <div className="space-y-4 border-t border-border px-4 py-4">
         <p className="text-[12px] text-fg-muted">{labels.helperLine}</p>
 
-        {(plan === 'free' || decision.mode === 'dry_run' || decision.mode === 'byok') && (
+        {(effectivePlan === 'free' || decision.mode === 'dry_run' || decision.mode === 'byok') && (
           <FreeModeBlock
             language={language}
             promptVersion={prompt}
             estimatedCredits={estimate.estimatedCredits}
             recommendedModel={`${recommended.provider}:${recommended.model}`}
+          />
+        )}
+
+        <SmokeTestStateBanner state={smokeUiState} language={language} />
+
+        {simulatedPlanAllowed && (
+          <SimulatedPlanPicker
+            language={language}
+            current={simulatedPlan}
+            onChange={setSimulatedPlan}
           />
         )}
 
@@ -254,18 +291,27 @@ export function PromptInspector({
           >
             <ClipboardCopy size={12} /> {labels.copyButton}
           </button>
-          {/* AI-016B: paid-plan provider runner. Free → disabled visually
-              + early return in handleTest. Server-side, the gateway also
-              refuses any Free call via decideAiExecution. */}
+          {/* AI-016D: three-state test button.
+                - 'free'           → disabled, Free-mode tooltip.
+                - 'paid_disabled'  → disabled, environment notice.
+                - 'paid_enabled'   → active CTA "Générer un test IA".
+              Server-side, the gateway also refuses any Free call via
+              decideAiExecution. */}
           <button
             type="button"
             onClick={handleTest}
-            disabled={isFree || testRunning}
-            title={isFree ? labels.paidTestDisabledForFreeTooltip : undefined}
-            aria-disabled={isFree || testRunning}
+            disabled={smokeUiState !== 'paid_enabled' || testRunning}
+            title={
+              smokeUiState === 'free'
+                ? labels.paidTestDisabledForFreeTooltip
+                : smokeUiState === 'paid_disabled'
+                  ? labels.smokePaidDisabledExplain
+                  : undefined
+            }
+            aria-disabled={smokeUiState !== 'paid_enabled' || testRunning}
             className={cn(
               'inline-flex items-center gap-1.5 rounded-md border px-3 py-1.5 font-mono text-[11px] uppercase tracking-wider transition focus-visible:ring-2 focus-visible:ring-brand',
-              isFree
+              smokeUiState !== 'paid_enabled'
                 ? 'cursor-not-allowed border-border bg-bg-elevated text-fg-subtle opacity-60'
                 : testRunning
                   ? 'border-emerald-400/40 bg-emerald-400/5 text-emerald-400 opacity-60'
@@ -273,7 +319,11 @@ export function PromptInspector({
             )}
           >
             <Play size={12} />{' '}
-            {testRunning ? labels.paidTestRunningLabel : labels.paidTestButton}
+            {testRunning
+              ? labels.paidTestRunningLabel
+              : smokeUiState === 'paid_enabled'
+                ? labels.smokePaidEnabledCta
+                : labels.paidTestButton}
           </button>
           {notice && (
             <span className="inline-flex items-center gap-1 rounded-md border border-emerald-400/40 bg-emerald-400/5 px-2 py-0.5 font-mono text-[10px] uppercase tracking-wider text-emerald-400">
@@ -283,7 +333,12 @@ export function PromptInspector({
         </div>
 
         {(testResult || testError) && (
-          <PaidTestResultPanel result={testResult} error={testError} language={language} />
+          <PaidTestResultPanel
+            result={testResult}
+            error={testError}
+            language={language}
+            estimatedCredits={estimate.estimatedCredits}
+          />
         )}
 
         <Section title={labels.taskLabel} mono>
@@ -439,10 +494,12 @@ function PaidTestResultPanel({
   result,
   error,
   language,
+  estimatedCredits,
 }: {
   result: AiProviderRunResult | null;
   error: string | null;
   language: 'fr' | 'en';
+  estimatedCredits: number;
 }) {
   const labels = language === 'en' ? PROMPT_INSPECTOR_EN : PROMPT_INSPECTOR_FR;
   if (error) {
@@ -461,6 +518,18 @@ function PaidTestResultPanel({
       ? labels.paidTestResultDryRunNoKey
       : labels.paidTestResultDryRunFlagOff
     : null;
+  const status = result.blockedReason
+    ? labels.resultPanelStatusBlocked
+    : isDryRun
+      ? labels.resultPanelStatusDryRun
+      : result.ok
+        ? labels.resultPanelStatusOk
+        : labels.resultPanelStatusBlocked;
+  const statusTone = result.ok && !isDryRun
+    ? 'text-emerald-400'
+    : result.blockedReason
+      ? 'text-amber-400'
+      : 'text-fg-muted';
   return (
     <section className="rounded-md border border-brand/30 bg-brand/5 p-3">
       <p className="font-mono text-[11px] uppercase tracking-wider text-brand">
@@ -474,6 +543,14 @@ function PaidTestResultPanel({
       <ul className="mt-2 grid gap-0.5 font-mono text-[10px] text-fg-muted sm:grid-cols-2">
         <li>provider: <span className="text-fg">{result.provider}</span></li>
         <li>model: <span className="text-fg">{result.model}</span></li>
+        <li>
+          {labels.resultPanelEstimatedCreditsLabel}:{' '}
+          <span className="text-fg">{estimatedCredits}</span>
+        </li>
+        <li>
+          {labels.resultPanelStatusLabel}:{' '}
+          <span className={statusTone}>{status}</span>
+        </li>
         {result.meta.decisionReason && (
           <li className="sm:col-span-2">
             decision: <span className="text-fg">{result.meta.decisionReason}</span>
@@ -499,6 +576,81 @@ function PaidTestResultPanel({
         </div>
       )}
       <p className="mt-2 text-[12px] text-fg-muted">{labels.paidTestResultDraftReminder}</p>
+    </section>
+  );
+}
+
+function SmokeTestStateBanner({
+  state,
+  language,
+}: {
+  state: 'free' | 'paid_disabled' | 'paid_enabled';
+  language: 'fr' | 'en';
+}) {
+  const labels = language === 'en' ? PROMPT_INSPECTOR_EN : PROMPT_INSPECTOR_FR;
+  if (state === 'paid_enabled') return null;
+  const message =
+    state === 'free' ? labels.smokeFreeStateExplain : labels.smokePaidDisabledExplain;
+  const tone =
+    state === 'free'
+      ? 'border-amber-400/40 bg-amber-400/5 text-amber-400'
+      : 'border-fg-subtle/30 bg-bg-elevated text-fg-muted';
+  return (
+    <p
+      className={cn(
+        'rounded border px-2 py-1 font-mono text-[11px]',
+        tone,
+      )}
+      role="status"
+    >
+      {message}
+    </p>
+  );
+}
+
+function SimulatedPlanPicker({
+  language,
+  current,
+  onChange,
+}: {
+  language: 'fr' | 'en';
+  current: SocialBoostPlan | null;
+  onChange: (p: SocialBoostPlan | null) => void;
+}) {
+  const labels = language === 'en' ? PROMPT_INSPECTOR_EN : PROMPT_INSPECTOR_FR;
+  return (
+    <section className="rounded border border-dashed border-border bg-bg-elevated/30 p-2">
+      <p className="font-mono text-[10px] uppercase tracking-wider text-fg-subtle">
+        {labels.smokeSimulatedPlanLabel}
+      </p>
+      <p className="mt-0.5 text-[11px] text-fg-muted">{labels.smokeSimulatedPlanHint}</p>
+      <div className="mt-1 flex flex-wrap items-center gap-1">
+        {SOCIALBOOST_PLANS.map((p) => (
+          <button
+            key={p}
+            type="button"
+            onClick={() => onChange(p)}
+            aria-pressed={current === p}
+            className={cn(
+              'rounded border px-2 py-0.5 font-mono text-[10px] uppercase tracking-wider transition',
+              current === p
+                ? 'border-brand bg-brand/10 text-brand'
+                : 'border-border bg-bg text-fg-muted hover:border-border-strong hover:text-fg',
+            )}
+          >
+            {p}
+          </button>
+        ))}
+        {current !== null && (
+          <button
+            type="button"
+            onClick={() => onChange(null)}
+            className="rounded border border-border bg-bg px-2 py-0.5 font-mono text-[10px] uppercase tracking-wider text-fg-subtle hover:text-fg"
+          >
+            {labels.smokeSimulatedPlanReset}
+          </button>
+        )}
+      </div>
     </section>
   );
 }
