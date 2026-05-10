@@ -233,6 +233,31 @@ describe('runOpenAiPrompt — output extraction integration', () => {
 // -----------------------------------------------------------------------------
 
 describe('runOpenAiPrompt — HTTP error mapping', () => {
+  it('maps 400 → provider_bad_request', async () => {
+    const adapter = createOpenAiProviderAdapter({
+      apiKey,
+      model,
+      fetchImpl: makeFetchStatus(400),
+    });
+    await assert.rejects(adapter.runOpenAiPrompt(promptInput), (err) => {
+      assert.equal((err as OpenAiAdapterError).code, 'provider_bad_request');
+      assert.equal((err as OpenAiAdapterError).httpStatus, 400);
+      return true;
+    });
+  });
+
+  it('maps 408 → provider_timeout', async () => {
+    const adapter = createOpenAiProviderAdapter({
+      apiKey,
+      model,
+      fetchImpl: makeFetchStatus(408),
+    });
+    await assert.rejects(adapter.runOpenAiPrompt(promptInput), (err) => {
+      assert.equal((err as OpenAiAdapterError).code, 'provider_timeout');
+      return true;
+    });
+  });
+
   it('maps 401 → provider_auth_error', async () => {
     const adapter = createOpenAiProviderAdapter({
       apiKey,
@@ -316,6 +341,17 @@ describe('runOpenAiPrompt — HTTP error mapping', () => {
     });
     await assert.rejects(adapter.runOpenAiPrompt(promptInput), (err) => {
       assert.equal((err as OpenAiAdapterError).code, 'provider_timeout');
+      return true;
+    });
+  });
+
+  it('maps fetch network error → provider_network_error', async () => {
+    const fetchImpl = (async () => {
+      throw new TypeError('fetch failed');
+    }) as unknown as typeof fetch;
+    const adapter = createOpenAiProviderAdapter({ apiKey, model, fetchImpl });
+    await assert.rejects(adapter.runOpenAiPrompt(promptInput), (err) => {
+      assert.equal((err as OpenAiAdapterError).code, 'provider_network_error');
       return true;
     });
   });

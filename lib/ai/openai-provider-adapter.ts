@@ -19,12 +19,14 @@ export const OPENAI_RESPONSES_ENDPOINT = 'https://api.openai.com/v1/responses';
 export const OPENAI_DEFAULT_TIMEOUT_MS = 30_000;
 
 export type OpenAiAdapterErrorCode =
+  | 'provider_bad_request'
   | 'provider_auth_error'
   | 'provider_rate_limited'
   | 'provider_unavailable'
   | 'provider_timeout'
   | 'provider_empty_output'
   | 'provider_invalid_response'
+  | 'provider_network_error'
   | 'provider_call_failed';
 
 export class OpenAiAdapterError extends Error {
@@ -140,7 +142,7 @@ export function createOpenAiProviderAdapter(
         throw new OpenAiAdapterError('provider_timeout', 'timed_out');
       }
       throw new OpenAiAdapterError(
-        'provider_call_failed',
+        'provider_network_error',
         err instanceof Error ? err.name : 'fetch_failed',
       );
     } finally {
@@ -150,9 +152,23 @@ export function createOpenAiProviderAdapter(
       }
     }
 
+    if (res.status === 400) {
+      throw new OpenAiAdapterError(
+        'provider_bad_request',
+        `http_${res.status}`,
+        res.status,
+      );
+    }
     if (res.status === 401 || res.status === 403) {
       throw new OpenAiAdapterError(
         'provider_auth_error',
+        `http_${res.status}`,
+        res.status,
+      );
+    }
+    if (res.status === 408) {
+      throw new OpenAiAdapterError(
+        'provider_timeout',
         `http_${res.status}`,
         res.status,
       );

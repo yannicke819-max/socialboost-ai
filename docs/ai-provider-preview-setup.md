@@ -101,11 +101,15 @@ unread) or `provider_missing_key` (key unread) — both are safe.
 |---|---|
 | Flag unset / not `'true'` | `provider_disabled` |
 | Key unset | `provider_missing_key` |
-| Wrong key | `provider_auth_error` |
-| Quota exhausted on OpenAI | `provider_rate_limited` |
+| Malformed payload (HTTP 400) | `provider_bad_request` |
+| Wrong key (HTTP 401/403) | `provider_auth_error` |
+| Server-side timeout (HTTP 408) | `provider_timeout` |
+| Quota exhausted (HTTP 429) | `provider_rate_limited` |
 | OpenAI 5xx / outage | `provider_unavailable` |
 | Adapter timeout (>30s) | `provider_timeout` |
+| TCP / DNS / fetch failure | `provider_network_error` |
 | Response with no text | `provider_empty_output` |
+| Response with invalid JSON envelope | `provider_invalid_response` |
 | Forbidden phrase in prompt | `forbidden_phrase_in_prompt` |
 | Forbidden phrase in output | `forbidden_phrase_in_output` |
 | Verbatim copy from inspirations | `suspected_source_copying` |
