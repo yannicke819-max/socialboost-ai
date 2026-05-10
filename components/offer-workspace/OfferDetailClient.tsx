@@ -17,6 +17,7 @@ import { AdStudioTab } from './tabs/AdStudioTab';
 import { OfferTimeline } from './OfferTimeline';
 import { QuickActions } from './QuickActions';
 import { PromptInspector } from './PromptInspector';
+import { CreativeStudio } from './CreativeStudio';
 import { STATUS_LABELS } from '@/lib/offer-workspace/types';
 import { buildAdGallery } from '@/lib/offer-workspace/ad-studio';
 import {
@@ -259,6 +260,10 @@ export function OfferDetailClient({
         providerEnabled={providerEnabled}
         simulatedPlanAllowed={simulatedPlanAllowed}
       />
+
+      {/* AI-017B: Creative Studio — prompt-only image / video / storyboard
+          concepts. No real media provider call. */}
+      <CreativeStudio offer={offer} language={language} />
     </div>
   );
 }
