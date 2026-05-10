@@ -1,0 +1,239 @@
+name: Supabase AI migration (manual apply)
+
+# AI-005C — Manual-only Supabase migration runner.
+#
+# This workflow exists ONLY to apply `supabase/migrations/20260504100000_ai_persistence_schema.sql`
+# (and future AI-* migrations) to a Supabase project via the Supabase CLI.
+#
+# Hard rules:
+#   - workflow_dispatch only — never runs on push/PR/schedule.
+#   - The "apply" job runs ONLY if `confirm_apply == 'true'` AND the dry-run
+#     job succeeded AND showed only expected pending migrations.
+#   - Secrets come exclusively from GitHub Secrets, never from inputs and
+#     never echoed.
+#   - The runner reads only the migrations directory; it does NOT modify
+#     the repo or push commits.
+#
+# Required GitHub Secrets:
+#   - SUPABASE_ACCESS_TOKEN   (sbp_… personal access token)
+#   - SUPABASE_PROJECT_REF    (e.g. abcdefghijklmnop)
+#   - SUPABASE_DB_PASSWORD    (Postgres password for the linked project)
+
+on:
+  workflow_dispatch:
+    inputs:
+      target_environment:
+        description: "Target environment label (informational; secrets are scoped via GitHub environments)."
+        required: true
+        default: "production"
+        type: choice
+        options:
+          - staging
+          - production
+      confirm_apply:
+        description: "Type 'true' (literal) to authorize the apply job. Anything else stops at dry-run."
+        required: true
+        default: "false"
+        type: string
+      expected_migration:
+        description: "Migration filename expected to be the only pending one. Apply will fail if dry-run shows anything else."
+        required: true
+        default: "20260504100000_ai_persistence_schema.sql"
+        type: string
+
+# Hard guard: only one apply at a time per environment.
+concurrency:
+  group: supabase-ai-migration-${{ inputs.target_environment }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    name: Validate context
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - name: Checkout (read-only)
+        uses: actions/checkout@v4
+
+      - name: Confirm migration file exists
+        run: |
+          set -euo pipefail
+          file="supabase/migrations/${{ inputs.expected_migration }}"
+          test -f "$file"
+          echo "found: $file ($(wc -l < "$file") lines, $(wc -c < "$file") bytes)"
+
+      - name: Confirm runbook present
+        run: |
+          set -euo pipefail
+          test -f docs/ai/supabase-migration-runbook.md
+          echo "runbook present"
+
+      - name: Refuse if confirm_apply is true on a non-default branch
+        if: inputs.confirm_apply == 'true' && github.ref != 'refs/heads/main'
+        run: |
+          echo "::error::confirm_apply=true is only allowed from refs/heads/main. Got: ${{ github.ref }}"
+          exit 1
+
+  dry_run:
+    name: Dry-run (read-only against remote DB)
+    needs: validate
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    environment: ${{ inputs.target_environment }}
+    outputs:
+      pending_only_expected: ${{ steps.parse.outputs.pending_only_expected }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Supabase CLI
+        uses: supabase/setup-cli@v1
+        with:
+          version: latest
+
+      - name: Link Supabase project
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+          SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
+        run: |
+          set -euo pipefail
+          supabase link --project-ref "${{ secrets.SUPABASE_PROJECT_REF }}" --password "$SUPABASE_DB_PASSWORD"
+
+      - name: List migrations (remote vs local)
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+          SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
+        run: |
+          set -euo pipefail
+          supabase migration list --password "$SUPABASE_DB_PASSWORD" | tee /tmp/migration-list.txt
+
+      - name: Run dry-run
+        id: dryrun
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+          SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
+        run: |
+          set -euo pipefail
+          # `--dry-run` shows what would be applied without writing.
+          supabase db push --dry-run --password "$SUPABASE_DB_PASSWORD" 2>&1 | tee /tmp/dryrun.txt
+          echo "exit=$?" >&2
+
+      - name: Parse dry-run output (pending must equal expected only)
+        id: parse
+        run: |
+          set -euo pipefail
+          expected="${{ inputs.expected_migration }}"
+          # Strip the .sql extension and the YYYYMMDDHHMMSS_ prefix to get the version
+          version="${expected%%_*}"
+          name_no_ext="${expected%.sql}"
+
+          # Lines that look like pending migrations in `db push --dry-run` output.
+          # We tolerate either the bare filename, the version, or "<version>_<slug>" formats.
+          pending_count=$(grep -cE "(^| )(${expected}|${version}|${name_no_ext})( |$)" /tmp/dryrun.txt || true)
+          # Total references to any migration with a 14-digit timestamp prefix
+          total_refs=$(grep -cE "[0-9]{14}_[a-z0-9_-]+\.sql|[0-9]{14}_[a-z0-9_-]+|[0-9]{14}\.sql" /tmp/dryrun.txt || true)
+
+          echo "pending_count=$pending_count"
+          echo "total_refs=$total_refs"
+
+          if [ "$pending_count" -eq 0 ]; then
+            echo "::warning::dry-run output does not mention expected migration $expected — either nothing is pending (already applied) or output format changed."
+            echo "pending_only_expected=unknown" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          # If total references exceed pending_count, an unexpected migration is in the plan.
+          if [ "$total_refs" -gt "$pending_count" ]; then
+            echo "::error::dry-run mentions migrations beyond the expected one ($pending_count expected vs $total_refs total references). STOP."
+            echo "pending_only_expected=false" >> "$GITHUB_OUTPUT"
+            exit 1
+          fi
+
+          echo "pending_only_expected=true" >> "$GITHUB_OUTPUT"
+
+      - name: Upload dry-run artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: dry-run-${{ inputs.target_environment }}
+          path: |
+            /tmp/migration-list.txt
+            /tmp/dryrun.txt
+          retention-days: 7
+
+  apply:
+    name: Apply migration (requires confirm_apply=true)
+    needs: dry_run
+    if: inputs.confirm_apply == 'true' && needs.dry_run.outputs.pending_only_expected == 'true'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    environment:
+      name: ${{ inputs.target_environment }}
+      # If the GitHub environment is configured with required reviewers, this
+      # job will pause for manual approval before running.
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Supabase CLI
+        uses: supabase/setup-cli@v1
+        with:
+          version: latest
+
+      - name: Link Supabase project
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+          SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
+        run: |
+          set -euo pipefail
+          supabase link --project-ref "${{ secrets.SUPABASE_PROJECT_REF }}" --password "$SUPABASE_DB_PASSWORD"
+
+      - name: Apply migration
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+          SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
+        run: |
+          set -euo pipefail
+          supabase db push --password "$SUPABASE_DB_PASSWORD" 2>&1 | tee /tmp/apply.txt
+
+      - name: Post-apply SQL checks (read-only introspection)
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+          SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
+        run: |
+          set -euo pipefail
+
+          # The CLI uses the linked project's password to open a session.
+          # `supabase db remote query` accepts SQL via stdin and prints rows.
+          run_sql() {
+            local label="$1"; shift
+            echo "── $label ──"
+            supabase db remote query --password "$SUPABASE_DB_PASSWORD" <<SQL
+          $1
+          SQL
+          }
+
+          # Note: this uses `supabase db ...` only; never a raw psql with creds.
+          run_sql "tables present" "select tablename from pg_tables where schemaname='public' and tablename like 'ai_%' order by tablename;"
+
+          run_sql "RLS state" "select tablename, rowsecurity from pg_tables where schemaname='public' and tablename like 'ai_%' order by tablename;"
+
+          run_sql "policies (must be empty)" "select schemaname, tablename, policyname from pg_policies where schemaname='public' and tablename like 'ai_%';"
+
+          run_sql "indexes" "select indexname from pg_indexes where schemaname='public' and tablename like 'ai_%' order by indexname;"
+
+          run_sql "FK delete rules" "select tc.table_name, kcu.column_name, rc.delete_rule from information_schema.table_constraints tc join information_schema.key_column_usage kcu on kcu.constraint_name = tc.constraint_name join information_schema.referential_constraints rc on rc.constraint_name = tc.constraint_name where tc.constraint_type = 'FOREIGN KEY' and tc.table_schema = 'public' and tc.table_name like 'ai_%';"
+
+          run_sql "forbidden columns scan (must be empty)" "select table_name, column_name from information_schema.columns where table_schema='public' and table_name like 'ai_%' and column_name in ('raw_input','raw_output','prompt','completion','api_key','request_body','response_body','stack_trace');"
+
+          run_sql "schema_migrations history" "select version, name from supabase_migrations.schema_migrations order by version desc limit 5;"
+
+      - name: Upload apply artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: apply-${{ inputs.target_environment }}
+          path: /tmp/apply.txt
+          retention-days: 30
