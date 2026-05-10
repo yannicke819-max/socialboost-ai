@@ -2,44 +2,52 @@
  * AI Entitlements (AI-016A) — pure module, no I/O.
  *
  * Owns:
- *   - The single decision point that says whether a given user, on a given
- *     plan, with a given action + estimated cost, may reach a real AI
- *     provider — and whether the admin can bear the cost.
+ *   - `decideAiExecution` — the single decision point that says whether a
+ *     user, on a given plan, may reach a real AI provider, and whether the
+ *     admin can bear the cost.
+ *   - The plan quota table.
  *
  * Hard rule (non-negotiable):
- *   Plan Free = NEVER reaches a real provider, even if
- *   `SOCIALBOOST_AI_PROVIDER_ENABLED=true`. The admin must never carry
- *   API cost for a Free user.
+ *   Plan Free = NEVER reaches a real provider. Even when
+ *   `SOCIALBOOST_AI_PROVIDER_ENABLED=true`, Free stays in dry_run.
+ *   Admin NEVER carries API cost for a Free user.
  *
- * Forward-looking (not implemented in AI-016A):
- *   - "BYOK" (bring your own key) mode: a Free user could in the future
- *     plug their own API key. The decision shape supports the mode but
- *     the actual call is NOT wired here. Today: BYOK → still dry_run.
+ * BYOK ("bring your own key") is reserved at the type level — for AI-016A
+ * a Free user with their own key still gets a non-network response, but the
+ * mode is `byok` (not `dry_run`) so the UI can differentiate.
  */
 
 import {
   AI_MODEL_PRICING,
+  ACTION_MINIMUM_CREDITS,
   PLAN_QUOTAS,
+  SOCIALBOOST_PLANS,
   canRunAiAction,
   estimateAiActionCost,
   getPricing,
   modelKey,
   selectRecommendedModel,
   type AiProviderName,
+  type PlanQuota,
   type SocialBoostAction,
   type SocialBoostPlan,
 } from './ai-cost-model';
 
+// Re-export the canonical plan list + quota table so callers only need one
+// import.
+export { PLAN_QUOTAS, SOCIALBOOST_PLANS };
+export type { PlanQuota, SocialBoostPlan };
+
 // -----------------------------------------------------------------------------
-// Types
+// Decision shape
 // -----------------------------------------------------------------------------
 
 export const AI_EXECUTION_MODES = ['dry_run', 'included_credits', 'byok'] as const;
 export type AiExecutionMode = (typeof AI_EXECUTION_MODES)[number];
 
 export type AiDecisionReason =
-  | 'free_plan_dry_run_only'
-  | 'byok_not_yet_supported'
+  | 'free_prompt_pack_only'
+  | 'byok_reserved_for_future'
   | 'unknown_model'
   | 'expert_never_auto'
   | 'premium_not_allowed'
@@ -48,35 +56,39 @@ export type AiDecisionReason =
   | 'allowed_included_credits';
 
 export interface AiProviderDecision {
-  /** True when the user can proceed at all (even if only as dry-run). */
+  /** True when the user can proceed at all (even if only as dry-run / BYOK reserved). */
   allowed: boolean;
   mode: AiExecutionMode;
   reason?: AiDecisionReason;
   plan: SocialBoostPlan;
   estimatedCredits: number;
   remainingCredits: number;
-  /** Only set when the run is allowed AND consumes credits. */
+  /** Only set when the run consumes credits (paid plans, included_credits mode). */
   remainingAfter?: number;
   /** True ONLY when the gateway is allowed to make a network call. */
   providerCallAllowed: boolean;
   /** True ONLY when the admin can bear the API cost (i.e. paid plans). */
   adminCostAllowed: boolean;
+  /** True when the Free Prompt Pack is available for this plan/state. */
+  freePromptPackAllowed: boolean;
   suggestedUpgradePlan?: SocialBoostPlan;
+  suggestedDowngradeModel?: string;
 }
 
 export interface DecideAiExecutionInput {
   plan: SocialBoostPlan;
   remainingCredits: number;
   action: SocialBoostAction;
-  /** Optional override; otherwise resolved from the action + plan. */
+  /** Optional caller-supplied estimate. If absent, the function derives it. */
+  estimatedCredits?: number;
+  /** Optional override; otherwise resolved from action + plan. */
   requestedProvider?: AiProviderName;
   requestedModel?: string;
-  /**
-   * Forward-looking flag for future BYOK support. Today: even when set,
-   * the decision still maps to dry_run because BYOK is not wired in
-   * AI-016A.
-   */
+  /** Forward-looking flag — BYOK is recognized but NOT wired in AI-016A. */
   hasUserProvidedApiKey?: boolean;
+  /** Snapshot of the env flag at call time. Never on its own enough to
+   *  authorize Free. The decision layer is BEFORE the flag in the chain. */
+  providerFlagEnabled?: boolean;
 }
 
 // -----------------------------------------------------------------------------
@@ -84,19 +96,13 @@ export interface DecideAiExecutionInput {
 // -----------------------------------------------------------------------------
 
 /**
- * Single source of truth for the question "may we call a real AI provider
- * for this action right now?".
- *
- * The decision NEVER causes a provider call by itself. Callers that have
- * `providerCallAllowed === true` may then ask the gateway to perform the
- * call. Callers that have `providerCallAllowed === false` must surface a
- * dry-run / blocked result.
+ * Single source of truth for "may we call a real AI provider for this action
+ * right now?". The decision NEVER causes a provider call by itself.
  */
 export function decideAiExecution(input: DecideAiExecutionInput): AiProviderDecision {
   const quota = PLAN_QUOTAS[input.plan];
 
-  // Resolve provider/model. Default to a balanced economy pick if the caller
-  // does not specify — the cost estimate must always have a target.
+  // Resolve provider/model.
   let provider: AiProviderName;
   let model: string;
   if (input.requestedProvider && input.requestedModel) {
@@ -113,46 +119,51 @@ export function decideAiExecution(input: DecideAiExecutionInput): AiProviderDeci
   }
 
   const pricing = getPricing(provider, model);
-  const estimate = estimateAiActionCost({
-    action: input.action,
-    provider,
-    model,
-  });
-  const estimatedCredits = estimate.estimatedCredits;
+  // Cost estimate — caller may pass `estimatedCredits` directly to avoid the
+  // re-computation, otherwise the function computes it itself.
+  const estimatedCredits = (() => {
+    if (typeof input.estimatedCredits === 'number') return input.estimatedCredits;
+    const e = estimateAiActionCost({
+      action: input.action,
+      provider,
+      model,
+    });
+    return e.estimatedCredits;
+  })();
 
   // -----------------------------------------------------------------------
   // Free plan — HARD RULE.
   //
-  // Free NEVER reaches a real provider. The admin never carries API cost
-  // for Free. Even if the env flag is ON, the entitlements layer keeps
-  // Free in dry_run forever.
-  //
-  // BYOK is recognized at the type level but NOT wired in AI-016A. Today,
-  // a Free user with their own key still gets dry_run.
+  // Free NEVER reaches a real provider. providerFlagEnabled has no effect.
+  // BYOK is reserved at the type level: today it lands in `mode: 'byok'`
+  // but providerCallAllowed remains false because BYOK is not wired in
+  // AI-016A.
   // -----------------------------------------------------------------------
   if (input.plan === 'free') {
     if (input.hasUserProvidedApiKey) {
       return {
         allowed: true,
-        mode: 'dry_run',
-        reason: 'byok_not_yet_supported',
+        mode: 'byok',
+        reason: 'byok_reserved_for_future',
         plan: 'free',
         estimatedCredits,
         remainingCredits: input.remainingCredits,
         providerCallAllowed: false,
         adminCostAllowed: false,
+        freePromptPackAllowed: quota.freePromptPackAllowed,
         suggestedUpgradePlan: 'starter',
       };
     }
     return {
       allowed: true,
       mode: 'dry_run',
-      reason: 'free_plan_dry_run_only',
+      reason: 'free_prompt_pack_only',
       plan: 'free',
       estimatedCredits,
       remainingCredits: input.remainingCredits,
       providerCallAllowed: false,
       adminCostAllowed: false,
+      freePromptPackAllowed: quota.freePromptPackAllowed,
       suggestedUpgradePlan: 'starter',
     };
   }
@@ -170,6 +181,7 @@ export function decideAiExecution(input: DecideAiExecutionInput): AiProviderDeci
       remainingCredits: input.remainingCredits,
       providerCallAllowed: false,
       adminCostAllowed: false,
+      freePromptPackAllowed: quota.freePromptPackAllowed,
     };
   }
 
@@ -192,7 +204,9 @@ export function decideAiExecution(input: DecideAiExecutionInput): AiProviderDeci
       remainingCredits: input.remainingCredits,
       providerCallAllowed: false,
       adminCostAllowed: false,
+      freePromptPackAllowed: quota.freePromptPackAllowed,
       suggestedUpgradePlan: suggestUpgradeFor(input.plan, can.reason),
+      suggestedDowngradeModel: can.suggestedDowngradeModel,
     };
   }
 
@@ -207,12 +221,13 @@ export function decideAiExecution(input: DecideAiExecutionInput): AiProviderDeci
     remainingAfter: can.remainingAfter,
     providerCallAllowed: true,
     adminCostAllowed: true,
+    freePromptPackAllowed: quota.freePromptPackAllowed,
   };
 }
 
 function suggestUpgradeFor(
   plan: SocialBoostPlan,
-  reason: AiProviderDecision['reason'],
+  reason: AiDecisionReason | undefined,
 ): SocialBoostPlan | undefined {
   if (reason === 'premium_not_allowed') {
     return plan === 'starter' ? 'pro' : plan === 'free' ? 'starter' : undefined;
@@ -226,10 +241,13 @@ function suggestUpgradeFor(
 }
 
 // -----------------------------------------------------------------------------
-// Sanity: re-exported helpers for callers that only need entitlements.
+// Sanity helpers re-exported for convenience.
 // -----------------------------------------------------------------------------
 
-/** True only if the requested model exists in the pricing table. */
 export function isKnownModel(provider: AiProviderName, model: string): boolean {
   return Object.prototype.hasOwnProperty.call(AI_MODEL_PRICING, modelKey(provider, model));
+}
+
+export function actionMinimumCredits(action: SocialBoostAction): number {
+  return ACTION_MINIMUM_CREDITS[action];
 }

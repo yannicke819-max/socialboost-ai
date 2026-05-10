@@ -27,6 +27,10 @@ import {
   type SocialBoostPlan,
 } from '@/lib/offer-workspace/ai-cost-model';
 import { decideAiExecution } from '@/lib/offer-workspace/ai-entitlements';
+import {
+  buildFreePromptPack,
+  type FreePromptFormat,
+} from '@/lib/offer-workspace/free-prompt-generator';
 import type { AdUnit, Asset, Offer } from '@/lib/offer-workspace/types';
 
 interface PromptInspectorProps {
@@ -149,9 +153,10 @@ export function PromptInspector({
       <div className="space-y-4 border-t border-border px-4 py-4">
         <p className="text-[12px] text-fg-muted">{labels.helperLine}</p>
 
-        {decision.mode === 'dry_run' && plan === 'free' && (
+        {(plan === 'free' || decision.mode === 'dry_run' || decision.mode === 'byok') && (
           <FreeModeBlock
             language={language}
+            promptVersion={prompt}
             estimatedCredits={estimate.estimatedCredits}
             recommendedModel={`${recommended.provider}:${recommended.model}`}
           />
@@ -280,14 +285,35 @@ function Section({
 
 function FreeModeBlock({
   language,
+  promptVersion,
   estimatedCredits,
   recommendedModel,
 }: {
   language: 'fr' | 'en';
+  promptVersion: import('@/lib/offer-workspace/prompt-orchestrator').PromptVersion;
   estimatedCredits: number;
   recommendedModel: string;
 }) {
   const labels = language === 'en' ? PROMPT_INSPECTOR_EN : PROMPT_INSPECTOR_FR;
+  const [copied, setCopied] = useState<FreePromptFormat | null>(null);
+
+  const handleCopy = async (format: FreePromptFormat) => {
+    const pack = buildFreePromptPack({
+      promptVersion,
+      format,
+      estimatedCreditsIfRun: estimatedCredits,
+    });
+    try {
+      if (typeof navigator !== 'undefined' && navigator.clipboard) {
+        await navigator.clipboard.writeText(pack.copyablePrompt);
+      }
+      setCopied(format);
+      setTimeout(() => setCopied(null), 1500);
+    } catch {
+      // best-effort
+    }
+  };
+
   return (
     <section className="rounded-md border border-amber-400/30 bg-amber-400/5 p-3">
       <span className="font-mono text-[10px] uppercase tracking-wider text-amber-400">
@@ -295,14 +321,70 @@ function FreeModeBlock({
       </span>
       <p className="mt-1 font-display text-sm font-semibold text-fg">{labels.freeModeTitle}</p>
       <p className="mt-1 text-[12px] text-fg-muted">{labels.freeModeBody}</p>
+      <p className="mt-1 text-[12px] text-fg-muted">{labels.freeModeNoAdminCost}</p>
+      <p className="mt-1 text-[12px] text-fg-subtle italic">
+        {labels.freeModeNoModelLaunched}
+      </p>
       <ul className="mt-2 grid gap-0.5 font-mono text-[10px] text-fg-subtle sm:grid-cols-2">
-        <li>{labels.freeModeEstimateLabel}: <span className="text-fg-muted">{estimatedCredits}</span></li>
-        <li>{labels.freeModeRecommendedModelLabel}: <span className="text-fg-muted">{recommendedModel}</span></li>
+        <li>
+          {labels.freeModeEstimateLabel}:{' '}
+          <span className="text-fg-muted">
+            {estimatedCredits} {labels.freeModeEstimateSuffix}
+          </span>
+        </li>
+        <li>
+          {labels.freeModeRecommendedModelLabel}: <span className="text-fg-muted">{recommendedModel}</span>
+        </li>
       </ul>
+
+      <div className="mt-3 flex flex-wrap items-center gap-1.5">
+        <FreeModeCopyButton
+          label={labels.freeModeCopyGeneric}
+          active={copied === 'generic_markdown'}
+          onClick={() => handleCopy('generic_markdown')}
+        />
+        <FreeModeCopyButton
+          label={labels.freeModeCopyClaude}
+          active={copied === 'claude_xml'}
+          onClick={() => handleCopy('claude_xml')}
+        />
+        <FreeModeCopyButton
+          label={labels.freeModeCopyChatGpt}
+          active={copied === 'chatgpt_markdown'}
+          onClick={() => handleCopy('chatgpt_markdown')}
+        />
+      </div>
+
       <p className="mt-2 inline-flex items-center gap-1 font-mono text-[10px] uppercase tracking-wider text-fg-subtle">
         <ArrowRight size={10} /> {labels.freeModeUpgradeCta}
       </p>
     </section>
+  );
+}
+
+function FreeModeCopyButton({
+  label,
+  active,
+  onClick,
+}: {
+  label: string;
+  active: boolean;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={cn(
+        'inline-flex items-center gap-1 rounded-md border px-2.5 py-1 font-mono text-[10px] uppercase tracking-wider transition focus-visible:ring-2 focus-visible:ring-brand',
+        active
+          ? 'border-emerald-400/60 bg-emerald-400/10 text-emerald-300'
+          : 'border-border bg-bg text-fg-muted hover:border-border-strong hover:text-fg',
+      )}
+    >
+      {active ? <Check size={10} /> : <ClipboardCopy size={10} />}
+      {label}
+    </button>
   );
 }
 

@@ -46,9 +46,15 @@ export interface PromptInspectorCopy {
   freeModeBadge: string;
   freeModeTitle: string;
   freeModeBody: string;
+  freeModeNoAdminCost: string;
+  freeModeNoModelLaunched: string;
   freeModeUpgradeCta: string;
   freeModeEstimateLabel: string;
+  freeModeEstimateSuffix: string;
   freeModeRecommendedModelLabel: string;
+  freeModeCopyGeneric: string;
+  freeModeCopyClaude: string;
+  freeModeCopyChatGpt: string;
 }
 
 export const PROMPT_INSPECTOR_FR: PromptInspectorCopy = {
@@ -104,10 +110,17 @@ export const PROMPT_INSPECTOR_FR: PromptInspectorCopy = {
   freeModeBadge: 'Mode gratuit',
   freeModeTitle: 'Le brief IA est prêt',
   freeModeBody:
-    "Mode gratuit : SocialBoost prépare le brief IA, sans lancer de modèle payant. Copie-le pour l'utiliser dans ton outil habituel.",
+    'SocialBoost prépare ton brief IA expert, sans lancer de modèle payant.',
+  freeModeNoAdminCost: "Aucun coût IA n'est généré.",
+  freeModeNoModelLaunched:
+    "Aucun modèle IA n'a été lancé par SocialBoost en mode gratuit.",
   freeModeUpgradeCta: 'Passer en Starter pour générer automatiquement',
-  freeModeEstimateLabel: 'Estimation',
+  freeModeEstimateLabel: 'Exécution automatique estimée',
+  freeModeEstimateSuffix: 'crédits',
   freeModeRecommendedModelLabel: 'Modèle recommandé',
+  freeModeCopyGeneric: 'Copier le brief IA',
+  freeModeCopyClaude: 'Copier format Claude',
+  freeModeCopyChatGpt: 'Copier format ChatGPT',
 };
 
 export const PROMPT_INSPECTOR_EN: PromptInspectorCopy = {
@@ -163,10 +176,16 @@ export const PROMPT_INSPECTOR_EN: PromptInspectorCopy = {
   freeModeBadge: 'Free mode',
   freeModeTitle: 'AI brief is ready',
   freeModeBody:
-    'Free mode: SocialBoost prepares the AI brief without firing a paid model. Copy it to use in your usual tool.',
+    'SocialBoost prepares your expert AI brief without firing a paid model.',
+  freeModeNoAdminCost: 'No AI cost is generated.',
+  freeModeNoModelLaunched: 'No AI model has been launched by SocialBoost in free mode.',
   freeModeUpgradeCta: 'Upgrade to Starter to generate automatically',
-  freeModeEstimateLabel: 'Estimate',
+  freeModeEstimateLabel: 'Auto-run estimate',
+  freeModeEstimateSuffix: 'credits',
   freeModeRecommendedModelLabel: 'Recommended model',
+  freeModeCopyGeneric: 'Copy AI brief',
+  freeModeCopyClaude: 'Copy Claude format',
+  freeModeCopyChatGpt: 'Copy ChatGPT format',
 };
 
 /** Microcopy for the AdStudio explainer line. */

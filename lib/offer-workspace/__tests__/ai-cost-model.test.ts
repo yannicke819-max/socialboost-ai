@@ -16,9 +16,46 @@ import {
   isKnownModel,
 } from '../ai-entitlements';
 import {
-  PROMPT_INSPECTOR_FR,
+  buildFreePromptPack,
+  FREE_PROMPT_FORMATS,
+} from '../free-prompt-generator';
+import {
+  buildExpertPrompt,
+  type PromptVersion,
+} from '../prompt-orchestrator';
+import {
   PROMPT_INSPECTOR_EN,
+  PROMPT_INSPECTOR_FR,
 } from '../prompt-inspector-labels';
+import { type Offer } from '../types';
+
+const NOW = '2026-05-04T00:00:00Z';
+
+function makeOffer(over: Partial<Offer> = {}): Offer {
+  return {
+    id: over.id ?? 'ofr_costs',
+    name: 'Atelier Nova',
+    status: 'draft',
+    goal: 'social_content',
+    language: over.language ?? 'fr',
+    brief: over.brief ?? {
+      businessName: 'Atelier Nova',
+      offer: "Programme de 4 semaines.",
+      targetAudience: 'indépendants B2B',
+      tone: 'professional',
+      language: 'fr',
+      platforms: ['linkedin', 'email'],
+      proofPoints: ['Méthode testée sur 12 offres'],
+    },
+    confidence_score: 80,
+    createdAt: NOW,
+    updatedAt: NOW,
+  };
+}
+
+function buildSamplePrompt(): PromptVersion {
+  return buildExpertPrompt({ offer: makeOffer(), task: 'user_advice' });
+}
 
 // -----------------------------------------------------------------------------
 // Pricing table
@@ -32,6 +69,7 @@ describe('AI_MODEL_PRICING — required entries are present', () => {
     'anthropic:claude-haiku-4.5',
     'anthropic:claude-sonnet-4.6',
     'anthropic:claude-opus-4.6',
+    'mock:dry-run',
   ];
   for (const key of required) {
     it(`includes ${key}`, () => {
@@ -39,16 +77,19 @@ describe('AI_MODEL_PRICING — required entries are present', () => {
     });
   }
 
-  it('opus is tagged expert (never auto-routed)', () => {
-    assert.equal(AI_MODEL_PRICING['anthropic:claude-opus-4.6']!.qualityTier, 'expert');
+  it('opus has automaticSelectionAllowed=false (NEVER auto)', () => {
+    assert.equal(AI_MODEL_PRICING['anthropic:claude-opus-4.6']!.automaticSelectionAllowed, false);
+  });
+
+  it('mock:dry-run has automaticSelectionAllowed=true and zero cost', () => {
+    const mock = AI_MODEL_PRICING['mock:dry-run']!;
+    assert.equal(mock.automaticSelectionAllowed, true);
+    assert.equal(mock.inputUsdPerMillion, 0);
+    assert.equal(mock.outputUsdPerMillion, 0);
   });
 
   it('sonnet is tagged premium', () => {
     assert.equal(AI_MODEL_PRICING['anthropic:claude-sonnet-4.6']!.qualityTier, 'premium');
-  });
-
-  it('gpt-4.1-mini is tagged economy', () => {
-    assert.equal(AI_MODEL_PRICING['openai:gpt-4.1-mini']!.qualityTier, 'economy');
   });
 });
 
@@ -67,6 +108,7 @@ describe('estimateAiActionCost', () => {
     assert.ok(e.inputTokens >= ACTION_TOKEN_BUDGETS.full_campaign_pack.input * 3);
     assert.ok(e.outputTokens >= ACTION_TOKEN_BUDGETS.full_campaign_pack.output * 3);
     assert.ok(e.estimatedCredits >= ACTION_MINIMUM_CREDITS.full_campaign_pack);
+    assert.equal(e.action, 'full_campaign_pack');
   });
 
   it('Sonnet costs more than gpt-4.1-mini for the same action', () => {
@@ -84,7 +126,7 @@ describe('estimateAiActionCost', () => {
     assert.ok(b.estimatedCredits > a.estimatedCredits);
   });
 
-  it('safetyMultiplier increases the cost', () => {
+  it('safetyMultiplier increases the cost monotonically', () => {
     const lo = estimateAiActionCost({
       action: 'ad_generation',
       provider: 'openai',
@@ -98,17 +140,38 @@ describe('estimateAiActionCost', () => {
       safetyMultiplier: 5,
     });
     assert.ok(hi.estimatedUsd > lo.estimatedUsd * 4);
+    assert.equal(lo.safetyMultiplier, 1);
+    assert.equal(hi.safetyMultiplier, 5);
   });
 
-  it('action minimum credits floor is respected', () => {
-    // user_advice on gemini-flash — extremely cheap, should clamp to 3.
+  it('action minimum credits floor is respected (mock:dry-run uses zero USD but informative credits)', () => {
     const e = estimateAiActionCost({
       action: 'user_advice',
-      provider: 'google',
-      model: 'gemini-2.5-flash',
-      safetyMultiplier: 1,
+      provider: 'mock',
+      model: 'dry-run',
     });
-    assert.equal(e.estimatedCredits >= ACTION_MINIMUM_CREDITS.user_advice, true);
+    assert.equal(e.estimatedUsd, 0);
+    assert.equal(e.estimatedCredits, ACTION_MINIMUM_CREDITS.user_advice);
+    assert.ok(e.notes.includes('mock_dry_run_no_admin_cost'));
+  });
+
+  it('mock:dry-run on full_campaign_pack still surfaces minimum credit floor', () => {
+    const e = estimateAiActionCost({
+      action: 'full_campaign_pack',
+      provider: 'mock',
+      model: 'dry-run',
+    });
+    assert.equal(e.estimatedUsd, 0);
+    assert.equal(e.estimatedCredits, ACTION_MINIMUM_CREDITS.full_campaign_pack);
+  });
+
+  it('credits-are-a-product-unit note is always present (UX safeguard)', () => {
+    const e = estimateAiActionCost({
+      action: 'ad_generation',
+      provider: 'openai',
+      model: 'gpt-4.1-mini',
+    });
+    assert.ok(e.notes.includes('credits_are_a_product_unit_not_tokens'));
   });
 
   it('unknown model returns a high-risk safe estimate', () => {
@@ -127,19 +190,6 @@ describe('estimateAiActionCost', () => {
 // -----------------------------------------------------------------------------
 
 describe('canRunAiAction — caps + quotas', () => {
-  it('free blocks an action that exceeds maxCreditsPerAction', () => {
-    const r = canRunAiAction({
-      plan: 'free',
-      remainingCredits: 100,
-      estimatedCredits: 50, // > free.maxCreditsPerAction (25)
-      action: 'ad_generation',
-      requestedModel: 'gpt-4.1-mini',
-      requestedProvider: 'openai',
-    });
-    assert.equal(r.allowed, false);
-    assert.equal(r.reason, 'over_action_cap');
-  });
-
   it('starter blocks a premium model (sonnet) — premium not allowed', () => {
     const r = canRunAiAction({
       plan: 'starter',
@@ -166,7 +216,7 @@ describe('canRunAiAction — caps + quotas', () => {
     assert.equal(r.remainingAfter, 3800);
   });
 
-  it('opus is never auto-allowed (expert_never_auto)', () => {
+  it('opus is never auto-allowed (expert_never_auto) on every plan', () => {
     for (const plan of ['free', 'starter', 'pro', 'business', 'agency'] as SocialBoostPlan[]) {
       const r = canRunAiAction({
         plan,
@@ -201,16 +251,19 @@ describe('canRunAiAction — caps + quotas', () => {
 // -----------------------------------------------------------------------------
 
 describe('selectRecommendedModel', () => {
-  it('free always returns an economy model', () => {
+  it('Free always returns mock:dry-run across every action × every quality mode', () => {
     for (const action of [
       'ad_generation',
       'offer_diagnosis',
       'ad_critique',
       'full_campaign_pack',
+      'external_inspiration_analysis',
     ] as SocialBoostAction[]) {
       for (const mode of ['economy', 'balanced', 'premium'] as const) {
         const r = selectRecommendedModel({ action, plan: 'free', qualityMode: mode });
-        assert.equal(r.qualityTier, 'economy', `free/${mode}/${action} must stay economy`);
+        assert.equal(r.provider, 'mock', `free/${mode}/${action} provider must be mock`);
+        assert.equal(r.model, 'dry-run', `free/${mode}/${action} model must be dry-run`);
+        assert.equal(r.qualityTier, 'economy');
       }
     }
   });
@@ -235,7 +288,19 @@ describe('selectRecommendedModel', () => {
     assert.equal(r.qualityTier, 'premium');
   });
 
-  it('opus is NEVER selected automatically', () => {
+  it('external_inspiration_analysis defaults to economy even on pro+ premium', () => {
+    for (const plan of ['pro', 'business', 'agency'] as SocialBoostPlan[]) {
+      const r = selectRecommendedModel({
+        action: 'external_inspiration_analysis',
+        plan,
+        qualityMode: 'premium',
+      });
+      assert.equal(r.qualityTier, 'economy', `${plan} inspiration should stay economy`);
+      assert.notEqual(r.model, 'claude-sonnet-4.6');
+    }
+  });
+
+  it('opus is NEVER selected automatically across every plan × mode × action', () => {
     for (const plan of ['free', 'starter', 'pro', 'business', 'agency'] as SocialBoostPlan[]) {
       for (const mode of ['economy', 'balanced', 'premium'] as const) {
         for (const action of [
@@ -252,7 +317,7 @@ describe('selectRecommendedModel', () => {
 });
 
 // -----------------------------------------------------------------------------
-// decideAiExecution — Free-mode hard rule
+// decideAiExecution — Free hard rule
 // -----------------------------------------------------------------------------
 
 describe('decideAiExecution — Free plan never reaches a real provider', () => {
@@ -266,7 +331,8 @@ describe('decideAiExecution — Free plan never reaches a real provider', () => 
     assert.equal(d.mode, 'dry_run');
     assert.equal(d.providerCallAllowed, false);
     assert.equal(d.adminCostAllowed, false);
-    assert.equal(d.reason, 'free_plan_dry_run_only');
+    assert.equal(d.freePromptPackAllowed, true);
+    assert.equal(d.reason, 'free_prompt_pack_only');
     assert.equal(d.suggestedUpgradePlan, 'starter');
   });
 
@@ -280,7 +346,7 @@ describe('decideAiExecution — Free plan never reaches a real provider', () => 
     assert.equal(d.remainingAfter, undefined);
   });
 
-  it('free + hasUserProvidedApiKey → still dry_run (BYOK not yet supported)', () => {
+  it('free + hasUserProvidedApiKey → mode=byok reserved for future, providerCallAllowed=false', () => {
     const d = decideAiExecution({
       plan: 'free',
       remainingCredits: 100,
@@ -288,20 +354,23 @@ describe('decideAiExecution — Free plan never reaches a real provider', () => 
       hasUserProvidedApiKey: true,
     });
     assert.equal(d.allowed, true);
-    assert.equal(d.mode, 'dry_run');
+    assert.equal(d.mode, 'byok');
     assert.equal(d.providerCallAllowed, false);
     assert.equal(d.adminCostAllowed, false);
-    assert.equal(d.reason, 'byok_not_yet_supported');
+    assert.equal(d.reason, 'byok_reserved_for_future');
+    assert.equal(d.freePromptPackAllowed, true);
   });
 
-  it('free even with a high credit balance never gets providerCallAllowed=true', () => {
+  it('providerFlagEnabled=true does NOT escape the Free hard rule', () => {
     const d = decideAiExecution({
       plan: 'free',
       remainingCredits: 999_999_999,
       action: 'ad_generation',
+      providerFlagEnabled: true,
     });
     assert.equal(d.providerCallAllowed, false);
     assert.equal(d.adminCostAllowed, false);
+    assert.equal(d.mode, 'dry_run');
   });
 
   it('free invariant holds across every action', () => {
@@ -321,6 +390,7 @@ describe('decideAiExecution — Free plan never reaches a real provider', () => 
       const d = decideAiExecution({ plan: 'free', remainingCredits: 100, action });
       assert.equal(d.providerCallAllowed, false, `${action} leaks provider for free`);
       assert.equal(d.adminCostAllowed, false, `${action} would charge admin for free`);
+      assert.equal(d.freePromptPackAllowed, true, `${action} should allow Free Prompt Pack`);
     }
   });
 });
@@ -337,9 +407,10 @@ describe('decideAiExecution — paid plans', () => {
     assert.equal(d.providerCallAllowed, true);
     assert.equal(d.adminCostAllowed, true);
     assert.equal(d.reason, 'allowed_included_credits');
+    assert.equal(d.freePromptPackAllowed, true);
   });
 
-  it('starter with zero credits → blocked insufficient_credits, providerCallAllowed=false', () => {
+  it('starter with zero credits → blocked insufficient_credits', () => {
     const d = decideAiExecution({
       plan: 'starter',
       remainingCredits: 0,
@@ -351,7 +422,18 @@ describe('decideAiExecution — paid plans', () => {
     assert.equal(d.reason, 'insufficient_credits');
   });
 
-  it('pro with premium model on high-stakes action → allowed', () => {
+  it('estimatedCredits override: very large → over_action_cap on starter', () => {
+    const d = decideAiExecution({
+      plan: 'starter',
+      remainingCredits: 1000,
+      action: 'ad_generation',
+      estimatedCredits: 500, // > starter.maxCreditsPerAction (100)
+    });
+    assert.equal(d.allowed, false);
+    assert.equal(d.reason, 'over_action_cap');
+  });
+
+  it('pro premium for high-stakes action → allowed', () => {
     const d = decideAiExecution({
       plan: 'pro',
       remainingCredits: 4000,
@@ -391,26 +473,38 @@ describe('decideAiExecution — paid plans', () => {
 });
 
 // -----------------------------------------------------------------------------
-// Plan quota table sanity
+// PLAN_QUOTAS sanity
 // -----------------------------------------------------------------------------
 
-describe('PLAN_QUOTAS', () => {
-  it('free has hardCap=true and premiumModelsAllowed=false', () => {
-    assert.equal(PLAN_QUOTAS.free.hardCapEnabled, true);
-    assert.equal(PLAN_QUOTAS.free.premiumModelsAllowed, false);
+describe('PLAN_QUOTAS — AI-016A revised values', () => {
+  it('free has zero credits and zero output tokens (Prompt Pack only)', () => {
+    assert.equal(PLAN_QUOTAS.free.monthlyCredits, 0);
+    assert.equal(PLAN_QUOTAS.free.maxCreditsPerAction, 0);
+    assert.equal(PLAN_QUOTAS.free.maxOutputTokensPerRun, 0);
+    assert.equal(PLAN_QUOTAS.free.freePromptPackAllowed, true);
   });
 
-  it('agency has the highest monthly credit ceiling', () => {
-    const planList: SocialBoostPlan[] = ['free', 'starter', 'pro', 'business', 'agency'];
-    const max = planList.reduce(
-      (acc, p) => Math.max(acc, PLAN_QUOTAS[p].monthlyCredits),
-      0,
-    );
-    assert.equal(max, PLAN_QUOTAS.agency.monthlyCredits);
+  it('every plan exposes freePromptPackAllowed=true (Prompt Pack universal fallback)', () => {
+    for (const plan of ['free', 'starter', 'pro', 'business', 'agency'] as SocialBoostPlan[]) {
+      assert.equal(PLAN_QUOTAS[plan].freePromptPackAllowed, true);
+    }
   });
 
-  it('credits / max-per-action increase monotonically (free < starter < pro < business < agency)', () => {
-    const order: SocialBoostPlan[] = ['free', 'starter', 'pro', 'business', 'agency'];
+  it('expertModelsAllowed is false on every plan (opus never auto)', () => {
+    for (const plan of ['free', 'starter', 'pro', 'business', 'agency'] as SocialBoostPlan[]) {
+      assert.equal(PLAN_QUOTAS[plan].expertModelsAllowed, false);
+    }
+  });
+
+  it('business + agency have overageAllowed=true and hardCapEnabled=true', () => {
+    assert.equal(PLAN_QUOTAS.business.overageAllowed, true);
+    assert.equal(PLAN_QUOTAS.agency.overageAllowed, true);
+    assert.equal(PLAN_QUOTAS.business.hardCapEnabled, true);
+    assert.equal(PLAN_QUOTAS.agency.hardCapEnabled, true);
+  });
+
+  it('credits / max-per-action increase monotonically (starter < pro < business < agency)', () => {
+    const order: SocialBoostPlan[] = ['starter', 'pro', 'business', 'agency'];
     for (let i = 1; i < order.length; i++) {
       assert.ok(
         PLAN_QUOTAS[order[i]!].monthlyCredits > PLAN_QUOTAS[order[i - 1]!].monthlyCredits,
@@ -423,12 +517,116 @@ describe('PLAN_QUOTAS', () => {
 });
 
 // -----------------------------------------------------------------------------
+// Free Prompt Generator
+// -----------------------------------------------------------------------------
+
+describe('buildFreePromptPack — invariants', () => {
+  const v = buildSamplePrompt();
+
+  it('always returns providerCallAllowed=false and adminCostAllowed=false', () => {
+    for (const format of FREE_PROMPT_FORMATS) {
+      const pack = buildFreePromptPack({ promptVersion: v, format });
+      assert.equal(pack.providerCallAllowed, false);
+      assert.equal(pack.adminCostAllowed, false);
+      assert.equal(pack.mode, 'free_prompt_pack');
+    }
+  });
+
+  it('every format includes the "no model launched" notice', () => {
+    for (const format of FREE_PROMPT_FORMATS) {
+      const pack = buildFreePromptPack({ promptVersion: v, format });
+      assert.match(
+        pack.copyablePrompt,
+        /Aucun modèle IA n'a été lancé par SocialBoost en mode gratuit\./,
+        `${format} missing the "no model launched" notice`,
+      );
+    }
+  });
+
+  it('every format includes the "ready to paste" notice', () => {
+    for (const format of FREE_PROMPT_FORMATS) {
+      const pack = buildFreePromptPack({ promptVersion: v, format });
+      assert.match(
+        pack.copyablePrompt,
+        /prêt à coller dans ton assistant IA préféré/i,
+        `${format} missing the "ready to paste" notice`,
+      );
+    }
+  });
+
+  it('NO format contains chain-of-thought directives (<thinking>, "step by step")', () => {
+    for (const format of FREE_PROMPT_FORMATS) {
+      const pack = buildFreePromptPack({ promptVersion: v, format });
+      assert.equal(/<thinking>/i.test(pack.copyablePrompt), false, `${format} contains <thinking>`);
+      assert.equal(
+        /chain[\s-]of[\s-]thought/i.test(pack.copyablePrompt),
+        false,
+        `${format} requests chain-of-thought`,
+      );
+    }
+  });
+
+  it('generic_markdown contains systemPrompt + userPrompt + expectedOutput + guardrails', () => {
+    const pack = buildFreePromptPack({ promptVersion: v, format: 'generic_markdown' });
+    assert.ok(pack.copyablePrompt.includes(v.systemPrompt.split('\n')[0]!));
+    assert.ok(pack.copyablePrompt.includes(v.userPrompt.split('\n')[0]!));
+    assert.match(pack.copyablePrompt, /## Sortie attendue/);
+    assert.match(pack.copyablePrompt, /## Garde-fous/);
+    assert.match(pack.copyablePrompt, /## Checklist qualité/);
+  });
+
+  it('claude_xml uses descriptive XML tags', () => {
+    const pack = buildFreePromptPack({ promptVersion: v, format: 'claude_xml' });
+    assert.match(pack.copyablePrompt, /<socialboost_prompt>/);
+    assert.match(pack.copyablePrompt, /<role>/);
+    assert.match(pack.copyablePrompt, /<context>/);
+    assert.match(pack.copyablePrompt, /<task>/);
+    assert.match(pack.copyablePrompt, /<expected_output>/);
+    assert.match(pack.copyablePrompt, /<guardrails>/);
+    assert.match(pack.copyablePrompt, /<\/socialboost_prompt>/);
+  });
+
+  it('chatgpt_markdown places Instructions section first', () => {
+    const pack = buildFreePromptPack({ promptVersion: v, format: 'chatgpt_markdown' });
+    const instructionsIdx = pack.copyablePrompt.indexOf('### Instructions');
+    const userIdx = pack.copyablePrompt.indexOf('### Prompt utilisateur');
+    assert.ok(instructionsIdx >= 0);
+    assert.ok(userIdx > instructionsIdx, 'Instructions must come before Prompt utilisateur');
+    assert.equal(/<socialboost_prompt>/.test(pack.copyablePrompt), false);
+  });
+
+  it('gemini_structured contains Objectif / Contexte / Contraintes / Étapes / Format / Critères', () => {
+    const pack = buildFreePromptPack({ promptVersion: v, format: 'gemini_structured' });
+    assert.match(pack.copyablePrompt, /## Objectif/);
+    assert.match(pack.copyablePrompt, /## Contexte/);
+    assert.match(pack.copyablePrompt, /## Contraintes/);
+    assert.match(pack.copyablePrompt, /## Étapes de travail/);
+    assert.match(pack.copyablePrompt, /## Format de sortie/);
+    assert.match(pack.copyablePrompt, /## Critères qualité/);
+  });
+
+  it('recommendedModelLabel matches the format', () => {
+    const pairs: Record<string, RegExp> = {
+      generic_markdown: /Compatible avec Claude, ChatGPT, Gemini ou Mistral/,
+      claude_xml: /Optimisé pour Claude/,
+      chatgpt_markdown: /Optimisé pour ChatGPT/,
+      gemini_structured: /Optimisé pour Gemini/,
+    };
+    for (const format of FREE_PROMPT_FORMATS) {
+      const pack = buildFreePromptPack({ promptVersion: v, format });
+      assert.match(pack.recommendedModelLabel, pairs[format]!);
+    }
+  });
+});
+
+// -----------------------------------------------------------------------------
 // Hygiene
 // -----------------------------------------------------------------------------
 
 describe('hygiene — pure modules', () => {
   it('isKnownModel works as expected', () => {
     assert.equal(isKnownModel('openai', 'gpt-4.1-mini'), true);
+    assert.equal(isKnownModel('mock', 'dry-run'), true);
     assert.equal(isKnownModel('openai', 'gpt-9000'), false);
   });
 
@@ -456,6 +654,13 @@ describe('hygiene — pure modules', () => {
     const b = decideAiExecution(input);
     assert.deepEqual(a, b);
   });
+
+  it('determinism — same input → identical Free Prompt Pack', () => {
+    const v = buildSamplePrompt();
+    const a = buildFreePromptPack({ promptVersion: v, format: 'claude_xml' });
+    const b = buildFreePromptPack({ promptVersion: v, format: 'claude_xml' });
+    assert.deepEqual(a, b);
+  });
 });
 
 // -----------------------------------------------------------------------------
@@ -465,14 +670,24 @@ describe('hygiene — pure modules', () => {
 describe('PromptInspector Free-mode microcopy', () => {
   it('FR has the expected Free-mode strings', () => {
     assert.equal(PROMPT_INSPECTOR_FR.freeModeBadge, 'Mode gratuit');
-    assert.match(PROMPT_INSPECTOR_FR.freeModeBody, /Mode gratuit/);
-    assert.match(PROMPT_INSPECTOR_FR.freeModeBody, /sans lancer de modèle payant/);
-    assert.equal(PROMPT_INSPECTOR_FR.freeModeUpgradeCta, 'Passer en Starter pour générer automatiquement');
+    assert.match(
+      PROMPT_INSPECTOR_FR.freeModeBody,
+      /SocialBoost prépare ton brief IA expert, sans lancer de modèle payant/,
+    );
+    assert.equal(PROMPT_INSPECTOR_FR.freeModeNoAdminCost, "Aucun coût IA n'est généré.");
+    assert.match(
+      PROMPT_INSPECTOR_FR.freeModeNoModelLaunched,
+      /Aucun modèle IA n'a été lancé par SocialBoost en mode gratuit\./,
+    );
+    assert.equal(PROMPT_INSPECTOR_FR.freeModeCopyGeneric, 'Copier le brief IA');
+    assert.equal(PROMPT_INSPECTOR_FR.freeModeCopyClaude, 'Copier format Claude');
+    assert.equal(PROMPT_INSPECTOR_FR.freeModeCopyChatGpt, 'Copier format ChatGPT');
   });
 
   it('EN mirrors the FR shape', () => {
     assert.equal(PROMPT_INSPECTOR_EN.freeModeBadge, 'Free mode');
-    assert.match(PROMPT_INSPECTOR_EN.freeModeBody, /Free mode/);
-    assert.equal(PROMPT_INSPECTOR_EN.freeModeUpgradeCta, 'Upgrade to Starter to generate automatically');
+    assert.equal(PROMPT_INSPECTOR_EN.freeModeCopyGeneric, 'Copy AI brief');
+    assert.equal(PROMPT_INSPECTOR_EN.freeModeCopyClaude, 'Copy Claude format');
+    assert.equal(PROMPT_INSPECTOR_EN.freeModeCopyChatGpt, 'Copy ChatGPT format');
   });
 });

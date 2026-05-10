@@ -47,6 +47,12 @@ export interface AiModelPricing {
   contextWindow?: number;
   recommendedFor: string[];
   qualityTier: AiQualityTier;
+  /**
+   * AI-016A: hard switch for the routing layer. False for opus (expert)
+   * regardless of plan, and true for the mock dry-run sentinel. Other
+   * paid tiers gate on the plan.
+   */
+  automaticSelectionAllowed: boolean;
 }
 
 /**
@@ -61,20 +67,22 @@ export const AI_MODEL_PRICING: Record<string, AiModelPricing> = {
   'openai:gpt-4.1-mini': {
     provider: 'openai',
     model: 'gpt-4.1-mini',
-    inputUsdPerMillion: 0.15,
-    outputUsdPerMillion: 0.6,
+    inputUsdPerMillion: 0.4,
+    outputUsdPerMillion: 1.6,
     contextWindow: 1_000_000,
-    recommendedFor: ['user_advice', 'ad_critique', 'post_ideas', 'angle_discovery'],
+    recommendedFor: ['user_advice', 'ad_critique', 'post_ideas', 'angle_discovery', 'external_inspiration_analysis'],
     qualityTier: 'economy',
+    automaticSelectionAllowed: true,
   },
   'google:gemini-2.5-flash': {
     provider: 'google',
     model: 'gemini-2.5-flash',
-    inputUsdPerMillion: 0.075,
-    outputUsdPerMillion: 0.3,
+    inputUsdPerMillion: 0.3,
+    outputUsdPerMillion: 2.5,
     contextWindow: 1_000_000,
-    recommendedFor: ['user_advice', 'ad_critique', 'post_ideas', 'weekly_plan'],
+    recommendedFor: ['user_advice', 'ad_critique', 'post_ideas', 'weekly_plan', 'external_inspiration_analysis'],
     qualityTier: 'economy',
+    automaticSelectionAllowed: true,
   },
   // Standard tier — better reasoning at a higher rate.
   'mistral:mistral-medium-3': {
@@ -85,6 +93,7 @@ export const AI_MODEL_PRICING: Record<string, AiModelPricing> = {
     contextWindow: 128_000,
     recommendedFor: ['ad_generation', 'angle_discovery'],
     qualityTier: 'standard',
+    automaticSelectionAllowed: true,
   },
   'anthropic:claude-haiku-4.5': {
     provider: 'anthropic',
@@ -95,6 +104,7 @@ export const AI_MODEL_PRICING: Record<string, AiModelPricing> = {
     contextWindow: 200_000,
     recommendedFor: ['ad_generation', 'ad_improvement', 'weekly_plan'],
     qualityTier: 'standard',
+    automaticSelectionAllowed: true,
   },
   // Premium tier — used only when the action benefits from it AND the plan allows it.
   'anthropic:claude-sonnet-4.6': {
@@ -104,19 +114,44 @@ export const AI_MODEL_PRICING: Record<string, AiModelPricing> = {
     outputUsdPerMillion: 15.0,
     cachedInputUsdPerMillion: 0.3,
     contextWindow: 200_000,
-    recommendedFor: ['offer_diagnosis', 'external_inspiration_analysis', 'ad_critique', 'ad_improvement'],
+    recommendedFor: ['offer_diagnosis', 'ad_critique', 'ad_improvement', 'user_advice'],
     qualityTier: 'premium',
+    automaticSelectionAllowed: true,
   },
-  // Expert tier — never selected automatically by the engine.
+  // Expert tier — NEVER selected automatically by the engine.
   'anthropic:claude-opus-4.6': {
     provider: 'anthropic',
     model: 'claude-opus-4.6',
-    inputUsdPerMillion: 15.0,
-    outputUsdPerMillion: 75.0,
-    cachedInputUsdPerMillion: 1.5,
+    inputUsdPerMillion: 5.0,
+    outputUsdPerMillion: 25.0,
+    cachedInputUsdPerMillion: 0.5,
     contextWindow: 200_000,
     recommendedFor: ['full_campaign_pack'],
     qualityTier: 'expert',
+    automaticSelectionAllowed: false,
+  },
+  // Mock — sentinel routed for Free plan. Engine treats it as a no-op model
+  // that yields zero cost and a dry-run output.
+  'mock:dry-run': {
+    provider: 'mock',
+    model: 'dry-run',
+    inputUsdPerMillion: 0,
+    outputUsdPerMillion: 0,
+    contextWindow: 1_000_000,
+    recommendedFor: [
+      'offer_diagnosis',
+      'external_inspiration_analysis',
+      'angle_discovery',
+      'post_ideas',
+      'ad_generation',
+      'ad_critique',
+      'ad_improvement',
+      'weekly_plan',
+      'user_advice',
+      'full_campaign_pack',
+    ],
+    qualityTier: 'economy',
+    automaticSelectionAllowed: true,
   },
 };
 
@@ -193,12 +228,14 @@ export const ACTION_MINIMUM_CREDITS: Record<SocialBoostAction, number> = {
 export type AiUsageRiskLevel = 'low' | 'medium' | 'high';
 
 export interface AiUsageEstimate {
-  inputTokens: number;
-  outputTokens: number;
+  action: SocialBoostAction;
   provider: AiProviderName;
   model: string;
+  inputTokens: number;
+  outputTokens: number;
   estimatedUsd: number;
   estimatedCredits: number;
+  safetyMultiplier: number;
   riskLevel: AiUsageRiskLevel;
   notes: string[];
 }
@@ -227,12 +264,14 @@ export function estimateAiActionCost(
   if (!pricing) {
     // Unknown model: return a safe high-risk estimate so the caller blocks the run.
     return {
+      action: input.action,
       inputTokens: 0,
       outputTokens: 0,
       provider: input.provider,
       model: input.model,
       estimatedUsd: 0,
       estimatedCredits: ACTION_MINIMUM_CREDITS[input.action],
+      safetyMultiplier: input.safetyMultiplier ?? DEFAULT_SAFETY_MULTIPLIER,
       riskLevel: 'high',
       notes: [`unknown_model:${input.provider}:${input.model}`],
     };
@@ -245,6 +284,9 @@ export function estimateAiActionCost(
     : DEFAULT_SAFETY_MULTIPLIER;
   const inputTokens = Math.ceil(baseInput * mul);
   const outputTokens = Math.ceil(baseOutput * mul);
+  // Per spec: estimatedUsd = ((inTok * inPrice + outTok * outPrice) / 1e6) * safetyMultiplier
+  // Tokens are already multiplied by the safety multiplier — applying it again
+  // here would double-count, so the canonical formula is just the raw sum.
   const usd =
     (inputTokens / 1_000_000) * pricing.inputUsdPerMillion +
     (outputTokens / 1_000_000) * pricing.outputUsdPerMillion;
@@ -253,24 +295,34 @@ export function estimateAiActionCost(
   const notes: string[] = [
     `safety_multiplier=${mul}`,
     `tier=${pricing.qualityTier}`,
+    'credits_are_a_product_unit_not_tokens',
   ];
   if (input.inputTokensOverride !== undefined) notes.push('input_override');
   if (input.outputTokensOverride !== undefined) notes.push('output_override');
+  if (pricing.provider === 'mock') {
+    notes.push('mock_dry_run_no_admin_cost');
+  }
   return {
+    action: input.action,
     inputTokens,
     outputTokens,
     provider: input.provider,
     model: input.model,
     estimatedUsd: round(usd, 6),
     estimatedCredits: credits,
-    riskLevel: classifyRisk(usd),
+    safetyMultiplier: mul,
+    riskLevel: classifyRiskCredits(credits),
     notes,
   };
 }
 
-function classifyRisk(usd: number): AiUsageRiskLevel {
-  if (usd < 0.02) return 'low';
-  if (usd < 0.2) return 'medium';
+/**
+ * Risk classification is driven by SocialBoost credits (the product unit) so
+ * users can reason without seeing tokens or USD.
+ */
+function classifyRiskCredits(credits: number): AiUsageRiskLevel {
+  if (credits < 25) return 'low';
+  if (credits < 150) return 'medium';
   return 'high';
 }
 
@@ -293,60 +345,76 @@ export interface PlanQuota {
   maxInspirationsPerRun: number;
   maxOutputTokensPerRun: number;
   premiumModelsAllowed: boolean;
+  /** Expert tier (opus) — never automatic, even on agency. */
+  expertModelsAllowed: boolean;
   hardCapEnabled: boolean;
   overageAllowed: boolean;
+  /** Free Prompt Pack (copyable expert prompt) is allowed by default on every
+   *  plan — paid plans can fall back to it when their credit balance is
+   *  exhausted. */
+  freePromptPackAllowed: boolean;
 }
 
 export const PLAN_QUOTAS: Record<SocialBoostPlan, PlanQuota> = {
   free: {
     plan: 'free',
-    monthlyCredits: 100,
-    maxCreditsPerAction: 25,
+    monthlyCredits: 0,
+    maxCreditsPerAction: 0,
     maxInspirationsPerRun: 1,
-    maxOutputTokensPerRun: 2_000,
+    maxOutputTokensPerRun: 0,
     premiumModelsAllowed: false,
+    expertModelsAllowed: false,
     hardCapEnabled: true,
     overageAllowed: false,
+    freePromptPackAllowed: true,
   },
   starter: {
     plan: 'starter',
     monthlyCredits: 1_000,
     maxCreditsPerAction: 100,
     maxInspirationsPerRun: 3,
-    maxOutputTokensPerRun: 6_000,
+    maxOutputTokensPerRun: 3_000,
     premiumModelsAllowed: false,
+    expertModelsAllowed: false,
     hardCapEnabled: true,
     overageAllowed: false,
+    freePromptPackAllowed: true,
   },
   pro: {
     plan: 'pro',
     monthlyCredits: 4_000,
     maxCreditsPerAction: 300,
-    maxInspirationsPerRun: 6,
-    maxOutputTokensPerRun: 12_000,
+    maxInspirationsPerRun: 8,
+    maxOutputTokensPerRun: 6_000,
     premiumModelsAllowed: true,
+    expertModelsAllowed: false,
     hardCapEnabled: true,
     overageAllowed: false,
+    freePromptPackAllowed: true,
   },
   business: {
     plan: 'business',
     monthlyCredits: 10_000,
     maxCreditsPerAction: 600,
-    maxInspirationsPerRun: 10,
-    maxOutputTokensPerRun: 24_000,
+    maxInspirationsPerRun: 15,
+    maxOutputTokensPerRun: 10_000,
     premiumModelsAllowed: true,
-    hardCapEnabled: false,
-    overageAllowed: false,
+    expertModelsAllowed: false,
+    hardCapEnabled: true,
+    overageAllowed: true,
+    freePromptPackAllowed: true,
   },
   agency: {
     plan: 'agency',
     monthlyCredits: 25_000,
     maxCreditsPerAction: 1_000,
-    maxInspirationsPerRun: 15,
-    maxOutputTokensPerRun: 40_000,
+    maxInspirationsPerRun: 30,
+    maxOutputTokensPerRun: 16_000,
     premiumModelsAllowed: true,
-    hardCapEnabled: false,
-    overageAllowed: false,
+    expertModelsAllowed: false,
+    hardCapEnabled: true,
+    overageAllowed: true,
+    freePromptPackAllowed: true,
   },
 };
 
@@ -396,9 +464,10 @@ export function canRunAiAction(input: CanRunAiActionInput): CanRunAiActionResult
     };
   }
 
-  // 2) Expert-tier models are never allowed via the auto path. The runner
-  //    can still surface them on demand, but the engine never blesses them.
-  if (pricing.qualityTier === 'expert') {
+  // 2) `automaticSelectionAllowed: false` (e.g. opus) blocks immediately.
+  //    The runner can still surface them on demand, but the engine never
+  //    blesses them.
+  if (!pricing.automaticSelectionAllowed) {
     return {
       allowed: false,
       reason: 'expert_never_auto',
@@ -483,20 +552,28 @@ export interface SelectRecommendedModelResult {
 
 /**
  * Pick the right model for `(action, plan, qualityMode)`. Pure routing:
- *   - free + anything → economy only.
+ *   - **free → mock:dry-run ALWAYS** (no provider call, no admin cost).
  *   - starter + premium → downgraded to standard (haiku) — no premium.
  *   - pro + premium for high-stakes actions → sonnet.
  *   - business / agency + premium → sonnet.
- *   - opus is NEVER returned automatically.
+ *   - **opus is NEVER returned automatically** (`automaticSelectionAllowed: false`).
+ *   - `external_inspiration_analysis` defaults to gemini-flash / gpt-4.1-mini,
+ *     not sonnet, even on premium-capable plans.
  */
 export function selectRecommendedModel(
   input: SelectRecommendedModelInput,
 ): SelectRecommendedModelResult {
   const quota = PLAN_QUOTAS[input.plan];
 
-  // Free plan never escapes economy.
+  // Free plan: always route to the mock dry-run sentinel. No provider call,
+  // no admin cost, ever.
   if (input.plan === 'free') {
-    return economyChoice(input.action, 'free_plan_economy_only');
+    return {
+      provider: 'mock',
+      model: 'dry-run',
+      qualityTier: 'economy',
+      reason: 'free_plan_mock_dry_run',
+    };
   }
 
   // Premium-mode requests on plans that disallow premium → downgrade to standard.
@@ -505,13 +582,17 @@ export function selectRecommendedModel(
   }
 
   if (input.qualityMode === 'premium' && quota.premiumModelsAllowed) {
-    // Premium for actions that benefit from it (offer diagnosis, inspiration
-    // analysis, ad critique, ad improvement). Other actions stay standard.
+    // external_inspiration_analysis: do NOT default to sonnet — economy is
+    // strong enough for pattern extraction.
+    if (input.action === 'external_inspiration_analysis') {
+      return economyChoice(input.action, 'inspiration_default_economy');
+    }
+    // Premium for actions that benefit from it.
     if (
       input.action === 'offer_diagnosis' ||
-      input.action === 'external_inspiration_analysis' ||
       input.action === 'ad_critique' ||
-      input.action === 'ad_improvement'
+      input.action === 'ad_improvement' ||
+      input.action === 'user_advice'
     ) {
       return {
         provider: 'anthropic',
@@ -532,14 +613,17 @@ export function selectRecommendedModel(
 }
 
 function economyChoice(action: SocialBoostAction, reason: string): SelectRecommendedModelResult {
-  // Use the cheapest economy model that lists this action.
+  // Use the cheapest paid economy model that lists this action — exclude
+  // the mock sentinel so paid plans never route to it.
   const candidates = Object.values(AI_MODEL_PRICING).filter(
-    (p) => p.qualityTier === 'economy' && p.recommendedFor.includes(action),
+    (p) =>
+      p.qualityTier === 'economy' &&
+      p.provider !== 'mock' &&
+      p.recommendedFor.includes(action),
   );
   if (candidates.length === 0) {
-    // Fallback to the cheapest economy model overall.
     const fallback = Object.values(AI_MODEL_PRICING)
-      .filter((p) => p.qualityTier === 'economy')
+      .filter((p) => p.qualityTier === 'economy' && p.provider !== 'mock')
       .sort((a, b) => a.outputUsdPerMillion - b.outputUsdPerMillion)[0]!;
     return {
       provider: fallback.provider,
