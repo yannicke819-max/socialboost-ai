@@ -36,8 +36,86 @@ export const PROMPT_TASKS = [
   'ad_improvement',
   'weekly_plan',
   'user_advice',
+  'external_inspiration_analysis',
 ] as const;
 export type PromptTask = (typeof PROMPT_TASKS)[number];
+
+// -----------------------------------------------------------------------------
+// External Inspiration Intelligence (AI-015 addendum)
+// -----------------------------------------------------------------------------
+
+export const EXTERNAL_INSPIRATION_PLATFORMS = [
+  'linkedin',
+  'instagram',
+  'tiktok',
+  'facebook',
+  'youtube',
+  'email',
+  'landing',
+  'other',
+] as const;
+export type ExternalInspirationPlatform =
+  (typeof EXTERNAL_INSPIRATION_PLATFORMS)[number];
+
+export const EXTERNAL_INSPIRATION_SOURCE_TYPES = [
+  'organic_post',
+  'paid_ad',
+  'video_script',
+  'carousel',
+  'email',
+  'landing_section',
+  'other',
+] as const;
+export type ExternalInspirationSourceType =
+  (typeof EXTERNAL_INSPIRATION_SOURCE_TYPES)[number];
+
+/**
+ * One pasted external example that seems to perform well in the user's
+ * market. The engine NEVER asks a provider to reproduce it — it asks for
+ * abstract patterns + an original adaptation. The `doNotCopy: true` flag is
+ * a deliberate type-level reminder for any future caller.
+ */
+export interface ExternalInspirationInput {
+  sourcePlatform: ExternalInspirationPlatform;
+  sourceType: ExternalInspirationSourceType;
+  /** Pasted text, truncated to a safe length when surfaced in the prompt. */
+  pastedText?: string;
+  /** Public URL pointer; never fetched. Display-only context. */
+  publicUrl?: string;
+  /**
+   * User-declared performance hints (NOT proof). Examples:
+   *   "lots of comments", "running for 3 months", "leader endorsed it",
+   *   "TikTok trend", "format recurring across 4 competitors".
+   */
+  observedSignals?: string[];
+  userNotes?: string;
+  language: 'fr' | 'en';
+  /** Free text market context, e.g. "B2B SaaS France". */
+  market?: string;
+  /** Required hard flag — pinned at type level. */
+  doNotCopy: true;
+}
+
+/**
+ * Abstract pattern extracted by the model from one or more inspirations.
+ * NEVER carries the verbatim source. Stored as the model's structured output
+ * for downstream prompts.
+ */
+export interface InspirationPattern {
+  patternName: string;
+  platform: string;
+  format: string;
+  hookMechanic: string;
+  emotionalTrigger: string;
+  promiseType: string;
+  proofType: string;
+  objectionHandled: string;
+  engagementMechanic: string;
+  whyItMayWork: string;
+  risks: string;
+  howToAdaptForOffer: string;
+  originalityGuidance: string;
+}
 
 export const PROMPT_CHANNELS = [
   'linkedin',
@@ -100,6 +178,13 @@ export interface BuildExpertPromptInput {
   goal?: string;
   /** Optional hard constraints to inject in the user prompt. */
   constraints?: string[];
+  /**
+   * AI-015 addendum: external inspirations to learn from. The engine
+   * surfaces them in the user prompt and forbids the model from copying
+   * the source text. Used by `external_inspiration_analysis` and
+   * referenced by `angle_discovery` / `ad_generation` when present.
+   */
+  inspirations?: ExternalInspirationInput[];
 }
 
 // -----------------------------------------------------------------------------
@@ -187,6 +272,57 @@ function channelLine(channel: PromptChannel | undefined, language: 'fr' | 'en'):
     return language === 'en' ? 'Target channel: any (engine will pick).' : 'Canal cible : libre (le moteur choisit).';
   }
   return language === 'en' ? `Target channel: ${channel}` : `Canal cible : ${channel}`;
+}
+
+/** Truncate pasted external content to a safe length for prompt-budget hygiene. */
+function safeTruncate(s: string, maxChars: number): string {
+  const t = (s ?? '').trim();
+  if (t.length <= maxChars) return t;
+  return `${t.slice(0, maxChars - 1)}…`;
+}
+
+/**
+ * Surface external inspirations in the user prompt with explicit "DO NOT
+ * COPY" framing and observed-signals disclaimer. Pasted text is truncated.
+ * If the array is empty, returns an empty string so the caller can decide
+ * whether to skip the section.
+ */
+function inspirationsBlock(
+  inspirations: ExternalInspirationInput[] | undefined,
+  language: 'fr' | 'en',
+): string {
+  if (!inspirations || inspirations.length === 0) return '';
+  const heading = language === 'en'
+    ? 'External inspirations (DO NOT COPY — analyse the mechanics, then create an original adaptation)'
+    : 'Inspirations externes (NE COPIE PAS — analyse les mécaniques, puis crée une adaptation originale)';
+  const blocks = inspirations.map((it, i) => {
+    const lines: string[] = [];
+    lines.push(`#${i + 1} · ${it.sourcePlatform} · ${it.sourceType}`);
+    if (it.market) {
+      lines.push(language === 'en' ? `  market: ${it.market}` : `  marché : ${it.market}`);
+    }
+    if (it.publicUrl) {
+      lines.push(language === 'en' ? `  url: ${it.publicUrl}` : `  url : ${it.publicUrl}`);
+    }
+    if (it.observedSignals && it.observedSignals.length > 0) {
+      const sigHead = language === 'en'
+        ? '  observed signals (declarative hints, NOT proof):'
+        : '  signaux observés (indices déclaratifs, PAS preuve) :';
+      lines.push(sigHead);
+      for (const s of it.observedSignals) lines.push(`    - ${s}`);
+    }
+    if (it.userNotes && it.userNotes.trim().length > 0) {
+      lines.push(language === 'en'
+        ? `  user notes: ${safeTruncate(it.userNotes, 240)}`
+        : `  notes utilisateur : ${safeTruncate(it.userNotes, 240)}`);
+    }
+    if (it.pastedText && it.pastedText.trim().length > 0) {
+      lines.push(language === 'en' ? '  pasted text (analyse, do not reproduce):' : '  texte collé (analyse, ne reproduis pas) :');
+      lines.push(`  >>> ${safeTruncate(it.pastedText, 600)}`);
+    }
+    return lines.join('\n');
+  });
+  return `${heading}\n\n${blocks.join('\n\n')}`;
 }
 
 // -----------------------------------------------------------------------------
@@ -453,6 +589,55 @@ function weeklyPlanPack(language: 'fr' | 'en'): TaskPack {
   };
 }
 
+function externalInspirationAnalysisPack(language: 'fr' | 'en'): TaskPack {
+  if (language === 'en') {
+    return {
+      systemMission:
+        'Mission: analyse the supplied external examples and extract abstract marketing patterns. NEVER copy the source text. Produce reusable structures, not reproductions.',
+      userTask:
+        'For each inspiration, extract a reusable pattern: name, platform, format, hook mechanic, emotional trigger, promise type, proof type, objection handled, engagement mechanic, why it may work, risks, how to adapt for the user offer, and originality guidance for the next adaptation.',
+      expectedOutput:
+        'JSON array of patterns: { "patternName": string, "platform": string, "format": string, "hookMechanic": string, "emotionalTrigger": string, "promiseType": string, "proofType": string, "objectionHandled": string, "engagementMechanic": string, "whyItMayWork": string, "risks": string, "howToAdaptForOffer": string, "originalityGuidance": string }',
+      outputFormat: 'json',
+      extraGuardrails: [
+        'Never copy the original text.',
+        'Never reproduce the source structure sentence by sentence.',
+        'Never invent metrics. If performance signals are declarative hints, mark them as hints, not proof.',
+        'Always create an original adaptation. The output is patterns + guidance, not a clone.',
+        "Always respect the offer's language for any sample wording you produce.",
+        "Flag risks: cliché, excessive promise, aggressive tone, imitation too close to source.",
+      ],
+      extraQuality: [
+        'patternName is short and abstract — never the source headline.',
+        'howToAdaptForOffer is concrete and tied to the offer brief, not the source.',
+        'originalityGuidance lists 2-3 reformulation moves to avoid imitation.',
+      ],
+    };
+  }
+  return {
+    systemMission:
+      "Mission : analyse les exemples externes fournis et extrais des patterns marketing abstraits. NE COPIE JAMAIS le texte source. Produis des structures réutilisables, pas des reproductions.",
+    userTask:
+      "Pour chaque inspiration, extrais un pattern réutilisable : nom, plateforme, format, mécanique de hook, déclencheur émotionnel, type de promesse, type de preuve, objection traitée, mécanique d'engagement, pourquoi ça peut marcher, risques, comment l'adapter à l'offre utilisateur, et conseils d'originalité pour la prochaine adaptation.",
+    expectedOutput:
+      'Tableau JSON de patterns : { "patternName": string, "platform": string, "format": string, "hookMechanic": string, "emotionalTrigger": string, "promiseType": string, "proofType": string, "objectionHandled": string, "engagementMechanic": string, "whyItMayWork": string, "risks": string, "howToAdaptForOffer": string, "originalityGuidance": string }',
+    outputFormat: 'json',
+    extraGuardrails: [
+      'Ne copie pas le texte original.',
+      'Ne reproduis pas la structure phrase par phrase.',
+      "N'invente pas de métriques. Si les signaux de performance sont déclaratifs, indique que ce sont des indices, pas des preuves.",
+      'Crée toujours une adaptation originale. La sortie : patterns + conseils, pas un clone.',
+      "Respecte la langue de l'offre pour tout exemple de formulation que tu produis.",
+      "Signale les risques : cliché, promesse excessive, ton agressif, imitation trop proche.",
+    ],
+    extraQuality: [
+      'patternName est court et abstrait — jamais le titre source.',
+      "howToAdaptForOffer est concret et rattaché au brief de l'offre, pas à la source.",
+      "originalityGuidance liste 2-3 mouvements de reformulation pour éviter l'imitation.",
+    ],
+  };
+}
+
 function userAdvicePack(language: 'fr' | 'en'): TaskPack {
   if (language === 'en') {
     return {
@@ -485,6 +670,7 @@ const TASK_PACKS: Record<PromptTask, (l: 'fr' | 'en') => TaskPack> = {
   ad_improvement: adImprovementPack,
   weekly_plan: weeklyPlanPack,
   user_advice: userAdvicePack,
+  external_inspiration_analysis: externalInspirationAnalysisPack,
 };
 
 // -----------------------------------------------------------------------------
@@ -529,8 +715,31 @@ export function buildExpertPrompt(input: BuildExpertPromptInput): PromptVersion 
   if (input.selectedAssets && input.selectedAssets.length > 0) {
     userSections.push(formatAssetsBlock(input.selectedAssets, language));
   }
+  const inspirationsRendered = inspirationsBlock(input.inspirations, language);
+  if (inspirationsRendered.length > 0) {
+    userSections.push(inspirationsRendered);
+  }
   userSections.push(constraintsBlock(input, language));
-  userSections.push(language === 'en' ? `Task: ${pack.userTask}` : `Tâche : ${pack.userTask}`);
+
+  // AI-015 addendum: dynamically extend the user task when external
+  // inspirations are present, for angle_discovery and ad_generation. The
+  // model is told to compare/adapt without copying.
+  let userTask = pack.userTask;
+  if (
+    inspirationsRendered.length > 0 &&
+    (input.task === 'angle_discovery' || input.task === 'ad_generation')
+  ) {
+    const note = language === 'en'
+      ? input.task === 'angle_discovery'
+        ? ' Compare the user offer to the external inspirations provided and propose original angles adapted to the offer. Do not copy the source text.'
+        : ' Use the extracted patterns from the external inspirations as strategic inspiration only — generate an original copy. Do not copy the source text.'
+      : input.task === 'angle_discovery'
+        ? " Compare l'offre utilisateur aux inspirations externes fournies et propose des angles originaux adaptés à l'offre. Ne copie pas le texte source."
+        : " Utilise les patterns extraits des inspirations externes comme inspiration stratégique uniquement — génère une copie originale. Ne copie pas le texte source.";
+    userTask = `${pack.userTask}${note}`;
+  }
+
+  userSections.push(language === 'en' ? `Task: ${userTask}` : `Tâche : ${userTask}`);
   userSections.push(language === 'en'
     ? `Expected output: ${pack.expectedOutput}`
     : `Sortie attendue : ${pack.expectedOutput}`);
@@ -551,6 +760,33 @@ export function buildExpertPrompt(input: BuildExpertPromptInput): PromptVersion 
     qualityChecklist,
     createdAtMock: MOCK_CREATED_AT,
   };
+}
+
+/**
+ * Convenience wrapper: build the dedicated External Inspiration Analysis
+ * prompt from a list of inspirations. Equivalent to calling
+ * `buildExpertPrompt({ task: 'external_inspiration_analysis', inspirations })`
+ * but reads better at call sites.
+ */
+export interface BuildExternalInspirationPromptInput {
+  offer: Offer;
+  inspirations: ExternalInspirationInput[];
+  language?: 'fr' | 'en';
+  goal?: string;
+  constraints?: string[];
+}
+
+export function buildExternalInspirationPrompt(
+  input: BuildExternalInspirationPromptInput,
+): PromptVersion {
+  return buildExpertPrompt({
+    offer: input.offer,
+    task: 'external_inspiration_analysis',
+    inspirations: input.inspirations,
+    language: input.language,
+    goal: input.goal,
+    constraints: input.constraints,
+  });
 }
 
 function formatAdUnitBlock(adUnit: AdUnit, language: 'fr' | 'en'): string {

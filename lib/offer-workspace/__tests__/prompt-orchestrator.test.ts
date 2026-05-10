@@ -1,12 +1,16 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 import {
+  EXTERNAL_INSPIRATION_PLATFORMS,
+  EXTERNAL_INSPIRATION_SOURCE_TYPES,
   FORBIDDEN_PHRASES,
   ORCHESTRATOR_VERSION,
   PROMPT_TASKS,
   buildExpertPrompt,
+  buildExternalInspirationPrompt,
   containsForbiddenPhrase,
   promptToClipboardText,
+  type ExternalInspirationInput,
 } from '../prompt-orchestrator';
 import {
   AD_STUDIO_BRIEF_HINT_EN,
@@ -289,6 +293,138 @@ describe('promptToClipboardText', () => {
     assert.match(text, /System prompt/);
     assert.match(text, /User prompt/);
     assert.match(text, /Guardrails/);
+  });
+});
+
+describe('AI-015 addendum — External Inspiration Intelligence', () => {
+  const offer = makeOffer();
+  const inspirations: ExternalInspirationInput[] = [
+    {
+      sourcePlatform: 'linkedin',
+      sourceType: 'organic_post',
+      pastedText:
+        "Voici comment je suis passé de 3 leads par mois à un calendrier rempli, sans changer d'outil.",
+      observedSignals: [
+        'beaucoup de commentaires',
+        'partagé par plusieurs leaders du secteur',
+      ],
+      userNotes: 'Ce post est dans mon feed depuis 2 semaines.',
+      language: 'fr',
+      market: 'B2B services FR',
+      doNotCopy: true,
+    },
+    {
+      sourcePlatform: 'tiktok',
+      sourceType: 'paid_ad',
+      pastedText: 'Stop scrolling — here is the part nobody tells you about [topic].',
+      observedSignals: ['publicité active depuis longtemps'],
+      language: 'fr',
+      doNotCopy: true,
+    },
+  ];
+
+  it('PROMPT_TASKS now includes external_inspiration_analysis', () => {
+    assert.ok((PROMPT_TASKS as readonly string[]).includes('external_inspiration_analysis'));
+  });
+
+  it('platform + source type taxonomies match the spec', () => {
+    assert.deepEqual([...EXTERNAL_INSPIRATION_PLATFORMS], [
+      'linkedin', 'instagram', 'tiktok', 'facebook', 'youtube', 'email', 'landing', 'other',
+    ]);
+    assert.deepEqual([...EXTERNAL_INSPIRATION_SOURCE_TYPES], [
+      'organic_post', 'paid_ad', 'video_script', 'carousel', 'email', 'landing_section', 'other',
+    ]);
+  });
+
+  it('buildExternalInspirationPrompt FR — task = external_inspiration_analysis with the right output shape', () => {
+    const p = buildExternalInspirationPrompt({ offer, inspirations });
+    assert.equal(p.task, 'external_inspiration_analysis');
+    assert.equal(p.language, 'fr');
+    // Output shape covers all required pattern fields.
+    for (const key of [
+      'patternName', 'platform', 'format', 'hookMechanic', 'emotionalTrigger',
+      'promiseType', 'proofType', 'objectionHandled', 'engagementMechanic',
+      'whyItMayWork', 'risks', 'howToAdaptForOffer', 'originalityGuidance',
+    ]) {
+      assert.match(p.expectedOutput, new RegExp(key), `expectedOutput missing field ${key}`);
+    }
+  });
+
+  it('inspirations prompt contains "Ne copie pas" and "patterns" in FR', () => {
+    const p = buildExternalInspirationPrompt({ offer, inspirations });
+    const blob = `${p.systemPrompt}\n${p.userPrompt}\n${p.guardrails.join('\n')}`;
+    assert.match(blob, /Ne copie pas/i);
+    assert.match(blob, /patterns/i);
+    assert.match(blob, /adaptation originale/i);
+  });
+
+  it('inspirations prompt EN contains "Never copy" and "patterns"', () => {
+    const enOffer = makeOffer({
+      language: 'en',
+      brief: { ...makeOffer().brief, language: 'en' },
+    });
+    const p = buildExternalInspirationPrompt({ offer: enOffer, inspirations });
+    const blob = `${p.systemPrompt}\n${p.userPrompt}\n${p.guardrails.join('\n')}`;
+    assert.match(blob, /Never copy/i);
+    assert.match(blob, /patterns/i);
+    assert.match(blob, /original adaptation/i);
+  });
+
+  it('inspirations prompt — system + user + guardrails do NOT contain any forbidden phrase', () => {
+    const p = buildExternalInspirationPrompt({ offer, inspirations });
+    const blob = `${p.systemPrompt}\n${p.userPrompt}\n${p.guardrails.join('\n')}\n${p.qualityChecklist.join('\n')}`;
+    assert.equal(containsForbiddenPhrase(blob), undefined);
+  });
+
+  it('observed signals are surfaced as "indices déclaratifs, PAS preuve" (FR)', () => {
+    const p = buildExternalInspirationPrompt({ offer, inspirations });
+    assert.match(p.userPrompt, /indices déclaratifs.*PAS preuve/i);
+  });
+
+  it('pasted text is truncated in the user prompt to ≤ 600 chars per inspiration', () => {
+    const long = 'A'.repeat(2000);
+    const p = buildExternalInspirationPrompt({
+      offer,
+      inspirations: [{
+        sourcePlatform: 'linkedin', sourceType: 'organic_post',
+        pastedText: long, language: 'fr', doNotCopy: true,
+      }],
+    });
+    // The body should not contain the full 2000 'A's — it should be truncated.
+    assert.equal(p.userPrompt.includes('A'.repeat(1000)), false);
+  });
+
+  it('buildExpertPrompt with inspirations on angle_discovery extends the task line (FR)', () => {
+    const p = buildExpertPrompt({ offer, task: 'angle_discovery', inspirations });
+    assert.match(p.userPrompt, /Inspirations externes/);
+    assert.match(p.userPrompt, /angles originaux adaptés/i);
+    assert.match(p.userPrompt, /Ne copie pas/i);
+  });
+
+  it('buildExpertPrompt with inspirations on ad_generation extends the task line (FR)', () => {
+    const p = buildExpertPrompt({ offer, task: 'ad_generation', inspirations });
+    assert.match(p.userPrompt, /Inspirations externes/);
+    assert.match(p.userPrompt, /inspiration stratégique/i);
+    assert.match(p.userPrompt, /copie originale/i);
+    assert.match(p.userPrompt, /Ne copie pas/i);
+  });
+
+  it('without inspirations, angle_discovery + ad_generation prompts stay valid (no inspirations block surfaced)', () => {
+    const a = buildExpertPrompt({ offer, task: 'angle_discovery' });
+    const b = buildExpertPrompt({ offer, task: 'ad_generation' });
+    assert.equal(/Inspirations externes/.test(a.userPrompt), false);
+    assert.equal(/Inspirations externes/.test(b.userPrompt), false);
+    // But the task is still complete (≥ 5 quality items + ≥ 6 guardrails).
+    assert.ok(a.guardrails.length >= 6);
+    assert.ok(b.guardrails.length >= 6);
+  });
+
+  it('extracted patterns guidance: prompt mentions cliché / promesse excessive risk (FR)', () => {
+    const p = buildExternalInspirationPrompt({ offer, inspirations });
+    const blob = `${p.systemPrompt}\n${p.guardrails.join('\n')}`;
+    // The risks language is part of the extra guardrails.
+    assert.match(blob, /cliché/i);
+    assert.match(blob, /imitation trop proche/i);
   });
 });
 

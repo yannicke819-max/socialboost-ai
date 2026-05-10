@@ -1,13 +1,18 @@
 'use client';
 
 import { useMemo, useState } from 'react';
-import { Brain, Check, ClipboardCopy, ChevronRight } from 'lucide-react';
+import { Brain, Check, ClipboardCopy, ChevronRight, Plus, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import {
+  EXTERNAL_INSPIRATION_PLATFORMS,
+  EXTERNAL_INSPIRATION_SOURCE_TYPES,
   PROMPT_TASKS,
   PROMPT_CHANNELS,
   buildExpertPrompt,
   promptToClipboardText,
+  type ExternalInspirationInput,
+  type ExternalInspirationPlatform,
+  type ExternalInspirationSourceType,
   type PromptChannel,
   type PromptTask,
 } from '@/lib/offer-workspace/prompt-orchestrator';
@@ -44,6 +49,7 @@ export function PromptInspector({
   const [task, setTask] = useState<PromptTask>(defaultTask);
   const [channel, setChannel] = useState<PromptChannel | ''>(defaultChannel ?? '');
   const [notice, setNotice] = useState<string | null>(null);
+  const [inspirations, setInspirations] = useState<ExternalInspirationInput[]>([]);
 
   const prompt = useMemo(
     () =>
@@ -54,8 +60,9 @@ export function PromptInspector({
         selectedAssets,
         adUnit,
         language,
+        inspirations: inspirations.length > 0 ? inspirations : undefined,
       }),
-    [offer, task, channel, selectedAssets, adUnit, language],
+    [offer, task, channel, selectedAssets, adUnit, language, inspirations],
   );
 
   const handleCopy = async () => {
@@ -141,6 +148,15 @@ export function PromptInspector({
           {prompt.task} {prompt.channel ? `· ${prompt.channel}` : ''}
         </Section>
 
+        <InspirationsSection
+          language={language}
+          inspirations={inspirations}
+          onAdd={(it) => setInspirations((arr) => [...arr, it])}
+          onRemove={(idx) =>
+            setInspirations((arr) => arr.filter((_, i) => i !== idx))
+          }
+        />
+
         <Section title={labels.systemPromptLabel}>
           <Pre>{prompt.systemPrompt}</Pre>
         </Section>
@@ -203,5 +219,198 @@ function Pre({ children }: { children: React.ReactNode }) {
     <pre className="max-h-72 overflow-auto whitespace-pre-wrap break-words rounded border border-border bg-bg p-3 font-mono text-[11px] text-fg">
       {children}
     </pre>
+  );
+}
+
+// -----------------------------------------------------------------------------
+// External Inspirations sub-section (AI-015 addendum)
+// -----------------------------------------------------------------------------
+
+function InspirationsSection({
+  language,
+  inspirations,
+  onAdd,
+  onRemove,
+}: {
+  language: 'fr' | 'en';
+  inspirations: ExternalInspirationInput[];
+  onAdd: (it: ExternalInspirationInput) => void;
+  onRemove: (idx: number) => void;
+}) {
+  const labels = language === 'en' ? PROMPT_INSPECTOR_EN : PROMPT_INSPECTOR_FR;
+  const [open, setOpen] = useState(false);
+  const [platform, setPlatform] = useState<ExternalInspirationPlatform>('linkedin');
+  const [sourceType, setSourceType] = useState<ExternalInspirationSourceType>('organic_post');
+  const [pastedText, setPastedText] = useState('');
+  const [signals, setSignals] = useState('');
+  const [notes, setNotes] = useState('');
+
+  const handleAdd = () => {
+    if (
+      pastedText.trim().length === 0 &&
+      signals.trim().length === 0 &&
+      notes.trim().length === 0
+    ) {
+      return;
+    }
+    const observed = signals
+      .split('\n')
+      .map((l) => l.trim())
+      .filter(Boolean);
+    onAdd({
+      sourcePlatform: platform,
+      sourceType,
+      pastedText: pastedText.trim() || undefined,
+      observedSignals: observed.length > 0 ? observed : undefined,
+      userNotes: notes.trim() || undefined,
+      language,
+      doNotCopy: true,
+    });
+    setPastedText('');
+    setSignals('');
+    setNotes('');
+    setOpen(false);
+  };
+
+  return (
+    <section>
+      <p className="mb-1 font-mono text-[10px] uppercase tracking-wider text-fg-subtle">
+        {labels.inspirationsTitle}
+      </p>
+      <p className="text-[12px] text-fg-muted">{labels.inspirationsHelper}</p>
+      <p className="mt-1 inline-flex items-center gap-1 rounded border border-amber-400/40 bg-amber-400/5 px-2 py-0.5 font-mono text-[10px] uppercase tracking-wider text-amber-400">
+        {labels.inspirationsDoNotCopy}
+      </p>
+
+      {inspirations.length === 0 ? (
+        <p className="mt-2 text-[12px] text-fg-subtle">{labels.inspirationsEmpty}</p>
+      ) : (
+        <ul className="mt-2 space-y-1.5">
+          {inspirations.map((it, idx) => (
+            <li
+              key={idx}
+              className="flex flex-wrap items-center justify-between gap-1.5 rounded border border-border bg-bg p-2"
+            >
+              <span className="font-mono text-[11px] text-fg-muted">
+                {it.sourcePlatform} · {it.sourceType}
+                {it.pastedText
+                  ? ` · ${it.pastedText.slice(0, 60)}${it.pastedText.length > 60 ? '…' : ''}`
+                  : ''}
+              </span>
+              <button
+                type="button"
+                onClick={() => onRemove(idx)}
+                className="inline-flex items-center gap-1 rounded border border-border bg-bg-elevated px-2 py-0.5 font-mono text-[10px] uppercase tracking-wider text-fg-subtle hover:text-fg"
+              >
+                <X size={10} /> {labels.inspirationsRemove}
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
+
+      <div className="mt-2 flex flex-wrap items-center gap-2">
+        <button
+          type="button"
+          onClick={() => setOpen((b) => !b)}
+          className="inline-flex items-center gap-1.5 rounded-md border border-brand/40 bg-brand/5 px-3 py-1.5 font-mono text-[11px] uppercase tracking-wider text-fg transition hover:border-brand"
+        >
+          <Plus size={12} /> {labels.inspirationsAdd}
+        </button>
+      </div>
+
+      {open && (
+        <div className="mt-3 space-y-2 rounded border border-border bg-bg p-3">
+          <div className="grid gap-2 sm:grid-cols-2">
+            <label className="space-y-1">
+              <span className="font-mono text-[10px] uppercase tracking-wider text-fg-subtle">
+                {labels.inspirationsPlatformLabel}
+              </span>
+              <select
+                value={platform}
+                onChange={(e) => setPlatform(e.target.value as ExternalInspirationPlatform)}
+                className="w-full rounded border border-border bg-bg-elevated px-2 py-1 font-mono text-[11px] text-fg focus-visible:ring-2 focus-visible:ring-brand"
+              >
+                {EXTERNAL_INSPIRATION_PLATFORMS.map((p) => (
+                  <option key={p} value={p}>
+                    {p}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label className="space-y-1">
+              <span className="font-mono text-[10px] uppercase tracking-wider text-fg-subtle">
+                {labels.inspirationsSourceTypeLabel}
+              </span>
+              <select
+                value={sourceType}
+                onChange={(e) =>
+                  setSourceType(e.target.value as ExternalInspirationSourceType)
+                }
+                className="w-full rounded border border-border bg-bg-elevated px-2 py-1 font-mono text-[11px] text-fg focus-visible:ring-2 focus-visible:ring-brand"
+              >
+                {EXTERNAL_INSPIRATION_SOURCE_TYPES.map((s) => (
+                  <option key={s} value={s}>
+                    {s}
+                  </option>
+                ))}
+              </select>
+            </label>
+          </div>
+          <label className="block space-y-1">
+            <span className="font-mono text-[10px] uppercase tracking-wider text-fg-subtle">
+              {labels.inspirationsPastedLabel}
+            </span>
+            <textarea
+              value={pastedText}
+              onChange={(e) => setPastedText(e.target.value)}
+              placeholder={labels.inspirationsPastedPh}
+              rows={3}
+              className="w-full rounded border border-border bg-bg-elevated px-2 py-1 text-sm text-fg outline-none focus:border-brand"
+            />
+          </label>
+          <label className="block space-y-1">
+            <span className="font-mono text-[10px] uppercase tracking-wider text-fg-subtle">
+              {labels.inspirationsSignalsLabel}
+            </span>
+            <textarea
+              value={signals}
+              onChange={(e) => setSignals(e.target.value)}
+              placeholder={labels.inspirationsSignalsPh}
+              rows={3}
+              className="w-full rounded border border-border bg-bg-elevated px-2 py-1 text-sm text-fg outline-none focus:border-brand"
+            />
+          </label>
+          <label className="block space-y-1">
+            <span className="font-mono text-[10px] uppercase tracking-wider text-fg-subtle">
+              {labels.inspirationsNotesLabel}
+            </span>
+            <textarea
+              value={notes}
+              onChange={(e) => setNotes(e.target.value)}
+              placeholder={labels.inspirationsNotesPh}
+              rows={2}
+              className="w-full rounded border border-border bg-bg-elevated px-2 py-1 text-sm text-fg outline-none focus:border-brand"
+            />
+          </label>
+          <div className="flex flex-wrap items-center gap-2">
+            <button
+              type="button"
+              onClick={handleAdd}
+              className="inline-flex items-center gap-1.5 rounded-md border border-emerald-400/60 bg-emerald-400/15 px-3 py-1.5 font-mono text-[11px] uppercase tracking-wider text-emerald-300 hover:border-emerald-400"
+            >
+              <Plus size={12} /> {labels.inspirationsAdd}
+            </button>
+            <button
+              type="button"
+              onClick={() => setOpen(false)}
+              className="inline-flex items-center gap-1.5 rounded-md border border-border bg-bg-elevated px-3 py-1.5 font-mono text-[11px] uppercase tracking-wider text-fg-muted hover:text-fg"
+            >
+              <X size={12} /> {labels.inspirationsRemove}
+            </button>
+          </div>
+        </div>
+      )}
+    </section>
   );
 }

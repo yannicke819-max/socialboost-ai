@@ -23,6 +23,25 @@ export interface PromptInspectorCopy {
   channelPickerLabel: string;
   channelAny: string;
   taskOptions: Record<string, string>;
+  /** AI-015 addendum: External Inspiration Intelligence section. */
+  inspirationsTitle: string;
+  inspirationsHelper: string;
+  inspirationsAdd: string;
+  inspirationsRemove: string;
+  inspirationsListTitle: string;
+  inspirationsEmpty: string;
+  inspirationsBriefSection: string;
+  inspirationsPatternsSection: string;
+  inspirationsAdaptSection: string;
+  inspirationsDoNotCopy: string;
+  inspirationsPlatformLabel: string;
+  inspirationsSourceTypeLabel: string;
+  inspirationsPastedLabel: string;
+  inspirationsPastedPh: string;
+  inspirationsSignalsLabel: string;
+  inspirationsSignalsPh: string;
+  inspirationsNotesLabel: string;
+  inspirationsNotesPh: string;
 }
 
 export const PROMPT_INSPECTOR_FR: PromptInspectorCopy = {
@@ -52,7 +71,29 @@ export const PROMPT_INSPECTOR_FR: PromptInspectorCopy = {
     ad_improvement: 'Améliorer une annonce',
     weekly_plan: 'Planifier la semaine',
     user_advice: 'Conseiller la prochaine étape',
+    external_inspiration_analysis: 'Analyser des inspirations externes',
   },
+  inspirationsTitle: 'Inspirations externes',
+  inspirationsHelper:
+    "Colle ici des posts ou publicités qui semblent bien fonctionner dans ton marché. SocialBoost n'en copiera pas le texte : il analysera les mécaniques pour créer une campagne originale.",
+  inspirationsAdd: 'Ajouter une inspiration',
+  inspirationsRemove: 'Retirer',
+  inspirationsListTitle: 'Inspirations utilisées',
+  inspirationsEmpty: 'Aucune inspiration ajoutée pour cette offre.',
+  inspirationsBriefSection: 'Inspirations utilisées',
+  inspirationsPatternsSection: 'Patterns extraits',
+  inspirationsAdaptSection: 'Comment SocialBoost les adapte',
+  inspirationsDoNotCopy: 'Garde-fou : ne pas copier',
+  inspirationsPlatformLabel: 'Plateforme',
+  inspirationsSourceTypeLabel: 'Type',
+  inspirationsPastedLabel: 'Texte collé (optionnel)',
+  inspirationsPastedPh:
+    "Colle ici le texte du post ou de l'annonce qui semble bien fonctionner.",
+  inspirationsSignalsLabel: 'Signaux observés (un par ligne, optionnels)',
+  inspirationsSignalsPh:
+    'beaucoup de commentaires\npublicité active depuis longtemps\nformat récurrent chez plusieurs concurrents',
+  inspirationsNotesLabel: 'Notes (optionnel)',
+  inspirationsNotesPh: 'Pourquoi tu trouves cet exemple intéressant ?',
 };
 
 export const PROMPT_INSPECTOR_EN: PromptInspectorCopy = {
@@ -82,7 +123,29 @@ export const PROMPT_INSPECTOR_EN: PromptInspectorCopy = {
     ad_improvement: 'Improve an ad',
     weekly_plan: 'Plan the week',
     user_advice: 'Advise next step',
+    external_inspiration_analysis: 'Analyse external inspirations',
   },
+  inspirationsTitle: 'External inspirations',
+  inspirationsHelper:
+    "Paste posts or ads that seem to perform well in your market. SocialBoost won't copy the text — it will analyse the mechanics to create an original campaign.",
+  inspirationsAdd: 'Add an inspiration',
+  inspirationsRemove: 'Remove',
+  inspirationsListTitle: 'Inspirations used',
+  inspirationsEmpty: 'No inspiration added for this offer.',
+  inspirationsBriefSection: 'Inspirations used',
+  inspirationsPatternsSection: 'Patterns extracted',
+  inspirationsAdaptSection: 'How SocialBoost adapts them',
+  inspirationsDoNotCopy: 'Guardrail: do not copy',
+  inspirationsPlatformLabel: 'Platform',
+  inspirationsSourceTypeLabel: 'Type',
+  inspirationsPastedLabel: 'Pasted text (optional)',
+  inspirationsPastedPh:
+    'Paste the text of the post or ad that seems to perform well.',
+  inspirationsSignalsLabel: 'Observed signals (one per line, optional)',
+  inspirationsSignalsPh:
+    'lots of comments\nrunning for months\nrecurring format across competitors',
+  inspirationsNotesLabel: 'Notes (optional)',
+  inspirationsNotesPh: 'Why do you find this example interesting?',
 };
 
 /** Microcopy for the AdStudio explainer line. */
