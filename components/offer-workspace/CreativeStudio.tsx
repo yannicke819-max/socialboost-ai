@@ -48,10 +48,15 @@ import {
   type CreativeScorecard,
 } from '@/lib/offer-workspace/creative-scoring';
 import {
+  buildCreativeTestPlan,
+  type CreativeTestPlan as CreativeTestPlanType,
+} from '@/lib/offer-workspace/creative-test-plan';
+import {
   CreativeQualitySelector,
   buildCreativeDirectionPrefix,
 } from './CreativeQualitySelector';
 import { CreativeScorePanel } from './CreativeScorePanel';
+import { CreativeTestPlanSection } from './CreativeTestPlan';
 import type { Offer } from '@/lib/offer-workspace/types';
 
 interface CreativeStudioProps {
@@ -136,6 +141,21 @@ export function CreativeStudio({
       language,
     });
   }, [pack, tier, language]);
+
+  // AI-017H — Creative Test Plan. Pure builder over the existing pack
+  // and scorecards. No fetch, no env, no publish. Memoized so it
+  // recomputes only when the underlying creative state changes.
+  const testPlan: CreativeTestPlanType | null = useMemo(() => {
+    if (!pack) return null;
+    return buildCreativeTestPlan({
+      pack,
+      imageScorecards,
+      videoScorecards,
+      storyboardScorecard,
+      selectedTier: tier,
+      language,
+    });
+  }, [pack, imageScorecards, videoScorecards, storyboardScorecard, tier, language]);
 
   const handleCopy = async (text: string) => {
     // AI-017E: prepend the selected creative direction so the copied
@@ -273,6 +293,11 @@ export function CreativeStudio({
               language={language}
             />
           )}
+
+          {/* AI-017H — Creative Test Plan. Deterministic, prompt-only,
+              no publishing, no provider call. Rendered below the
+              tabs so it's visible across image / video / storyboard. */}
+          <CreativeTestPlanSection plan={testPlan} language={language} />
         </div>
       )}
     </section>
