@@ -101,6 +101,23 @@ export interface CreativeStudioCopy {
     'meta_feed' | 'instagram_reels' | 'tiktok' | 'linkedin_feed' | 'youtube_shorts' | 'generic_social',
     string
   >;
+
+  // AI-017H — Creative Test Plan v1
+  testPlanTitle: string;
+  testPlanSubtitle: string;
+  testPlanHypothesisLabel: string;
+  testPlanVariableLabel: string;
+  testPlanPrimaryMetricLabel: string;
+  testPlanDurationLabel: string;
+  testPlanWhyLabel: string;
+  testPlanWatchoutLabel: string;
+  testPlanReviewRequiredBadge: string;
+  testPlanCopyButton: string;
+  testPlanCopiedToast: string;
+  testPlanVariableLabels: Record<
+    'hook' | 'visual_angle' | 'proof_mechanism' | 'cta' | 'format' | 'audience_pain' | 'offer_framing',
+    string
+  >;
 }
 
 export const CREATIVE_STUDIO_FR: CreativeStudioCopy = {
@@ -243,6 +260,28 @@ export const CREATIVE_STUDIO_FR: CreativeStudioCopy = {
     youtube_shorts: 'YouTube Shorts',
     generic_social: 'Social (générique)',
   },
+
+  testPlanTitle: 'Plan de test créatif',
+  testPlanSubtitle:
+    '3 tests prioritaires pour apprendre vite, sans publier automatiquement.',
+  testPlanHypothesisLabel: 'Hypothèse',
+  testPlanVariableLabel: 'Variable testée',
+  testPlanPrimaryMetricLabel: 'Métrique principale',
+  testPlanDurationLabel: 'Durée',
+  testPlanWhyLabel: 'Pourquoi ce test ?',
+  testPlanWatchoutLabel: 'À surveiller',
+  testPlanReviewRequiredBadge: 'Revue humaine',
+  testPlanCopyButton: 'Copier le plan de test',
+  testPlanCopiedToast: 'Plan copié.',
+  testPlanVariableLabels: {
+    hook: 'Hook',
+    visual_angle: 'Angle visuel',
+    proof_mechanism: 'Mécanique de preuve',
+    cta: 'CTA',
+    format: 'Format',
+    audience_pain: 'Pain audience',
+    offer_framing: 'Framing offre',
+  },
 };
 
 export const CREATIVE_STUDIO_EN: CreativeStudioCopy = {
@@ -384,5 +423,27 @@ export const CREATIVE_STUDIO_EN: CreativeStudioCopy = {
     linkedin_feed: 'LinkedIn Feed',
     youtube_shorts: 'YouTube Shorts',
     generic_social: 'Social (generic)',
+  },
+
+  testPlanTitle: 'Creative test plan',
+  testPlanSubtitle:
+    'Three priority tests to learn fast — without publishing anything automatically.',
+  testPlanHypothesisLabel: 'Hypothesis',
+  testPlanVariableLabel: 'Variable to test',
+  testPlanPrimaryMetricLabel: 'Primary metric',
+  testPlanDurationLabel: 'Duration',
+  testPlanWhyLabel: 'Why this test?',
+  testPlanWatchoutLabel: 'Watch out',
+  testPlanReviewRequiredBadge: 'Human review',
+  testPlanCopyButton: 'Copy test plan',
+  testPlanCopiedToast: 'Plan copied.',
+  testPlanVariableLabels: {
+    hook: 'Hook',
+    visual_angle: 'Visual angle',
+    proof_mechanism: 'Proof mechanism',
+    cta: 'CTA',
+    format: 'Format',
+    audience_pain: 'Audience pain',
+    offer_framing: 'Offer framing',
   },
 };
