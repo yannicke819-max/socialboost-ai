@@ -76,6 +76,31 @@ export interface CreativeStudioCopy {
   >;
   /** Used as the line prefixed to every copied prompt: `${prefix} : ${label} — ${tagline}`. */
   copyPrefixLabel: string;
+
+  // AI-017G — Creative scoring v1
+  scoringTitle: string;
+  scoringMicrocopyIndicative: string;
+  scoringMicrocopyNoAi: string;
+  scoringContextLabel: string;
+  scoringTopStrengthLabel: string;
+  scoringMainWatchoutLabel: string;
+  scoringExpandLabel: string;
+  scoringOverall: Record<
+    'safe_to_test' | 'strong_candidate' | 'needs_refinement' | 'review_required',
+    string
+  >;
+  scoringAxisLabels: Record<
+    'attention' | 'clarity' | 'credibility' | 'conversion' | 'distinctiveness' | 'brandSafety',
+    string
+  >;
+  scoringLevelLabels: Record<
+    'low' | 'medium' | 'high' | 'very_high' | 'needs_review',
+    string
+  >;
+  scoringPlatformLabels: Record<
+    'meta_feed' | 'instagram_reels' | 'tiktok' | 'linkedin_feed' | 'youtube_shorts' | 'generic_social',
+    string
+  >;
 }
 
 export const CREATIVE_STUDIO_FR: CreativeStudioCopy = {
@@ -180,6 +205,44 @@ export const CREATIVE_STUDIO_FR: CreativeStudioCopy = {
     needs_review: 'à valider',
   },
   copyPrefixLabel: 'Direction créative',
+
+  scoringTitle: 'Score créatif',
+  scoringMicrocopyIndicative: 'Scores indicatifs, pas une prédiction de performance.',
+  scoringMicrocopyNoAi:
+    "Basé sur les signaux créatifs du concept, sans appel à un modèle IA.",
+  scoringContextLabel: 'Contexte scoring',
+  scoringTopStrengthLabel: 'Point fort',
+  scoringMainWatchoutLabel: 'À surveiller',
+  scoringExpandLabel: 'Pourquoi ce score ?',
+  scoringOverall: {
+    safe_to_test: 'Prêt à tester',
+    strong_candidate: 'Candidat fort',
+    needs_refinement: 'À affiner',
+    review_required: 'Revue humaine',
+  },
+  scoringAxisLabels: {
+    attention: 'Attention',
+    clarity: 'Clarté',
+    credibility: 'Crédibilité',
+    conversion: 'Conversion',
+    distinctiveness: 'Distinctivité',
+    brandSafety: 'Brand safety',
+  },
+  scoringLevelLabels: {
+    low: 'Faible',
+    medium: 'Moyen',
+    high: 'Fort',
+    very_high: 'Très fort',
+    needs_review: 'À valider',
+  },
+  scoringPlatformLabels: {
+    meta_feed: 'Meta Feed',
+    instagram_reels: 'Instagram Reels',
+    tiktok: 'TikTok',
+    linkedin_feed: 'LinkedIn Feed',
+    youtube_shorts: 'YouTube Shorts',
+    generic_social: 'Social (générique)',
+  },
 };
 
 export const CREATIVE_STUDIO_EN: CreativeStudioCopy = {
@@ -284,4 +347,42 @@ export const CREATIVE_STUDIO_EN: CreativeStudioCopy = {
     needs_review: 'needs review',
   },
   copyPrefixLabel: 'Creative direction',
+
+  scoringTitle: 'Creative score',
+  scoringMicrocopyIndicative: 'Indicative scores — not a performance prediction.',
+  scoringMicrocopyNoAi:
+    "Based on the concept's creative signals — no AI model call.",
+  scoringContextLabel: 'Scoring context',
+  scoringTopStrengthLabel: 'Top strength',
+  scoringMainWatchoutLabel: 'Watch out',
+  scoringExpandLabel: 'Why this score?',
+  scoringOverall: {
+    safe_to_test: 'Safe to test',
+    strong_candidate: 'Strong candidate',
+    needs_refinement: 'Needs refinement',
+    review_required: 'Human review',
+  },
+  scoringAxisLabels: {
+    attention: 'Attention',
+    clarity: 'Clarity',
+    credibility: 'Credibility',
+    conversion: 'Conversion',
+    distinctiveness: 'Distinctiveness',
+    brandSafety: 'Brand safety',
+  },
+  scoringLevelLabels: {
+    low: 'Low',
+    medium: 'Medium',
+    high: 'Strong',
+    very_high: 'Very strong',
+    needs_review: 'Needs review',
+  },
+  scoringPlatformLabels: {
+    meta_feed: 'Meta Feed',
+    instagram_reels: 'Instagram Reels',
+    tiktok: 'TikTok',
+    linkedin_feed: 'LinkedIn Feed',
+    youtube_shorts: 'YouTube Shorts',
+    generic_social: 'Social (generic)',
+  },
 };
