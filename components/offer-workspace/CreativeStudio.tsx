@@ -76,8 +76,10 @@ export function CreativeStudio({
     if (!offer || !offer.brief || !offer.brief.businessName || !offer.brief.offer) {
       return null;
     }
-    return buildCreativeBriefPack({ offer, task, language });
-  }, [offer, task, language]);
+    // AI-017F: tier participates in the pack derivation so selecting a
+    // different intent re-derives image/video/storyboard concepts.
+    return buildCreativeBriefPack({ offer, task, language, creativeQualityTier: tier });
+  }, [offer, task, language, tier]);
 
   const handleCopy = async (text: string) => {
     // AI-017E: prepend the selected creative direction so the copied

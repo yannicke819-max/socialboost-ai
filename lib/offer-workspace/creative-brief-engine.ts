@@ -28,6 +28,10 @@
  */
 
 import type { Offer } from './types';
+import {
+  CREATIVE_RULES_BY_TIER,
+  type CreativeQualityTier,
+} from './creative-quality-tiers';
 
 // -----------------------------------------------------------------------------
 // Public types
@@ -126,6 +130,12 @@ export interface CreativeBriefPack {
   noModelLaunchedNotice: string;
   /** Literal marker on every prompt body. Pinned by tests. */
   copyReadyMarker: string;
+  /** AI-017F: tier the engine produced this pack for. */
+  creativeQualityTier: CreativeQualityTier;
+  /** AI-017F: short tone description embedded in every prompt body. */
+  tierTone: string;
+  /** AI-017F: kebab-cased guardrails embedded in every prompt body. */
+  tierGuardrails: readonly string[];
 }
 
 export interface BuildCreativeBriefInput {
@@ -141,6 +151,13 @@ export interface BuildCreativeBriefInput {
    * The engine never mutates the offer.
    */
   language?: 'fr' | 'en';
+  /**
+   * AI-017F: pick a creative-strategy tier. Concepts, hooks, shots,
+   * storyboard beats, tone, and embedded guardrails all change with
+   * this value. Defaults to `'performance'` — the most common
+   * direct-response intent.
+   */
+  creativeQualityTier?: CreativeQualityTier;
 }
 
 // -----------------------------------------------------------------------------
@@ -436,6 +453,496 @@ const VIDEO_AVOID_EN = [
 ];
 
 // -----------------------------------------------------------------------------
+// AI-017F — Per-tier templates. Each tier rewrites titles, overlays,
+// hooks, shot lists, storyboard beats, and the tone embedded in every
+// prompt body. Pure data; no I/O. Bilingual FR/EN.
+// -----------------------------------------------------------------------------
+
+interface TierTemplate {
+  imageTitles: readonly [string, string, string];
+  imageOverlays: readonly [string, string, string];
+  videoTitles: readonly [string, string];
+  videoHooks: readonly [string, string];
+  /** On-screen text per video concept (3 cards each). */
+  videoOnScreenText: readonly [readonly string[], readonly string[]];
+  /** Beats explicitly designed for this tier's storyboard. */
+  storyboardBeats: readonly CreativeStoryboardBeat[];
+  toneDescription: string;
+}
+
+function tierTemplate(
+  language: 'fr' | 'en',
+  tier: CreativeQualityTier,
+  businessName: string,
+): TierTemplate {
+  const isEn = language === 'en';
+  const overlayMaker = (suffix: string) => `${businessName} — ${suffix}`;
+
+  if (tier === 'safe') {
+    return isEn
+      ? {
+          imageTitles: ['Clear benefit', 'One step, one result', 'Simple tools'],
+          imageOverlays: [
+            overlayMaker('start here'),
+            overlayMaker('one clear step'),
+            overlayMaker('built around you'),
+          ],
+          videoTitles: ['Reassuring reel 15s', 'Benefit story 6s'],
+          videoHooks: [
+            'A calm question to the audience, no pressure',
+            'A short shot of the benefit in plain context',
+          ],
+          videoOnScreenText: [
+            [
+              `One step. One result.`,
+              `${businessName} — clear plan.`,
+              `Quietly, in your own time.`,
+            ],
+            [
+              `${businessName} — start here.`,
+              `Take one step today.`,
+              `That is enough.`,
+            ],
+          ],
+          storyboardBeats: [
+            {
+              secondRange: '0-3s',
+              visual: 'Clear setup of a simple problem. Window light, no clutter.',
+              onScreenText: 'A clear problem.',
+              narration: 'Many start with this exact blocker.',
+              purpose: 'Establish the problem calmly.',
+            },
+            {
+              secondRange: '3-7s',
+              visual: 'Quiet shot of the solution in use. No drama.',
+              onScreenText: 'A quiet solution.',
+              narration: `${businessName} works one step at a time.`,
+              purpose: 'Introduce the solution without hype.',
+            },
+            {
+              secondRange: '7-11s',
+              visual: 'Practical benefit shot — notebook + clear move.',
+              onScreenText: 'A simple benefit.',
+              narration: 'You see the next move. You stop guessing.',
+              purpose: 'Anchor the practical benefit.',
+            },
+            {
+              secondRange: '11-15s',
+              visual: 'Static, brand-safe CTA card. No animation.',
+              onScreenText: `${businessName} — when you are ready.`,
+              narration: 'When you are ready.',
+              purpose: 'Gentle CTA, no pressure.',
+            },
+          ],
+          toneDescription: 'clear, reassuring, practical',
+        }
+      : {
+          imageTitles: ['Bénéfice clair', 'Une étape, un résultat', 'Outils simples'],
+          imageOverlays: [
+            overlayMaker('commence ici'),
+            overlayMaker('une seule étape'),
+            overlayMaker('pensé pour toi'),
+          ],
+          videoTitles: ['Reel rassurant 15s', 'Story-bénéfice 6s'],
+          videoHooks: [
+            "Une question calme à l'audience, sans pression",
+            'Un plan court du bénéfice en contexte simple',
+          ],
+          videoOnScreenText: [
+            [
+              `Une étape. Un résultat.`,
+              `${businessName} — un plan clair.`,
+              `À ton rythme.`,
+            ],
+            [
+              `${businessName} — commence ici.`,
+              `Une étape aujourd'hui.`,
+              `Ça suffit.`,
+            ],
+          ],
+          storyboardBeats: [
+            {
+              secondRange: '0-3s',
+              visual: "Mise en place claire d'un problème simple. Lumière fenêtre, peu d'éléments.",
+              onScreenText: 'Un blocage clair.',
+              narration: 'Beaucoup commencent par ce blocage exact.',
+              purpose: 'Etablir calmement le problème.',
+            },
+            {
+              secondRange: '3-7s',
+              visual: 'Plan calme de la solution en usage. Aucun drame.',
+              onScreenText: 'Une solution calme.',
+              narration: `${businessName} avance une étape à la fois.`,
+              purpose: 'Présenter la solution sans hype.',
+            },
+            {
+              secondRange: '7-11s',
+              visual: 'Plan bénéfice pratique — carnet + geste clair.',
+              onScreenText: 'Un bénéfice simple.',
+              narration: 'Tu vois la prochaine étape. Tu cesses de deviner.',
+              purpose: 'Ancrer le bénéfice pratique.',
+            },
+            {
+              secondRange: '11-15s',
+              visual: 'Carte CTA fixe, brand-safe. Aucune animation.',
+              onScreenText: `${businessName} — quand tu es prêt·e.`,
+              narration: 'Quand tu es prêt·e.',
+              purpose: 'CTA doux, sans pression.',
+            },
+          ],
+          toneDescription: 'clair, rassurant, pratique',
+        };
+  }
+
+  if (tier === 'social_proof') {
+    return isEn
+      ? {
+          imageTitles: ['A real client', 'Everyday usage', 'Testimonial in context'],
+          imageOverlays: [
+            overlayMaker('used by people like you'),
+            overlayMaker('real, daily use'),
+            overlayMaker('observed, not invented'),
+          ],
+          videoTitles: ['UGC testimonial reel 15s', 'Creator snippet 6s'],
+          videoHooks: [
+            'A short authentic line: "Why I actually use it"',
+            'A real situation, no actor, no script',
+          ],
+          videoOnScreenText: [
+            [
+              `Real client, real situation.`,
+              `${businessName} — used in context.`,
+              `Plausible result, no fabrication.`,
+            ],
+            [
+              `Why I use ${businessName}.`,
+              `One real reason.`,
+              `Not a scripted ad.`,
+            ],
+          ],
+          storyboardBeats: [
+            {
+              secondRange: '0-3s',
+              visual: 'Wide shot of a relatable target persona, no acting.',
+              onScreenText: 'Like you.',
+              narration: 'Someone like you, in their own space.',
+              purpose: 'Identify the target persona.',
+            },
+            {
+              secondRange: '3-8s',
+              visual: 'Real situation — kitchen / desk / studio. Authentic objects.',
+              onScreenText: 'Real situation.',
+              narration: 'Here is the situation they were in.',
+              purpose: 'Anchor in the real, not staged.',
+            },
+            {
+              secondRange: '8-12s',
+              visual: 'Hands actually using the product / following the method.',
+              onScreenText: 'Real usage.',
+              narration: 'This is how they used it.',
+              purpose: 'Demonstrate authentic usage.',
+            },
+            {
+              secondRange: '12-15s',
+              visual: 'Plausible result + soft CTA card.',
+              onScreenText: `Plausible result · ${businessName}.`,
+              narration: 'A plausible result. No exaggeration.',
+              purpose: 'Witness without fabrication.',
+            },
+          ],
+          toneDescription: 'human, credible, observational',
+        }
+      : {
+          imageTitles: ['Un client réel', 'Usage du quotidien', 'Témoignage en contexte'],
+          imageOverlays: [
+            overlayMaker('utilisé par des gens comme toi'),
+            overlayMaker('usage réel, quotidien'),
+            overlayMaker('observé, pas inventé'),
+          ],
+          videoTitles: ['Témoignage UGC 15s', 'Snippet créateur 6s'],
+          videoHooks: [
+            'Une phrase authentique courte : « Pourquoi je l\'utilise »',
+            'Une situation réelle, sans acteur, sans script',
+          ],
+          videoOnScreenText: [
+            [
+              `Un client réel, une situation réelle.`,
+              `${businessName} — utilisé en contexte.`,
+              `Résultat plausible, sans fabrication.`,
+            ],
+            [
+              `Pourquoi j'utilise ${businessName}.`,
+              `Une raison réelle.`,
+              `Pas une pub scriptée.`,
+            ],
+          ],
+          storyboardBeats: [
+            {
+              secondRange: '0-3s',
+              visual: 'Plan large d\'une cible relatable, sans acting.',
+              onScreenText: 'Comme toi.',
+              narration: 'Quelqu\'un comme toi, dans son propre espace.',
+              purpose: 'Identifier la persona cible.',
+            },
+            {
+              secondRange: '3-8s',
+              visual: 'Situation réelle — cuisine / bureau / atelier. Objets authentiques.',
+              onScreenText: 'Situation réelle.',
+              narration: 'Voici la situation dans laquelle elle se trouvait.',
+              purpose: 'Ancrer dans le réel, pas le mis en scène.',
+            },
+            {
+              secondRange: '8-12s',
+              visual: 'Mains qui utilisent réellement le produit / suivent la méthode.',
+              onScreenText: 'Usage réel.',
+              narration: 'Voici comment elle l\'a utilisé.',
+              purpose: 'Démontrer l\'usage authentique.',
+            },
+            {
+              secondRange: '12-15s',
+              visual: 'Résultat plausible + carte CTA douce.',
+              onScreenText: `Résultat plausible · ${businessName}.`,
+              narration: 'Un résultat plausible. Sans exagération.',
+              purpose: 'Témoigner sans fabriquer.',
+            },
+          ],
+          toneDescription: 'humain, crédible, observationnel',
+        };
+  }
+
+  if (tier === 'breakthrough') {
+    return isEn
+      ? {
+          imageTitles: ['Pattern interrupt', 'Unexpected contrast', 'Memorable visual'],
+          imageOverlays: [
+            overlayMaker('what if we flipped it?'),
+            overlayMaker('not what you expected'),
+            overlayMaker('worth remembering'),
+          ],
+          videoTitles: ['Pattern-interrupt reel 15s', 'Surprise hook 6s'],
+          videoHooks: [
+            'An unexpected opening shot, 1 second of silent contrast',
+            'A startling but brand-safe opening that reverses an expectation',
+          ],
+          videoOnScreenText: [
+            [
+              `Wait — really?`,
+              `${businessName} — flips the angle.`,
+              `Reviewed by a human.`,
+            ],
+            [
+              `Not what you expected.`,
+              `${businessName} — bold, then grounded.`,
+              `Human review required.`,
+            ],
+          ],
+          storyboardBeats: [
+            {
+              secondRange: '0-2s',
+              visual: 'Pattern interrupt — unexpected framing, silent contrast.',
+              onScreenText: 'Wait — really?',
+              narration: 'Most ads start the same way. Not this one.',
+              purpose: 'Stop the scroll within 2s.',
+            },
+            {
+              secondRange: '2-6s',
+              visual: 'Reveal that flips the expectation. Bold composition.',
+              onScreenText: 'We flipped the angle.',
+              narration: `${businessName} starts where everyone else stops.`,
+              purpose: 'Reveal the unexpected angle.',
+            },
+            {
+              secondRange: '6-11s',
+              visual: 'Emotional contrast moment — single human gesture, clean light.',
+              onScreenText: 'Memorable, not loud.',
+              narration: 'It is bolder than it sounds. And calmer than it looks.',
+              purpose: 'Anchor memory through emotional contrast.',
+            },
+            {
+              secondRange: '11-15s',
+              visual: 'Grounded, calm CTA card. Brand-safe, no flashing.',
+              onScreenText: `${businessName} — review before launch.`,
+              narration: 'Worth reviewing carefully before you ship it.',
+              purpose: 'Land bold work on a calm CTA.',
+            },
+          ],
+          toneDescription: 'bold, distinctive, review-required',
+        }
+      : {
+          imageTitles: ['Pattern interrupt', 'Contraste inattendu', 'Mémoire visuelle'],
+          imageOverlays: [
+            overlayMaker('et si on inversait ?'),
+            overlayMaker('pas ce que tu attendais'),
+            overlayMaker('à retenir'),
+          ],
+          videoTitles: ['Reel pattern-interrupt 15s', 'Hook surprise 6s'],
+          videoHooks: [
+            "Un plan d'ouverture inattendu, 1 seconde de contraste silencieux",
+            "Une ouverture surprenante mais brand-safe qui inverse l'attente",
+          ],
+          videoOnScreenText: [
+            [
+              `Attends — sérieux ?`,
+              `${businessName} — inverse l'angle.`,
+              `Validé humainement.`,
+            ],
+            [
+              `Pas ce que tu attendais.`,
+              `${businessName} — audacieux, puis posé.`,
+              `Review humaine requise.`,
+            ],
+          ],
+          storyboardBeats: [
+            {
+              secondRange: '0-2s',
+              visual: 'Pattern interrupt — cadrage inattendu, contraste silencieux.',
+              onScreenText: 'Attends — sérieux ?',
+              narration: 'La plupart des pubs commencent pareil. Pas celle-ci.',
+              purpose: 'Stopper le scroll en 2s.',
+            },
+            {
+              secondRange: '2-6s',
+              visual: 'Reveal qui inverse l\'attente. Composition affirmée.',
+              onScreenText: 'On a inversé l\'angle.',
+              narration: `${businessName} commence là où les autres s\'arrêtent.`,
+              purpose: 'Révéler l\'angle inattendu.',
+            },
+            {
+              secondRange: '6-11s',
+              visual: 'Moment de contraste émotionnel — un geste humain unique, lumière nette.',
+              onScreenText: 'Mémorable, pas bruyant.',
+              narration: 'C\'est plus audacieux qu\'il n\'y paraît. Et plus calme qu\'il n\'en a l\'air.',
+              purpose: 'Ancrer la mémoire par contraste émotionnel.',
+            },
+            {
+              secondRange: '11-15s',
+              visual: 'Carte CTA posée, brand-safe, sans flash.',
+              onScreenText: `${businessName} — à valider avant lancement.`,
+              narration: 'À valider attentivement avant de le pousser.',
+              purpose: 'Atterrir le bold sur un CTA calme.',
+            },
+          ],
+          toneDescription: 'audacieux, distinctif, review obligatoire',
+        };
+  }
+
+  // performance (default)
+  return isEn
+    ? {
+        imageTitles: ['Hook + benefit', 'Objection handled', 'CTA mobile-first'],
+        imageOverlays: [
+          overlayMaker('clear in 2 seconds'),
+          overlayMaker('handles your objection'),
+          overlayMaker('book a slot today'),
+        ],
+        videoTitles: ['Conversion reel 15s', 'Objection hook 6s'],
+        videoHooks: [
+          'A 2-second visual hook on a real frustration',
+          'A direct line that names the objection in the first second',
+        ],
+        videoOnScreenText: [
+          [
+            `Stop. Are you doing this?`,
+            `Here is the real cost.`,
+            `${businessName} — book a slot.`,
+          ],
+          [
+            `Stop. Tried alone?`,
+            `One real fix.`,
+            `${businessName} — book today.`,
+          ],
+        ],
+        storyboardBeats: [
+          {
+            secondRange: '0-2s',
+            visual: 'Strong visual hook on a real frustration. Mobile-first 9:16.',
+            onScreenText: 'Stop. Tried alone?',
+            narration: 'You tried alone. You hit a wall.',
+            purpose: 'Hook in under 2 seconds.',
+          },
+          {
+            secondRange: '2-6s',
+            visual: 'Pain / objection shot. Show the cost of doing nothing.',
+            onScreenText: 'The real cost is time.',
+            narration: 'Every week without a clear plan costs more than the plan itself.',
+            purpose: 'Address the main objection.',
+          },
+          {
+            secondRange: '6-11s',
+            visual: 'Solution + proof. Show the product / method visible early.',
+            onScreenText: 'A clear plan in one week.',
+            narration: `${businessName} works one-on-one to set the next 5 actions.`,
+            purpose: 'Solution + concrete proof.',
+          },
+          {
+            secondRange: '11-15s',
+            visual: 'CTA card, brand-safe, mobile-first. Clear action verb.',
+            onScreenText: `${businessName} — book a slot.`,
+            narration: 'Book a slot today.',
+            purpose: 'Explicit close.',
+          },
+        ],
+        toneDescription: 'direct-response, concise, conversion-focused',
+      }
+    : {
+        imageTitles: ['Hook + bénéfice', 'Objection traitée', 'CTA mobile-first'],
+        imageOverlays: [
+          overlayMaker('clair en 2 secondes'),
+          overlayMaker('traite ton objection'),
+          overlayMaker('réserve un créneau'),
+        ],
+        videoTitles: ['Reel conversion 15s', 'Hook objection 6s'],
+        videoHooks: [
+          'Un hook visuel de 2 secondes sur une frustration réelle',
+          "Une phrase directe qui nomme l'objection dans la première seconde",
+        ],
+        videoOnScreenText: [
+          [
+            `Stop. Tu fais ça ?`,
+            `Voici le vrai coût.`,
+            `${businessName} — réserve un créneau.`,
+          ],
+          [
+            `Stop. Essayé seul·e ?`,
+            `Un vrai correctif.`,
+            `${businessName} — réserve aujourd'hui.`,
+          ],
+        ],
+        storyboardBeats: [
+          {
+            secondRange: '0-2s',
+            visual: 'Hook visuel fort sur une frustration réelle. Mobile-first 9:16.',
+            onScreenText: 'Stop. Essayé seul·e ?',
+            narration: 'Tu as essayé seul·e. Tu as plafonné.',
+            purpose: 'Hook en moins de 2 secondes.',
+          },
+          {
+            secondRange: '2-6s',
+            visual: "Plan douleur / objection. Montrer le coût de ne rien faire.",
+            onScreenText: 'Le vrai coût, c\'est le temps.',
+            narration: "Chaque semaine sans plan clair coûte plus cher que le plan lui-même.",
+            purpose: "Adresser l'objection principale.",
+          },
+          {
+            secondRange: '6-11s',
+            visual: 'Solution + preuve. Produit / méthode visible rapidement.',
+            onScreenText: 'Un plan clair en une semaine.',
+            narration: `${businessName} travaille en 1-1 pour fixer les 5 prochaines actions.`,
+            purpose: 'Solution + preuve concrète.',
+          },
+          {
+            secondRange: '11-15s',
+            visual: 'Carte CTA, brand-safe, mobile-first. Verbe d\'action clair.',
+            onScreenText: `${businessName} — réserve un créneau.`,
+            narration: 'Réserve un créneau aujourd\'hui.',
+            purpose: 'Clôture explicite.',
+          },
+        ],
+        toneDescription: 'direct-response, concise, orientation conversion',
+      };
+}
+
+// -----------------------------------------------------------------------------
 // Builder
 // -----------------------------------------------------------------------------
 
@@ -446,9 +953,12 @@ export function buildCreativeBriefPack(input: BuildCreativeBriefInput): Creative
   const language: 'fr' | 'en' = input.language ?? input.offer.brief.language;
   const lib = language === 'en' ? LIB_EN : LIB_FR;
   const isEn = language === 'en';
+  const tier: CreativeQualityTier = input.creativeQualityTier ?? 'performance';
 
   const task = input.task ?? 'campaign_pack';
-  const seed = hash32(`${input.offer.id}|${task}|${language}|creative-v1`);
+  // AI-017F: tier participates in the seed so concepts vary per tier
+  // for the same (offer, task, language).
+  const seed = hash32(`${input.offer.id}|${task}|${language}|tier:${tier}|creative-v1`);
   const rand = mulberry32(seed);
 
   const businessName = input.offer.brief.businessName;
@@ -461,6 +971,9 @@ export function buildCreativeBriefPack(input: BuildCreativeBriefInput): Creative
     ? `Show ${businessName}'s honest path: from a frustrating before to a calm after.`
     : `Montrer le chemin honnête de ${businessName} : d'un avant frustrant à un après apaisé.`;
 
+  const tpl = tierTemplate(language, tier, businessName);
+  const tierGuardrails = CREATIVE_RULES_BY_TIER[tier];
+
   const imageConcepts = buildThreeImageConcepts({
     rand,
     lib,
@@ -468,6 +981,9 @@ export function buildCreativeBriefPack(input: BuildCreativeBriefInput): Creative
     businessName,
     offerLine,
     visualDirection,
+    tier,
+    tpl,
+    tierGuardrails,
   });
   const videoConcepts = buildTwoVideoConcepts({
     rand,
@@ -476,14 +992,14 @@ export function buildCreativeBriefPack(input: BuildCreativeBriefInput): Creative
     businessName,
     offerLine,
     visualDirection,
+    tier,
+    tpl,
+    tierGuardrails,
   });
-  const storyboard = buildStoryboard({
-    rand,
-    lib,
-    language,
-    businessName,
-    audienceEmotion,
-  });
+  const storyboard: CreativeStoryboard = {
+    durationSec: STORYBOARD_DURATION_SEC,
+    beats: tpl.storyboardBeats.slice(0, 4),
+  };
 
   const negativePrompt = isEn ? NEGATIVE_PROMPT_EN : NEGATIVE_PROMPT_FR;
   const productionNotes = lib.productionNotes.slice(0, 3);
@@ -509,6 +1025,9 @@ export function buildCreativeBriefPack(input: BuildCreativeBriefInput): Creative
     mediaProviderCallAllowed: false,
     noModelLaunchedNotice,
     copyReadyMarker: COPY_READY_MARKER,
+    creativeQualityTier: tier,
+    tierTone: tpl.toneDescription,
+    tierGuardrails,
   };
 }
 
@@ -523,28 +1042,17 @@ function buildThreeImageConcepts(args: {
   businessName: string;
   offerLine: string;
   visualDirection: string;
+  tier: CreativeQualityTier;
+  tpl: TierTemplate;
+  tierGuardrails: readonly string[];
 }): CreativeImagePrompt[] {
   const formats: CreativePlatformFormat[] = [
     'instagram_square',
     'instagram_portrait',
     'linkedin_feed',
   ];
-  const titles =
-    args.language === 'en'
-      ? ['Honest before', 'Quiet after', 'Tools of the craft']
-      : ["Avant honnête", 'Après apaisé', 'Outils du métier'];
-  const overlays =
-    args.language === 'en'
-      ? [
-          `${args.businessName} — start here`,
-          `${args.businessName} — clarity, not hype`,
-          `${args.businessName} — built around you`,
-        ]
-      : [
-          `${args.businessName} — commence ici`,
-          `${args.businessName} — clarté, pas de promesse`,
-          `${args.businessName} — pensé pour toi`,
-        ];
+  const titles = args.tpl.imageTitles;
+  const overlays = args.tpl.imageOverlays;
 
   return formats.map((fmt, i) => {
     const scene = pick(args.lib.imageScenes, args.rand);
@@ -559,6 +1067,12 @@ function buildThreeImageConcepts(args: {
       args.language === 'en'
         ? `Image — ${titles[i]} for ${args.businessName} (${fmt}, ${aspect}).`
         : `Image — ${titles[i]} pour ${args.businessName} (${fmt}, ${aspect}).`,
+      args.language === 'en'
+        ? `Creative direction: ${args.tier} — ${args.tpl.toneDescription}.`
+        : `Direction créative : ${args.tier} — ${args.tpl.toneDescription}.`,
+      args.language === 'en'
+        ? `Guardrails: ${args.tierGuardrails.join('; ')}.`
+        : `Garde-fous : ${args.tierGuardrails.join('; ')}.`,
       args.language === 'en' ? `Scene: ${scene}.` : `Scène : ${scene}.`,
       args.language === 'en' ? `Subject: ${subject}.` : `Sujet : ${subject}.`,
       args.language === 'en'
@@ -600,40 +1114,35 @@ function buildTwoVideoConcepts(args: {
   businessName: string;
   offerLine: string;
   visualDirection: string;
+  tier: CreativeQualityTier;
+  tpl: TierTemplate;
+  tierGuardrails: readonly string[];
 }): CreativeVideoPrompt[] {
   const formats: CreativePlatformFormat[] = ['tiktok_reel', 'story_vertical'];
   const durations: CreativeVideoDuration[] = [15, 6];
-  const titles =
-    args.language === 'en'
-      ? ['Frustration → relief reel', 'Six-second hook']
-      : ['Reel frustration → soulagement', 'Hook 6 secondes'];
+  const titles = args.tpl.videoTitles;
 
   return formats.map((fmt, i) => {
     const durationSec = durations[i]!;
-    const hook = pick(args.lib.videoHooks, args.rand).replace(
+    const hook = args.tpl.videoHooks[i]!.replace(
       '{{businessName}}',
       args.businessName,
     );
     const transition = pick(args.lib.videoTransitions, args.rand);
     const voiceover = pick(args.lib.videoVoiceovers, args.rand);
     const shots = buildShotList(durationSec, args.language);
-    const onScreenText =
-      args.language === 'en'
-        ? [
-            `Before: 60% of clients try alone, get stuck.`,
-            `After: a clear plan in one week.`,
-            `${args.businessName} — book a slot.`,
-          ]
-        : [
-            `Avant : 60% essaient seuls, restent bloqués.`,
-            `Après : un plan clair en une semaine.`,
-            `${args.businessName} — réserve un créneau.`,
-          ];
+    const onScreenText = args.tpl.videoOnScreenText[i] ?? [];
     const prompt = [
       `[${COPY_READY_MARKER}]`,
       args.language === 'en'
         ? `Video — ${titles[i]} (${fmt}, ${PLATFORM_FORMAT_ASPECT_RATIO[fmt]}, ${durationSec}s).`
         : `Vidéo — ${titles[i]} (${fmt}, ${PLATFORM_FORMAT_ASPECT_RATIO[fmt]}, ${durationSec}s).`,
+      args.language === 'en'
+        ? `Creative direction: ${args.tier} — ${args.tpl.toneDescription}.`
+        : `Direction créative : ${args.tier} — ${args.tpl.toneDescription}.`,
+      args.language === 'en'
+        ? `Guardrails: ${args.tierGuardrails.join('; ')}.`
+        : `Garde-fous : ${args.tierGuardrails.join('; ')}.`,
       args.language === 'en' ? `Hook (0-3s): ${hook}.` : `Hook (0-3s) : ${hook}.`,
       args.language === 'en'
         ? `Transitions: ${transition}.`
@@ -657,7 +1166,7 @@ function buildTwoVideoConcepts(args: {
       durationSec,
       hook,
       shots,
-      onScreenText,
+      onScreenText: [...onScreenText],
       voiceoverSuggestion: voiceover,
       transitionStyle: transition,
       prompt,
@@ -751,63 +1260,3 @@ function buildShotList(
   ];
 }
 
-function buildStoryboard(args: {
-  rand: () => number;
-  lib: StyleLib;
-  language: 'fr' | 'en';
-  businessName: string;
-  audienceEmotion: string;
-}): CreativeStoryboard {
-  const isEn = args.language === 'en';
-  const beats: CreativeStoryboardBeat[] = [
-    {
-      secondRange: '0-3s',
-      visual: isEn
-        ? 'Real frustration, no exaggeration. Window light, single subject.'
-        : 'Frustration réelle, aucune exagération. Lumière fenêtre, sujet seul.',
-      onScreenText: isEn ? 'Tried alone? Stuck.' : 'Seul·e ? Bloqué·e.',
-      narration: isEn
-        ? 'Most people try alone. They reach a plateau.'
-        : 'La plupart essaient seuls. Ils plafonnent.',
-      purpose: isEn ? 'Hook on a true frustration.' : 'Hook sur une frustration vraie.',
-    },
-    {
-      secondRange: '3-8s',
-      visual: isEn
-        ? 'Wide shot of a structured workspace. Calm pace, hands moving with intent.'
-        : "Plan large d'un espace de travail structuré. Rythme calme, mains posées avec intention.",
-      onScreenText: isEn
-        ? 'A clear plan in one week.'
-        : 'Un plan clair en une semaine.',
-      narration: isEn
-        ? `${args.businessName} works one-on-one to set the next 5 actions.`
-        : `${args.businessName} travaille en 1-1 pour fixer les 5 prochaines actions.`,
-      purpose: isEn ? 'Concrete promise, no hype.' : 'Promesse concrète, pas de hype.',
-    },
-    {
-      secondRange: '8-12s',
-      visual: isEn
-        ? 'Close-up of a real client artifact (notebook, screen, post-it). No stock imagery.'
-        : "Gros plan sur un objet client réel (carnet, écran, post-it). Pas d'imagerie stock.",
-      onScreenText: isEn
-        ? `Emotion: ${args.audienceEmotion}.`
-        : `Emotion : ${args.audienceEmotion}.`,
-      narration: isEn
-        ? 'You see the next move. You stop guessing.'
-        : 'Tu vois la prochaine étape. Tu cesses de deviner.',
-      purpose: isEn ? 'Anchor the after-state.' : 'Ancrer l\'état après.',
-    },
-    {
-      secondRange: '12-15s',
-      visual: isEn
-        ? 'Static CTA card, brand-safe. No flashing transitions.'
-        : 'Carte CTA fixe, brand-safe. Pas de transition flash.',
-      onScreenText: isEn
-        ? `${args.businessName} — book a slot.`
-        : `${args.businessName} — réserve un créneau.`,
-      narration: isEn ? 'One slot at a time.' : 'Un créneau à la fois.',
-      purpose: isEn ? 'Single, calm CTA.' : 'CTA unique, posé.',
-    },
-  ];
-  return { durationSec: STORYBOARD_DURATION_SEC, beats };
-}
