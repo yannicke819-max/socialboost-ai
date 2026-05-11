@@ -44,9 +44,14 @@ import {
   type CreativeQualityTier,
 } from '@/lib/offer-workspace/creative-quality-tiers';
 import {
+  buildCreativeScorecard,
+  type CreativeScorecard,
+} from '@/lib/offer-workspace/creative-scoring';
+import {
   CreativeQualitySelector,
   buildCreativeDirectionPrefix,
 } from './CreativeQualitySelector';
+import { CreativeScorePanel } from './CreativeScorePanel';
 import type { Offer } from '@/lib/offer-workspace/types';
 
 interface CreativeStudioProps {
@@ -80,6 +85,57 @@ export function CreativeStudio({
     // different intent re-derives image/video/storyboard concepts.
     return buildCreativeBriefPack({ offer, task, language, creativeQualityTier: tier });
   }, [offer, task, language, tier]);
+
+  // AI-017G — Compute per-concept scorecards. Pure deterministic
+  // heuristics, no fetch, no env access. Memoized so re-renders
+  // don't re-score until tier / pack changes.
+  const imageScorecards: CreativeScorecard[] = useMemo(() => {
+    if (!pack) return [];
+    return pack.imageConcepts.map((c) =>
+      buildCreativeScorecard({
+        kind: 'image',
+        creativeQualityTier: tier,
+        title: c.title,
+        prompt: c.prompt,
+        textOverlay: c.textOverlay,
+        guardrails: pack.tierGuardrails,
+        platformFormat: c.platformFormat,
+        language,
+      }),
+    );
+  }, [pack, tier, language]);
+
+  const videoScorecards: CreativeScorecard[] = useMemo(() => {
+    if (!pack) return [];
+    return pack.videoConcepts.map((c) =>
+      buildCreativeScorecard({
+        kind: 'video',
+        creativeQualityTier: tier,
+        title: c.title,
+        prompt: c.prompt,
+        hook: c.hook,
+        avoid: c.avoid,
+        guardrails: pack.tierGuardrails,
+        platformFormat: c.platformFormat,
+        language,
+      }),
+    );
+  }, [pack, tier, language]);
+
+  const storyboardScorecard: CreativeScorecard | null = useMemo(() => {
+    if (!pack) return null;
+    const beatsText = pack.storyboard.beats
+      .map((b) => `[${b.secondRange}] ${b.visual} ${b.onScreenText} ${b.narration} ${b.purpose}`)
+      .join(' ');
+    return buildCreativeScorecard({
+      kind: 'storyboard',
+      creativeQualityTier: tier,
+      title: pack.campaignTheme,
+      prompt: `${pack.tierGuardrails.join(' ')} ${beatsText}`,
+      guardrails: pack.tierGuardrails,
+      language,
+    });
+  }, [pack, tier, language]);
 
   const handleCopy = async (text: string) => {
     // AI-017E: prepend the selected creative direction so the copied
@@ -180,12 +236,14 @@ export function CreativeStudio({
 
           {tab === 'images' && (
             <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-              {pack.imageConcepts.map((c) => (
+              {pack.imageConcepts.map((c, i) => (
                 <ImageCard
                   key={c.id}
                   concept={c}
                   labels={labels}
                   onCopy={handleCopy}
+                  scorecard={imageScorecards[i] ?? null}
+                  language={language}
                 />
               ))}
             </div>
@@ -193,12 +251,14 @@ export function CreativeStudio({
 
           {tab === 'videos' && (
             <div className="grid gap-3 sm:grid-cols-2">
-              {pack.videoConcepts.map((c) => (
+              {pack.videoConcepts.map((c, i) => (
                 <VideoCard
                   key={c.id}
                   concept={c}
                   labels={labels}
                   onCopy={handleCopy}
+                  scorecard={videoScorecards[i] ?? null}
+                  language={language}
                 />
               ))}
             </div>
@@ -209,6 +269,8 @@ export function CreativeStudio({
               storyboard={pack.storyboard}
               labels={labels}
               onCopy={handleCopy}
+              scorecard={storyboardScorecard}
+              language={language}
             />
           )}
         </div>
@@ -286,10 +348,14 @@ function ImageCard({
   concept,
   labels,
   onCopy,
+  scorecard,
+  language,
 }: {
   concept: CreativeImagePrompt;
   labels: CreativeStudioCopy;
   onCopy: (t: string) => void;
+  scorecard: CreativeScorecard | null;
+  language: 'fr' | 'en';
 }) {
   const aspect = PLATFORM_FORMAT_ASPECT_RATIO[concept.platformFormat];
   return (
@@ -339,6 +405,9 @@ function ImageCard({
       >
         <ClipboardCopy size={12} /> {labels.imageCardCopyButton}
       </button>
+      {scorecard && (
+        <CreativeScorePanel scorecard={scorecard} language={language} compact />
+      )}
     </article>
   );
 }
@@ -347,10 +416,14 @@ function VideoCard({
   concept,
   labels,
   onCopy,
+  scorecard,
+  language,
 }: {
   concept: CreativeVideoPrompt;
   labels: CreativeStudioCopy;
   onCopy: (t: string) => void;
+  scorecard: CreativeScorecard | null;
+  language: 'fr' | 'en';
 }) {
   const aspect = PLATFORM_FORMAT_ASPECT_RATIO[concept.platformFormat];
   return (
@@ -396,6 +469,9 @@ function VideoCard({
       >
         <ClipboardCopy size={12} /> {labels.videoCardCopyButton}
       </button>
+      {scorecard && (
+        <CreativeScorePanel scorecard={scorecard} language={language} compact />
+      )}
     </article>
   );
 }
@@ -404,10 +480,14 @@ function StoryboardPanel({
   storyboard,
   labels,
   onCopy,
+  scorecard,
+  language,
 }: {
   storyboard: CreativeStoryboard;
   labels: CreativeStudioCopy;
   onCopy: (t: string) => void;
+  scorecard: CreativeScorecard | null;
+  language: 'fr' | 'en';
 }) {
   const text = useMemo(() => storyboardToText(storyboard, labels), [storyboard, labels]);
   return (
@@ -465,6 +545,9 @@ function StoryboardPanel({
       >
         <ClipboardCopy size={12} /> {labels.storyboardCopyButton}
       </button>
+      {scorecard && (
+        <CreativeScorePanel scorecard={scorecard} language={language} />
+      )}
     </section>
   );
 }
